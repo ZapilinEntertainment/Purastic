@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63315a2c441e15142a3651c364e29e0c, type: 3}
+  m_Name: MaterialsPack
+  m_EditorClassIdentifier: 
+  <Plastic>k__BackingField: {fileID: 2100000, guid: b15982ea5c0709e46b2cea9988bef394,
+    type: 2}
+  <PlacingPart>k__BackingField: {fileID: 2100000, guid: c23eb281bfc37834f91acf23a39ac68b,
+    type: 2}

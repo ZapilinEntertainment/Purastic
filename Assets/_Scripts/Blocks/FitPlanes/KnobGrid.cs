@@ -4,14 +4,21 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public readonly struct BaseplateGrid : IFitPlanesContainer
+	public readonly struct KnobGrid : IFitPlanesContainer
 	{
 		public readonly byte Width, Length;
+		public readonly int HeightInPlates;
 
-		public BaseplateGrid(byte width, byte length)
+        public KnobGrid(int width, int length, int heightInPlates = 1) : this((byte)Mathf.Clamp(width, 1, 255), (byte)Mathf.Clamp(length, 1, 255), heightInPlates)
+		{
+        }
+
+        public KnobGrid(byte width, byte length, int heightInPlates = 1)
 		{
 			this.Width = width;
 			this.Length = length;
+			HeightInPlates = heightInPlates;
+			if (HeightInPlates < 1) HeightInPlates = 1;
 		}
         public override int GetHashCode() => (Width, Length).GetHashCode();
 
@@ -24,7 +31,7 @@ namespace ZE.Purastic {
 			{
 				for (int j = 0; j < Length; j++)
 				{
-					planes[i * Width + j] = new FitPlane(FitType.Knob, new Vector3((i - halfWidth + 0.5f) * pinsize, GameConstants.PLATE_THICK, (j - halfLength + 0.5f) * pinsize));
+					planes[i * Length + j] = new FitPlane(FitType.Knob, new Vector3((i - halfWidth + 0.5f) * pinsize, GameConstants.GetHeight(HeightInPlates), (j - halfLength + 0.5f) * pinsize));
 				}
 			}
 			return planes;

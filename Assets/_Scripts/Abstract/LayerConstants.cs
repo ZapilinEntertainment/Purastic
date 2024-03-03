@@ -4,17 +4,17 @@ using UnityEngine;
 
 namespace ZE.Purastic {
 
-    public enum CustomLayermask : byte { Default, GroundCast }
+    public enum CustomLayermask : byte { Default, GroundCast, BlockPlaceCast }
     public static class CustomLayermaskExtension { 
         public static int ToInt(this CustomLayermask layermask) => LayerConstants.GetCustomLayermask(layermask);
     }
-    public enum DefinedLayer : byte { Default, Collectable, Player, Terrain }
+    public enum DefinedLayer : byte { Default, Collectable, Player, Terrain, Pinplane }
     public static class LayerConstants
 	{
         private static Dictionary<CustomLayermask, int> _customLayermasks = new Dictionary<CustomLayermask, int>();
         private static Dictionary<DefinedLayer, int> _definedLayers = new Dictionary<DefinedLayer, int>();
         public const string DEFAULT_LAYERNAME = "Default", COLLECTABLE_LAYERNAME = "Collectable", PLAYER_LAYERNAME = "Player", 
-            TERRAIN_LAYERNAME = "Terrain";
+            TERRAIN_LAYERNAME = "Terrain", PINPLANE_LAYERNAME = "Pinplane";
 
         public static int GetDefinedLayer(DefinedLayer definedLayer)
         {
@@ -24,6 +24,7 @@ namespace ZE.Purastic {
                 string layerName;
                 switch (definedLayer)
                 {
+                    case DefinedLayer.Pinplane: layerName = PINPLANE_LAYERNAME; break;
                     case DefinedLayer.Player: layerName = PLAYER_LAYERNAME; break;
                     case DefinedLayer.Collectable: layerName = COLLECTABLE_LAYERNAME; break;
                     case DefinedLayer.Terrain: layerName = TERRAIN_LAYERNAME; break;
@@ -40,6 +41,7 @@ namespace ZE.Purastic {
             {
                 switch (customLayer)
                 {
+                    case CustomLayermask.BlockPlaceCast: value = LayerMask.GetMask(PINPLANE_LAYERNAME); break;
                     case CustomLayermask.GroundCast: value = LayerMask.GetMask(DEFAULT_LAYERNAME, TERRAIN_LAYERNAME); break;
                     default: value = LayerMask.GetMask(DEFAULT_LAYERNAME); break;
                 }

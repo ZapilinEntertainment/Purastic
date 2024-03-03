@@ -6,14 +6,14 @@ using System;
 
 namespace ZE.Purastic {
     [Serializable]
-    public class BlockMaterial
+    public struct BlockMaterial
     {
-		[field:SerializeField] public float Mass { get; private set; } = 1f;
-        [field: SerializeField] public Material VisibleMaterial { get; private set; }
+        [field: SerializeField] public VisualMaterialType VisualMaterialType{ get; private set; }
+        [field: SerializeField] public BlockColor BlockColor { get; private set; }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Mass, VisibleMaterial.GetHashCode());
+            return HashCode.Combine(BlockColor.GetHashCode(), VisualMaterialType.GetHashCode());
         }
     }
 }

@@ -8,11 +8,11 @@ namespace ZE.Purastic {
 	{
 		// INDEV
 
-		public void CacheModel(BlockModel blockModel)
+		public void CacheModel(ICachableModel blockModel)
 		{
-			GameObject.Destroy(blockModel.gameObject);
+			GameObject.Destroy(blockModel.ModelObject);
 		}
-		public bool TryGetCachedModel(Block block, out BlockModel model)
+		public bool TryGetCachedPart(Block block, out BlockModel model)
 		{
 			model = null;
 			return false;

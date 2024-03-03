@@ -13,9 +13,15 @@ namespace ZE.Purastic {
 
 		public Block(IFitPlanesContainer fitPlanes, Vector3 size, BlockMaterial material)
 		{
-			this.FitPlanesHost = fitPlanes;
-			this.Size = size;
-			this.Material = material;
+			FitPlanesHost = fitPlanes;
+			Size = size;
+			Material = material;
+		}
+		public Block(KnobGrid knobGrid, BlockMaterial material)
+		{
+			Material = material;
+			Size = new Vector3(knobGrid.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(knobGrid.HeightInPlates), knobGrid.Length * GameConstants.BLOCK_SIZE) ;
+			FitPlanesHost = knobGrid;
 		}
         public override int GetHashCode()
         {

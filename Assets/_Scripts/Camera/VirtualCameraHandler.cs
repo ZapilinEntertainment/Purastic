@@ -70,5 +70,17 @@ namespace ZE.Purastic {
 
         public Vector3 WorldToScreenPoint(Vector3 worldPoint) => _camera.WorldToScreenPoint(worldPoint);
         public Vector3 CameraToWorldDirection(Vector2 dir) => _cameraTransform.rotation * dir;
+        public bool TryRaycast(Vector2 screenPos, out RaycastHit hitPoint, int castMask = -1)
+        {
+            var ray = _camera.ScreenPointToRay(screenPos);
+            if (castMask == -1)
+            {
+                return Physics.Raycast(ray, maxDistance: GameConstants.MAX_POINT_CAST_DISTANCE, hitInfo: out hitPoint) ;                
+            }
+            else
+            {
+                return Physics.Raycast(ray, maxDistance: GameConstants.MAX_POINT_CAST_DISTANCE, hitInfo: out hitPoint, layerMask: castMask);
+            }
+        }
     }
 }

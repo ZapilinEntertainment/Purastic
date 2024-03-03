@@ -66,6 +66,10 @@ namespace ZE.ServiceLocator
         {
             return Instance._containers[containerID].GetFactory<T>();
         }
+        public static T GetFactory<T>() where T : IFactory
+        {
+            return Instance.Container.GetFactory<T>();
+        }
         public static LocatorLinkWrapper<T> GetLinkWrapper<T>(int containerID = 0) => Instance._containers[containerID].GetLinkWrapper<T>();
     }
 }

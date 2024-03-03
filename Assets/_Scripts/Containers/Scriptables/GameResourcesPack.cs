@@ -7,6 +7,7 @@ namespace ZE.Purastic {
     public sealed class GameResourcesPack : ScriptableObject
 	{
 		[field: SerializeField] public PlayableCharacter DefaultCharacter { get; private set; }
-		[field: SerializeField] public GameObject KnobPrefab { get; private set; }
+		[field: SerializeField] public BrickModelsPack BrickModelsPack { get; private set; }
+		[field: SerializeField] public VisualMaterialsPack MaterialsPack { get; private set; }
 	}
 }

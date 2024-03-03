@@ -35,6 +35,7 @@ namespace ZE.Purastic {
 
 		public Vector3 WorldToScreenPoint(Vector3 worldPos) => ActiveCameraHandler.WorldToScreenPoint(worldPos);
 		public Vector3 CameraToWorldDirection(Vector2 dir) => ActiveCameraHandler.CameraToWorldDirection(dir);
+		public bool TryRaycast(Vector2 screenPos, out RaycastHit raycastHit, int castMask = -1) => ActiveCameraHandler.TryRaycast(screenPos,out raycastHit, castMask);
 
     }
 }

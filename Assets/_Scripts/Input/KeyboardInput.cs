@@ -43,7 +43,7 @@ namespace ZE.Purastic {
                 */
                 CheckControl(ControlButtonID.Jump, Input.GetKey(KeyCode.Space));
 
-                CheckControl(ControlButtonID.LeftClick, Input.GetMouseButtonDown(0));
+                CheckControl(ControlButtonID.PlaceBlockButton, Input.GetMouseButtonDown(0));
                 CheckControl(ControlButtonID.RightClick, Input.GetMouseButtonDown(1));
             }
 

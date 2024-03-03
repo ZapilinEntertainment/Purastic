@@ -6,15 +6,25 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public sealed class CollectableBlock : PlayerTrigger, IContainable, ICollectable
 	{
-        [SerializeField] private Block _block;
+        [SerializeField]private BlockMaterial _blockMaterial;
+        [SerializeField] private Vector3Int _dimensions;
         private BlockModel _model;
         public bool IsConsumable => false;
         public int ContainerID { get; set; }
-        private async void Start()
+
+
+         
+        
+        protected override async void Start()
         {
+            base.Start();
            var blockCreateService = await ServiceLocatorObject.GetWhenLinkReady<BlockCreateService>();
-            _model = await blockCreateService.CreateBlockModel(_block);
+
+            var block = new Block(new KnobGrid(_dimensions.x, _dimensions.z, _dimensions.y), _blockMaterial);
+            _model = await blockCreateService.CreateBlockModel(block);
+            _model.transform.SetParent(transform, false);
         }
+        
 
         protected override void OnPlayerEnter(PlayerController player)
         {
@@ -48,6 +58,28 @@ namespace ZE.Purastic {
                 _model = null;
             }
             base.Dispose();
+        }
+
+        public class Factory : ContainerObjectFactory<CollectableBlock>
+        {
+            public Factory(Container container) : base(container)
+            {
+            }
+
+            public CollectableBlock Create(Vector3 Position, BlockMaterial material, Vector3Int dimensions)
+            {
+                var block = Instantiate();
+                block._blockMaterial = material;
+                block._dimensions = dimensions;
+                block.transform.position = Position;
+                return block;
+            }
+            protected override CollectableBlock Instantiate()
+            {
+                var obj = new GameObject("collectable");
+                obj.AddComponent<SphereCollider>().radius = 1f;
+                return obj.AddComponent<CollectableBlock>();
+            }
         }
     }
 }

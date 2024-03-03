@@ -23,5 +23,10 @@ namespace ZE.Purastic {
                     break;
              }
         }
+
+        private void Update()
+        {
+           // if (Input.GetKeyDown("x")) ServiceLocatorObject.Instance.Container.GetLinkWrapper<CharacterCreateService>();
+        }
     }
 }

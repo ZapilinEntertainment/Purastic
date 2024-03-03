@@ -6,33 +6,37 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public sealed class BlockCreateService
 	{
-		private AwaitableCompletionSource _gameResourcesCompletion = null;
-		private GameResourcesPack _gameResources;
+		private int _pinplanesLayer = LayerConstants.GetDefinedLayer(DefinedLayer.Pinplane);
+		private AwaitableCompletionSource _resolverCheck;
+		private readonly ComplexResolver<GameResourcesPack, MaterialsDepot> _resolver;
+		private GameResourcesPack GameResources => _resolver.Item1;
+		private MaterialsDepot MaterialsDepot => _resolver.Item2;
+		private BrickModelsPack _brickModelsPack;
+
 		private BlockModelCacheService _blockModelCacheService;
-		private Coroutine _waitForResourcesCoroutine;
 		private Dictionary<int, GameObject> _modelsDepot = new();
 
 		public BlockCreateService()
 		{
-			ServiceLocatorObject.GetWhenLinkReady<GameResourcesPack>(OnGameResourcesLoaded);
+            _resolverCheck = new AwaitableCompletionSource();
+            _resolver = new(OnResolved);
+			
 			ServiceLocatorObject.GetWhenLinkReady((BlockModelCacheService cacheService) => _blockModelCacheService = cacheService);
+			_resolver.CheckDependencies();
 		}
-		private void OnGameResourcesLoaded(GameResourcesPack pack)
+		private void OnResolved()
 		{
-			_gameResources = pack;
-			if (_gameResourcesCompletion != null)
-			{
-				_gameResourcesCompletion.SetResult();
-				_gameResourcesCompletion = null;
-			}
+            _brickModelsPack = GameResources.BrickModelsPack;
+            _resolverCheck.SetResult();			
 		}
 
 		public async Awaitable<BlockModel> CreateBlockModel(Block block)
 		{
+			
 			int hashcode = block.GetHashCode();
 
 			BlockModel blockModel;
-			if (_blockModelCacheService?.TryGetCachedModel(block, out blockModel) ?? true)
+			if (_blockModelCacheService == null || !_blockModelCacheService.TryGetCachedPart(block, out blockModel))
 			{
 				GameObject modelLink;
 				if (!_modelsDepot.TryGetValue(hashcode, out modelLink))
@@ -46,25 +50,20 @@ namespace ZE.Purastic {
                 model.transform.SetParent(blockModel.transform, false);
                 model.SetActive(true);
             }
-			else
-			{
-				// todo
-			}
-            	
-			blockModel.Setup(block);            
+
+            if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
+            blockModel.Setup(block, MaterialsDepot.GetVisualMaterial(block.Material));            
             return blockModel;
         }
 
 		private async Awaitable<GameObject> CreateModel(Block block)
 		{
-			if (_gameResources == null)
-			{
-				if (_gameResourcesCompletion == null) _gameResourcesCompletion = new();
-				await _gameResourcesCompletion.Awaitable;
-			}
-			Transform host = new GameObject("modelHost").transform;
-			var model = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
+            Transform host = new GameObject("modelHost").transform;
+			var model = GameObject.Instantiate(_brickModelsPack.CubePrefab);		
 			model.transform.SetParent(host,false);
+			model.gameObject.layer = _pinplanesLayer;
+
 			var size = block.Size;
 			model.transform.localPosition = 0.5f * size.y * Vector3.up;
 			model.transform.localScale = size;
@@ -73,7 +72,7 @@ namespace ZE.Purastic {
 			{
 				foreach (var plane in fitPlanes)
 				{
-					Object.Instantiate(_gameResources.KnobPrefab, position: plane.Position, rotation: Quaternion.identity, parent: host);
+					Object.Instantiate(_brickModelsPack.KnobPrefab, position: plane.Position, rotation: Quaternion.identity, parent: host);
 				}
 			}
 			return host.gameObject;

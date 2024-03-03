@@ -34,6 +34,7 @@ namespace ZE.ServiceLocator
         }
         protected abstract T Instantiate();
     }
+    [DefaultExecutionOrder(-100)]
     public class Container 
     {
         private Dictionary<Type, IResolveAwaiter> _awaitingItems = new ();
@@ -64,7 +65,7 @@ namespace ZE.ServiceLocator
                 if (writeOverIfPresented) { (_resolvablesList[key] as ILinkWrapper).SetLink(instance); }
             }
         }
-        public void RegisterInstallInstruction<T>(Func<object> createFunc, bool writeOverIfPresented = true)
+        public void RegisterInstallInstruction<T>(Func<object> createFunc, bool writeOverIfPresented = true, bool instantInitialize = false)
         {
             Type key = typeof(T);
             if (!_installInstructions.ContainsKey(key) || writeOverIfPresented)
@@ -75,6 +76,7 @@ namespace ZE.ServiceLocator
                     (resolvable as LocatorLinkWrapper<T>).SetLink(createFunc);
                 }
             }
+            if (instantInitialize) GetLinkWrapper<T>();
         }
 
         public void GetWhenLinkReady<T>(Action<T> resolveAction)
@@ -108,7 +110,7 @@ namespace ZE.ServiceLocator
                 return wrapper.Value;
 
                 void OnLinkReady()
-                {
+                {                    
                     awaiter.SetResult(wrapper.Value);
                 }
             }
@@ -169,8 +171,8 @@ namespace ZE.ServiceLocator
             {
                 resolver = (LocatorLinkWrapper<T>)CreateResolver<T>();
                 if (_installInstructions.TryGetValue(key, out var createAction))
-                {
-                    resolver.SetLink(createAction);
+                {                    
+                    resolver.SetLink(createAction());
                 }
                 _resolvablesList.Add(key, resolver);
             }

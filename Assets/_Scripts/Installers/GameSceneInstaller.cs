@@ -12,14 +12,22 @@ namespace ZE.Purastic {
         [SerializeField] private NetworkManager _networkManager;
         protected override void OnInstall()
         {
-            RegisterInstance(new SignalBus(_container.ID));
-            RegisterInstance(_resourcesPack);
+            RegisterInstance(new SignalBus(_container.ID));            
             RegisterInstance(_cameraController);
-            RegisterInstance(_networkManager);            
+            RegisterInstance(_networkManager);
+
+            RegisterInstance(_resourcesPack);
+            RegisterInstance(_resourcesPack.MaterialsPack);
+            RegisterInstance(_resourcesPack.BrickModelsPack);
 
             RegisterInstruction<CharacterCreateService>();
             RegisterInstruction<BlockCreateService>();
             RegisterInstruction<BlockModelCacheService>();
+
+            RegisterInstruction<ColliderListSystem>();
+            RegisterMonoComponentInstruction<BlockPlaceSystem>(true);
+
+            RegisterInstruction<MaterialsDepot>();
         }
     }
 }

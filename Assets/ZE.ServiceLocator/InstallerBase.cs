@@ -14,9 +14,9 @@ namespace ZE.ServiceLocator
         }
         protected abstract void OnInstall();
 
-        protected void RegisterMonoComponentInstruction<T>() where T : MonoBehaviour => _container.RegisterInstallInstruction<T>(CreateComponent<T>);
-        protected void RegisterInstruction<T>() => _container.RegisterInstallInstruction<T>(CreateObject<T>);
-        protected void RegisterInstance<T>(T instance, bool overrideIfPresented = false) => _container.RegisterInstance(instance, overrideIfPresented);
+        protected void RegisterMonoComponentInstruction<T>(bool instantInitialize = false) where T : MonoBehaviour => _container.RegisterInstallInstruction<T>(CreateComponent<T>, instantInitialize : instantInitialize);
+        protected void RegisterInstruction<T>(bool instantInitialize = false) => _container.RegisterInstallInstruction<T>(CreateObject<T>, instantInitialize: instantInitialize);
+        protected void RegisterInstance<T>(T instance, bool overrideIfPresented = false) => _container.RegisterInstance(instance, writeOverIfPresented: overrideIfPresented);
 
 
         protected T CreateComponent<T>() where T : MonoBehaviour

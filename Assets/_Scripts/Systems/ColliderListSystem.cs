@@ -93,12 +93,93 @@ namespace ZE.Purastic {
                 return _list.TryGetValue(id, out owner);
             }
         }
+        
+        private class BlockpartsList
+        {
+            private class BlockpartsCollider
+            {
+                private readonly BlockpartsList _host;
+                public int[] CollidersIDs;
+                public readonly IBlocksHost BlocksHost;
 
+                public BlockpartsCollider(BlockpartsList list, IBlocksHost host)
+                {
+                    _host = list;
+                    BlocksHost = host;
+                    CollidersIDs = BlocksHost.GetColliderIDs();
+                    foreach (int id in CollidersIDs) _host._blocksColliders.Add(id, this);
+                }
+                public void Update()
+                {
+                    var newIdsList = new List<int>( BlocksHost.GetColliderIDs());
+                    foreach (int id in CollidersIDs)
+                    {
+                        if (!newIdsList.Contains(id)) _host._hostsList.Remove(id);
+                    }
+                    foreach (int id in newIdsList)
+                    {
+                        _host._hostsList.TryAdd(id, this);
+                    }
+                    CollidersIDs = newIdsList.ToArray();
+                }
+                public void Clear()
+                {
+                    foreach (int id in CollidersIDs)
+                    {
+                       _host._hostsList.Remove(id);
+                    }
+                }
+            }
+            private Dictionary<int, BlockpartsCollider> _blocksColliders = new(), _hostsList = new();
+
+            public void AddBlockpartsCollider(IBlocksHost host)
+            {
+                var blockpartsCollider = new BlockpartsCollider(this, host);
+                _hostsList.Add(host.ID, blockpartsCollider);
+            }
+            public void UpdateCollider(IBlocksHost host)
+            {
+                if (_blocksColliders.TryGetValue(host.ID, out var collider))
+                {
+                    collider.Update();
+                }
+                else
+                {
+                    AddBlockpartsCollider(host);
+                }
+            }
+            public void RemoveBlockpartsCollider(IBlocksHost host)
+            {
+                if (_hostsList.TryGetValue(host.ID, out var collidersList)) {
+                    collidersList.Clear();
+                    _hostsList.Remove(host.ID);
+                }
+            }
+            public bool TryDefineBlockhost(int id, out IBlocksHost host) {
+                if (_blocksColliders.TryGetValue(id, out var collider))
+                {
+                    host = collider.BlocksHost; return true;
+                }
+                else
+                {
+                    host = null;
+                    return false;
+                }
+            }
+        }
+
+
+        private BlockpartsList _blockPartsList = new();
 		private LinkedColliderOwnersList<PlayerController> _playerColliders = new();
 
 		public void AddPlayerColliders(PlayerController player, IColliderOwner collider) => _playerColliders.AddOwner(player, collider);
 		public void RemovePlayerCollider(IColliderOwner collider) => _playerColliders.RemoveOwner(collider);
 		public bool TryDefineAsPlayer(int id, out PlayerController player) => _playerColliders.TryGetOwner(id, out player);
-		
+
+       
+		public void AddBlockhost(IBlocksHost host) => _blockPartsList.AddBlockpartsCollider(host);
+        public void UpdateBlockhost(IBlocksHost host) => _blockPartsList.UpdateCollider(host);
+        public void RemoveBlockhost(IBlocksHost host) => _blockPartsList.RemoveBlockpartsCollider(host);
+        public bool TryDefineBlockhost(int id, out IBlocksHost host) => _blockPartsList.TryDefineBlockhost(id, out host);
 	}
 }

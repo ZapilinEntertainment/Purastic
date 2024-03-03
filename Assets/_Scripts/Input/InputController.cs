@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ZE.ServiceLocator;
 using Unity.Netcode;
+using System;
 
 namespace ZE.Purastic {
 	public sealed class InputController : IInputController
@@ -15,26 +16,32 @@ namespace ZE.Purastic {
                 get => _controlsMask[(int)id];
                 set => _controlsMask[(int)id] = value;
             }
+            public void ResetMask() => _controlsMask.SetAll(false);
+        }
+        private class ButtonSubscribers
+        {
+            public Action OnKeyDownEvent;
+            public Action OnKeyUpEvent;
         }
 
         private bool _controllableObjectSet = false;
         private bool AreControlsLocked => _controlsLocker.IsLocked;
-        private Vector2 _moveVector = Vector3.zero;
         private IPlayerControllable _controllableObject;
         private Locker _controlsLocker = new Locker();
         private ControlsMask _controlsMask = new ControlsMask();
         private CameraController _cameraController;
+        private Dictionary<ControlButtonID, ButtonSubscribers> _controlSubscribers = new();
         public Vector3 MoveVector
         {
             get
             {
-                _moveVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+                var _moveVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
                 var vector =_cameraController.CameraToWorldDirection(_moveVector);
                 return new Vector3(vector.x, 0f, vector.z).normalized;
             }
             set { }
         }
-
+        public Vector2 CursorPosition => Input.mousePosition;
 
         public InputController(CameraController cameraController) {
             _cameraController = cameraController;
@@ -64,16 +71,45 @@ namespace ZE.Purastic {
         }
 
         public void OnButtonDown(ControlButtonID button) {
-            _controlsMask[button] = true;
-            Recalculation();
+            if (AreControlsLocked) return;
+            if (_controlsMask[button] != true)
+            {
+                _controlsMask[button] = true;
+                Recalculation();
+                if (_controlSubscribers.TryGetValue(button, out var value))
+                {
+                    value.OnKeyDownEvent?.Invoke();
+                }
+            }
         }
         public void OnButtonUp(ControlButtonID button) {
-            _controlsMask[button] = false;
-            Recalculation();
+            if (AreControlsLocked) return;
+            if (_controlsMask[button] != false)
+            {
+                _controlsMask[button] = false;
+                Recalculation();
+                if (_controlSubscribers.TryGetValue(button, out var value))
+                {
+                    value.OnKeyUpEvent?.Invoke();
+                }
+            }
+        }
+        public void SubscribeToKeyEvents(ControlButtonID button, Action OnKeyPressedEvent, Action OnKeyReleasedEvent = null)
+        {
+            ButtonSubscribers subscriber;
+            if (!_controlSubscribers.TryGetValue(button, out subscriber))
+            {
+                subscriber = new();
+                _controlSubscribers.Add(button, subscriber);
+            }
+            subscriber.OnKeyDownEvent += OnKeyPressedEvent;
+            if (OnKeyReleasedEvent != null) subscriber.OnKeyUpEvent += OnKeyReleasedEvent;
         }
         private void Recalculation()
         {
-            if (AreControlsLocked) return;
+            
+
+            /*
             float x = 0f, y = 0f;
             if (_controlsMask[ControlButtonID.MoveLeft]) x = -1f;
             else
@@ -86,13 +122,19 @@ namespace ZE.Purastic {
                 if (_controlsMask[ControlButtonID.MoveBack]) y = -1f;
             }
             _moveVector = new Vector2(x, y);
+            */
             
 
             if (_controlsMask[ControlButtonID.Jump] && _controllableObjectSet) _controllableObject.Jump(); 
         }
         private void ResetInput()
         {
-            _moveVector = Vector2.zero;
+            // _moveVector = Vector2.zero;
+            _controlsMask.ResetMask();
+            foreach (var values in _controlSubscribers.Values)
+            {
+                values.OnKeyUpEvent?.Invoke();
+            }
         }
 
         public void Sync(Synchronizer sync) { }

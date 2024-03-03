@@ -6,7 +6,7 @@ using Unity.Netcode;
 
 namespace ZE.Purastic {
 
-	public sealed class PlayableCharacter : MonoBehaviour, IPlayerControllable, IContainable
+	public sealed class PlayableCharacter : MonoBehaviour, IPlayerControllable, IContainable, ICharacterHand
 	{
 		//[SerializeField] private Animator _animator;
 		[SerializeField] private CharacterSettings _characterSettings;
@@ -23,8 +23,8 @@ namespace ZE.Purastic {
 		public int ContainerID { get; set; }
 		public Vector3 MoveVector { get; private set; }
 		public IColliderOwner GetColliderOwner() => _model;
-		public ViewPointInfo GetViewPointInfo() => new ViewPointInfo(_model.ViewPoint, _characterSettings.ViewSettings);
-		public CharacterHandsModule HandsModule { get; private set; }
+		public Transform HandPoint => _model.HandPoint;
+		public ViewPointInfo GetViewPointInfo() => new ViewPointInfo(_model.ViewPoint, _characterSettings.ViewSettings);		
 
         private void Start()
         {
@@ -32,7 +32,6 @@ namespace ZE.Purastic {
 			_gravityHandler = new GravityHandler(_characterSettings.GravityConfig, _model.ZeroPoint);
 			_moveHandler= new MovementHandler(_characterSettings.MoveConfig);
 			if (_controller != null) _moveHandler.SetInputController(_controller);
-			HandsModule = new CharacterHandsModule(_model.HandPoint);
         }
 
 		public void AssignController(IInputController input, bool isAuthoritative)

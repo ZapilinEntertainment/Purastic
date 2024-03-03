@@ -19,11 +19,11 @@ namespace ZE.Purastic {
         public Action OnPlayerExitEvent;
         public Action<PlayerController> OnPlayerEnterEvent;
 
-        virtual protected void Awake()
+        virtual protected void Start()
         {
             _trigger = GetComponent<Collider>();
             _trigger.isTrigger = true;
-            if (IsServer)
+            if (IsOwner)
             {
                 _trigger.gameObject.layer = LayerConstants.GetDefinedLayer(DefinedLayer.Collectable);
                 ServiceLocatorObject.GetWhenLinkReady((ColliderListSystem collidersList) => _collidersList = collidersList);
@@ -33,7 +33,6 @@ namespace ZE.Purastic {
                 _trigger.enabled = false;
             }
         }
-
 
         private void OnTriggerEnter(Collider other)
         {

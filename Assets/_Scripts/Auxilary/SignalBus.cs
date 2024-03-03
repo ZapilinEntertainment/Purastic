@@ -88,4 +88,12 @@ namespace ZE.Purastic{
 		public readonly ViewPointInfo ViewPointInfo;
 		public CameraViewPointChangedSignal(ViewPointInfo viewPointInfo) { ViewPointInfo= viewPointInfo; }
 	}
+	public class ActivateBlockPlaceSystemSignal : ISignal {
+		public readonly IBlockPlacer BlockPlacer;
+		public ActivateBlockPlaceSystemSignal(IBlockPlacer blockPlacer)
+		{
+			BlockPlacer= blockPlacer;
+		}
+	}
+	public class DeactivateBlockPlaceSystemSignal : ISignal { }
 }

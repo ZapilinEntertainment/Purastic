@@ -6,7 +6,7 @@ using Unity.Netcode;
 using System;
 
 namespace ZE.Purastic {
-    public sealed class PlayerController : NetworkBehaviour, ICollector
+    public sealed class PlayerController : NetworkBehaviour, ICollector, ICharacterController
     {
         private bool _isOnOwnersDevice = false;
         private NetworkVariable<PlayerSyncModule> _playerSyncModule = new(writePerm:NetworkVariableWritePermission.Owner);
@@ -14,11 +14,13 @@ namespace ZE.Purastic {
         private CharacterCreateService _characterCreateService;        
         private NetworkVariable<Vector3> _someVector = new(writePerm: NetworkVariableWritePermission.Owner);
         public PlayableCharacter ActiveCharacter { get; private set; }
-        public Action<PlayableCharacter> OnCharacterChangedEvent;
+        public EquipmentModule EquipmentModule { get; private set;}
+        public Action<PlayableCharacter> OnCharacterChangedEvent { get; set; }
 
         private async void Start()
         {
             _isOnOwnersDevice = IsOwner;
+            EquipmentModule = new(this, _isOnOwnersDevice);
 
             if (_isOnOwnersDevice)
             {
@@ -43,6 +45,7 @@ namespace ZE.Purastic {
             ActiveCharacter.transform.parent = transform;
             ActiveCharacter.transform.position = Vector3.one;
             if (_inputController != null) ActiveCharacter.AssignController(_inputController, _isOnOwnersDevice);
+            if (_isOnOwnersDevice) ServiceLocatorObject.Get<ColliderListSystem>().AddPlayerColliders(this, ActiveCharacter.GetColliderOwner());
 
             OnCharacterChangedEvent?.Invoke(character);
 
@@ -51,20 +54,17 @@ namespace ZE.Purastic {
 
         private void Update()
         {
-            if (IsOwner)
+            if (ActiveCharacter != null)
             {
-                _playerSyncModule.Value = new PlayerSyncModule() { InputSync = _inputController.GetSync(), CharacterSync = ActiveCharacter.GetSync() };
-            }
-            else
-            {
-                _inputController.Sync(_playerSyncModule.Value.InputSync);
-                ActiveCharacter.Sync(_playerSyncModule.Value.CharacterSync);
-
-                Vector3 vel = Vector3.zero;
-                float interpolationTime = 0.1f;
-             //   transform.position = Vector3.SmoothDamp(transform.position, _someVector.Value, ref vel, interpolationTime);
-                float targetAngle = 0f, angleVel = 0f;
-              //  transform.rotation = Quaternion.Euler(0f, Mathf.SmoothDampAngle(transform.rotation.y, targetAngle, ref angleVel, interpolationTime),0f);
+                if (IsOwner)
+                {
+                    _playerSyncModule.Value = new PlayerSyncModule() { InputSync = _inputController.GetSync(), CharacterSync = ActiveCharacter.GetSync() };
+                }
+                else
+                {
+                    _inputController.Sync(_playerSyncModule.Value.InputSync);
+                    ActiveCharacter.Sync(_playerSyncModule.Value.CharacterSync);
+                }
             }
         }
 
@@ -75,7 +75,7 @@ namespace ZE.Purastic {
 
         public bool TryCollect(ICollectable collectable)
         {
-            if (_isOnOwnersDevice) return false;
+            if (!_isOnOwnersDevice) return false;
             if (collectable.IsConsumable)
             {
                 // todo
@@ -83,7 +83,7 @@ namespace ZE.Purastic {
             }
             else
             {
-               return ActiveCharacter.HandsModule.TryGetInHand(collectable);
+               return EquipmentModule.TryGetInHand(collectable);
             }
         }
 

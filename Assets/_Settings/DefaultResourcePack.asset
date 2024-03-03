@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DefaultCharacter>k__BackingField: {fileID: 1865817074574123475, guid: c4e988dc1e9669b4d8339b5106b1ef9b,
     type: 3}
-  <KnobPrefab>k__BackingField: {fileID: 7816409783668133872, guid: 7dcdd119a33561843b1a4dfede59dcd2,
-    type: 3}
+  <BrickModelsPack>k__BackingField: {fileID: 11400000, guid: bf12706aedbcff44cafc5f91ca70acc8,
+    type: 2}
+  <MaterialsPack>k__BackingField: {fileID: 11400000, guid: b1c3ef9365467b74c9ed49924a3f420a,
+    type: 2}
