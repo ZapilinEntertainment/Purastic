@@ -13,7 +13,7 @@ namespace ZE.Purastic {
 
         public bool HaveMultipleColliders => false;
 		public int GetColliderID() => _collider.GetInstanceID();
-		public int[] GetColliderIDs() => new int[1] { GetColliderID() };
+		public IReadOnlyCollection<int> GetColliderIDs() => new int[1] { GetColliderID() };
 
         public void SetView(Vector3 dir) =>  transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 

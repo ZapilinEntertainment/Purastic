@@ -13,7 +13,7 @@ namespace ZE.Purastic {
 		private MaterialsDepot MaterialsDepot => _resolver.Item2;
 		private BrickModelsPack _brickModelsPack;
 
-		private BlockModelCacheService _blockModelCacheService;
+		private BlockModelPoolService _blockModelCacheService;
 		private Dictionary<int, GameObject> _modelsDepot = new();
 
 		public BlockCreateService()
@@ -21,7 +21,7 @@ namespace ZE.Purastic {
             _resolverCheck = new AwaitableCompletionSource();
             _resolver = new(OnResolved);
 			
-			ServiceLocatorObject.GetWhenLinkReady((BlockModelCacheService cacheService) => _blockModelCacheService = cacheService);
+			ServiceLocatorObject.GetWhenLinkReady((BlockModelPoolService cacheService) => _blockModelCacheService = cacheService);
 			_resolver.CheckDependencies();
 		}
 		private void OnResolved()
@@ -30,7 +30,7 @@ namespace ZE.Purastic {
             _resolverCheck.SetResult();			
 		}
 
-		public async Awaitable<BlockModel> CreateBlockModel(Block block)
+		public async Awaitable<BlockModel> CreateBlockModel(BlockProperties block)
 		{
 			
 			int hashcode = block.GetHashCode();
@@ -56,7 +56,7 @@ namespace ZE.Purastic {
             return blockModel;
         }
 
-		private async Awaitable<GameObject> CreateModel(Block block)
+		private async Awaitable<GameObject> CreateModel(BlockProperties block)
 		{
             if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
             Transform host = new GameObject("modelHost").transform;
@@ -64,10 +64,10 @@ namespace ZE.Purastic {
 			model.transform.SetParent(host,false);
 			model.gameObject.layer = _pinplanesLayer;
 
-			var size = block.Size;
+			var size = block.ModelSize;
 			model.transform.localPosition = 0.5f * size.y * Vector3.up;
 			model.transform.localScale = size;
-			var fitPlanes = block.FitPlanesHost.GetFitPlanes();
+			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(block.FitPlanesHash).GetAllFitElements();
 			if (fitPlanes.Count > 0)
 			{
 				foreach (var plane in fitPlanes)

@@ -4,8 +4,10 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public interface ICachableModel
+	public interface IPoolableModel : System.IDisposable
 	{
+        public void OnSpawnedFromPool();
+        public void OnReturnedToPool();		
 		public GameObject ModelObject { get; }
 	}
 }

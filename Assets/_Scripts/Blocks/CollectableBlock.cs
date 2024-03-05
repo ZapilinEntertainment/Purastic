@@ -20,7 +20,7 @@ namespace ZE.Purastic {
             base.Start();
            var blockCreateService = await ServiceLocatorObject.GetWhenLinkReady<BlockCreateService>();
 
-            var block = new Block(new KnobGrid(_dimensions.x, _dimensions.z, _dimensions.y), _blockMaterial);
+            var block = new BlockProperties(new KnobGrid(_dimensions.x, _dimensions.z, _dimensions.y), _blockMaterial);
             _model = await blockCreateService.CreateBlockModel(block);
             _model.transform.SetParent(transform, false);
         }
@@ -52,7 +52,7 @@ namespace ZE.Purastic {
 
         override public void Dispose()
         {            
-            if (_model != null && ServiceLocatorObject.TryGet<BlockModelCacheService>(out var cacheService))
+            if (_model != null && ServiceLocatorObject.TryGet<BlockModelPoolService>(out var cacheService))
             {
                 cacheService.CacheModel(_model);
                 _model = null;

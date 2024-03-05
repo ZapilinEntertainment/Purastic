@@ -99,7 +99,7 @@ namespace ZE.Purastic {
             private class BlockpartsCollider
             {
                 private readonly BlockpartsList _host;
-                public int[] CollidersIDs;
+                public IReadOnlyCollection<int> CollidersIDs;
                 public readonly IBlocksHost BlocksHost;
 
                 public BlockpartsCollider(BlockpartsList list, IBlocksHost host)
@@ -111,7 +111,7 @@ namespace ZE.Purastic {
                 }
                 public void Update()
                 {
-                    var newIdsList = new List<int>( BlocksHost.GetColliderIDs());
+                    var newIdsList = new List<int> (BlocksHost.GetColliderIDs());
                     foreach (int id in CollidersIDs)
                     {
                         if (!newIdsList.Contains(id)) _host._hostsList.Remove(id);
@@ -120,7 +120,7 @@ namespace ZE.Purastic {
                     {
                         _host._hostsList.TryAdd(id, this);
                     }
-                    CollidersIDs = newIdsList.ToArray();
+                    CollidersIDs = newIdsList;
                 }
                 public void Clear()
                 {

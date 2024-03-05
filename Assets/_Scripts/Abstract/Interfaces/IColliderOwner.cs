@@ -7,6 +7,6 @@ namespace ZE.Purastic {
 	{
 		abstract public bool HaveMultipleColliders { get; }
 		public int GetColliderID();
-		public int[] GetColliderIDs();
+		public IReadOnlyCollection<int> GetColliderIDs();
 	}
 }

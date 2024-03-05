@@ -8,4 +8,11 @@ namespace ZE.Purastic {
 	{
 	  Knob, Slot
 	}
+	public static class FitTypeExtension
+	{
+		public static bool CanConnect(this FitType type, FitType otherType)
+		{
+			return type != otherType;
+		}
+	}
 }

@@ -22,7 +22,7 @@ namespace ZE.Purastic {
 
             RegisterInstruction<CharacterCreateService>();
             RegisterInstruction<BlockCreateService>();
-            RegisterInstruction<BlockModelCacheService>();
+            RegisterInstruction<BlockModelPoolService>();
 
             RegisterInstruction<ColliderListSystem>();
             RegisterMonoComponentInstruction<BlockPlaceSystem>(true);

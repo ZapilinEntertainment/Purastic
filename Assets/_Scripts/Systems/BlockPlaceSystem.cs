@@ -13,7 +13,7 @@ namespace ZE.Purastic {
 
         private int _castMask;
 		private BlockPlaceHandler _placeHandler;
-		private LocatorLinkWrapper<BlockModelCacheService> _modelCacheServiceWrapper;
+		private LocatorLinkWrapper<BlockModelPoolService> _modelCacheServiceWrapper;
 		private InputController InputController => _resolver.Item2;
 		private CameraController CameraController => _resolver.Item1;
 		private VisualMaterialsPack MaterialsPack => _resolver.Item3;
@@ -37,7 +37,7 @@ namespace ZE.Purastic {
 			signalBus.SubscribeToSignal<ActivateBlockPlaceSystemSignal>(OnPlaceSystemActivated);
 			signalBus.SubscribeToSignal<DeactivateBlockPlaceSystemSignal>(OnPlaceSystemDeactivated);
 
-			_modelCacheServiceWrapper = ServiceLocatorObject.GetLinkWrapper<BlockModelCacheService>();
+			_modelCacheServiceWrapper = ServiceLocatorObject.GetLinkWrapper<BlockModelPoolService>();
 		}
 		private void OnDependenciesResolved()
 		{
@@ -48,7 +48,7 @@ namespace ZE.Purastic {
 		{
 			_blockPlacer = signal.BlockPlacer;
 			var equippedModel = _blockPlacer.GetPlaceableModel();
-			_placeableModel = await BlockCreateService.CreateBlockModel(equippedModel.GetBlockData());
+			_placeableModel = await BlockCreateService.CreateBlockModel(equippedModel.GetBlockProperty());
 
 			if (_placeableModel != null)
 			{
@@ -67,7 +67,7 @@ namespace ZE.Purastic {
 			enabled = false;
 			if (_placeableModel != null)
 			{
-				if (_placeableModel is ICachableModel) _modelCacheServiceWrapper.Value.CacheModel(_placeableModel as ICachableModel);
+				if (_placeableModel is IPoolableModel) _modelCacheServiceWrapper.Value.CacheModel(_placeableModel as IPoolableModel);
 				else
 				{
 					_placeableModel.Dispose();
@@ -79,7 +79,7 @@ namespace ZE.Purastic {
 		{
 			if (enabled && _placementStatus == PlaceableModelStatus.CanBePlaced)
 			{
-				if (_placeHandler.TryPinDetail(_placeableModel.GetBlockData()))
+				if (_placeHandler.TryPinDetail(_placeableModel.GetBlockProperty()))
 				{
 					_blockPlacer.OnDetailPlaced();
 				}

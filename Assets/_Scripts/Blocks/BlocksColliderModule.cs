@@ -7,30 +7,54 @@ namespace ZE.Purastic {
     public sealed class BlocksColliderModule : IColliderOwner
     {
         private readonly IBlocksHost _host;
-        private List<Collider> _colliders = new ();
-        public bool HaveMultipleColliders => _colliders.Count > 1;
-        public int GetColliderID() => _colliders[0].GetInstanceID();
-        public int[] GetColliderIDs()
-        {
-            int count = _colliders.Count;
-            var ids = new int[count];
-            for (int i = 0; i < count; i++)
-            {
-                ids[i] = _colliders[i].GetInstanceID();
-            }
-            return ids;
-        }
+        private readonly PlacedBlocksListHandler _blocksList;
+        private List<int> _collidersIDs = new();
+        private Dictionary<int, Collider> _collidersList = new();
+        private Dictionary<int, int> _collidersHostIdentifierList = new(); // one block can have many colliders, but a collider have only one owner
+        public bool HaveMultipleColliders => _collidersIDs.Count > 1;
+        public int GetColliderID() => _collidersIDs[0];
+        public IReadOnlyCollection<int> GetColliderIDs() => _collidersIDs;
 
-        public BlocksColliderModule(Baseplate host)
+        public BlocksColliderModule(IBlocksHost host, PlacedBlocksListHandler blocksList)
         {
             _host = host;
+            _blocksList = blocksList;
             _host.CollidersHost.layer = LayerConstants.GetDefinedLayer(DefinedLayer.Pinplane);
 
-            var baseBlock = host.ToBlock();
-            var collider = _host.CollidersHost.AddComponent<BoxCollider>();
-            collider.size = baseBlock.Size;
-            collider.center = 0.5f * baseBlock.Size.y * Vector3.up;
-            _colliders.Add(collider);
+            var blocks = _blocksList.GetPlacedBlocks();
+            foreach (var block in blocks)
+            {
+                var collider = _host.CollidersHost.AddComponent<BoxCollider>();
+                var bounds = block.Properties.ModelSize;
+                collider.size = bounds;
+                collider.center = 0.5f * bounds.y * Vector3.up;
+                AddColliderToList(collider, block.ID);
+            }
+
+            host.OnBlockPlacedEvent += OnBlockAdded;
         }
+
+        private void OnBlockAdded(int id)
+        {           
+            if (_blocksList.TryGetBlock(id, out PlacedBlock block))
+            {
+                var collider = _host.CollidersHost.AddComponent<BoxCollider>();
+                var bounds = block.Properties.ModelSize;
+                collider.size = bounds;
+                collider.center = 0.5f * bounds.y * Vector3.up;
+                AddColliderToList(collider, block.ID);
+            }
+        }
+        private void AddColliderToList(Collider collider, int blockID)
+        {
+            int id = collider.GetInstanceID();
+            if (_collidersList.TryAdd(id, collider))
+            {
+                _collidersIDs.Add(id);
+                _collidersHostIdentifierList.Add(id, blockID);
+            }
+        }
+
+        public bool TryGetBlock(int colliderId, out int blockId) => _collidersHostIdentifierList.TryGetValue(colliderId, out blockId);
     }
 }

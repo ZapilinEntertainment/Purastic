@@ -9,7 +9,7 @@ namespace ZE.Purastic {
 		public bool IsVisible { get; set; }
 		public void SetPlacePosition(Vector3 pos);
 		public void SetDrawMaterial(Material material);
-		public Block GetBlockData();
+		public BlockProperties GetBlockProperty();
 
 		public void Dispose();
 	}
