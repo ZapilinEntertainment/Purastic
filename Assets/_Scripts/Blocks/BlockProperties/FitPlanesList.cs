@@ -4,8 +4,9 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public enum FitPlaneDirection : byte
+	public class FitPlanesList
 	{
-		Undefined, Forward, Right, Back, Left, Up, Down
-	}
+        private FitPlane[] _planes;
+        public IReadOnlyCollection<FitPlane> Planes => _planes;
+    }
 }

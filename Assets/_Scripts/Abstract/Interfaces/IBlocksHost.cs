@@ -10,10 +10,10 @@ namespace ZE.Purastic {
 		public int ID { get; }
 		public Transform ModelsHost { get; }
         public GameObject CollidersHost { get; }
-        public Action<int> OnBlockPlacedEvent { get; set; }
+        public Action<PlacedBlock> OnBlockPlacedEvent { get; set; }
         public IReadOnlyCollection<BlockProperties> GetBlocks();
 
-		public bool TryPinDetail(FitPosition position, BlockProperties block);
-		public FitPosition PointToPin(int colliderID, Vector3 point);
+		public bool TryPinDetail(FitElementPosition position, BlockProperties block);
+        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FitElementPosition position);
     }
 }

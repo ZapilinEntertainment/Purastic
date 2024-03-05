@@ -16,7 +16,7 @@ namespace ZE.Purastic {
 			ModelSize = size;
 			Material = material;
 		}
-		public BlockProperties(KnobGrid knobGrid, BlockMaterial material)
+		public BlockProperties(FitsGrid knobGrid, BlockMaterial material)
 		{
 			Material = material;
 			ModelSize = new Vector3(knobGrid.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(knobGrid.HeightInPlates), knobGrid.Length * GameConstants.BLOCK_SIZE) ;
@@ -26,5 +26,6 @@ namespace ZE.Purastic {
         {
 			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash);
         }
+		public FitPlanesList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

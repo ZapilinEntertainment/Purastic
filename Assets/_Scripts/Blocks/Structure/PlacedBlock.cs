@@ -22,12 +22,15 @@ namespace ZE.Purastic {
             this.Rotation = rotation;
         }
 
-        
-        public FitPosition GetPinPosition(Vector3 pos) // local pos in construction platform space
+        public Vector3 TransformPoint(Vector2 point, BlockFaceDirection face)
+        {
+
+        }
+        public BlockFaceDirection DefineFaceDirection(Vector3 structureSpaceHitPos)
         {
             Vector3 size = Properties.ModelSize;
-            Vector3 localPos = Matrix4x4.TRS(LocalPosition, Rotation.Quaternion, Vector3.one) * pos; // local pos in brick coordinates
-            FitPlaneDirection direction;
+            Vector3 localPos = Matrix4x4.TRS(LocalPosition, Rotation.Quaternion, Vector3.one) * structureSpaceHitPos; // local pos in brick coordinates
+            FaceDirection direction;
             sbyte Yquadrant = 0;
 
             if (localPos.y >= size.y) Yquadrant = 1; else if (localPos.y <= 0f) Yquadrant = -1;
@@ -39,29 +42,26 @@ namespace ZE.Purastic {
                 {
                     sbyte Zquadrant = 0;
                     if (localPos.z >= size.z * 0.5f) Zquadrant = 1; else if (localPos.z <= -size.z * 0.5f) Zquadrant = -1;
-                    if (Zquadrant == 1) direction = FitPlaneDirection.Forward;
+                    if (Zquadrant == 1) direction = FaceDirection.Forward;
                     else
                     {
-                        if (Zquadrant != 0) direction = FitPlaneDirection.Back;
-                        else direction = FitPlaneDirection.Undefined;
+                        if (Zquadrant != 0) direction = FaceDirection.Back;
+                        else direction = FaceDirection.Undefined;
                     }
                 }
                 else
                 {
-                    if (Xquadrant == 1) direction = FitPlaneDirection.Right; else direction = FitPlaneDirection.Left;
+                    if (Xquadrant == 1) direction = FaceDirection.Right; else direction = FaceDirection.Left;
                 }
             }
             else
             {
-                if (Yquadrant == 1) direction = FitPlaneDirection.Up;
-                else direction = FitPlaneDirection.Down;
+                if (Yquadrant == 1) direction = FaceDirection.Up;
+                else direction = FaceDirection.Down;
             }
-
-            var planesHost = FitPlanesConfigsDepot.LoadConfig(Properties.FitPlanesHash);
-            if (planesHost.TryGetFitPosition(direction, localPos, out var fitPos)) return fitPos;
-            else return new FitPosition(pos);
+            return new BlockFaceDirection(direction);
         }
-        public bool TryFormFitInfo(FitPosition position, BlockProperties connectingBlock, out FitInfo info)
+        public bool TryFormFitInfo(FitElementPosition position, BlockProperties connectingBlock, out FitInfo info)
         {
             return FitPlanesConnector.TryConnect(position.PinIndex,Vector2Byte.zero, Properties.FitPlanesHash, connectingBlock.FitPlanesHash, out info);
         }

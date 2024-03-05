@@ -11,7 +11,7 @@ namespace ZE.Purastic {
             public readonly bool CanBePlaced;
             public readonly int BlockColliderID;
             public readonly Vector3 HitPoint;
-            public readonly FitPosition FitPosition;
+            public readonly FitElementPosition FitPosition;
 
             public CastResult(RaycastHit hit)
             {
@@ -20,12 +20,12 @@ namespace ZE.Purastic {
                 CanBePlaced = false;
                 FitPosition = new();
             }
-            public CastResult(FitPosition position)
+            public CastResult(FitElementPosition position)
             {
                 FitPosition= position;
                 CanBePlaced = true;
                 BlockColliderID = FitPosition.BlockId;
-                HitPoint = FitPosition.ModelPosition;
+                HitPoint = FitPosition.WorldPosition;
             }
         }
 
