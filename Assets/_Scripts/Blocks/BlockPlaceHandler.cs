@@ -11,7 +11,7 @@ namespace ZE.Purastic {
             public readonly bool CanBePlaced;
             public readonly int BlockColliderID;
             public readonly Vector3 HitPoint;
-            public readonly FitElementPosition FitPosition;
+            public readonly FitElementStructureAddress FitPosition;
 
             public CastResult(RaycastHit hit)
             {
@@ -20,11 +20,11 @@ namespace ZE.Purastic {
                 CanBePlaced = false;
                 FitPosition = new();
             }
-            public CastResult(FitElementPosition position)
+            public CastResult(FitElementStructureAddress position)
             {
                 FitPosition= position;
                 CanBePlaced = true;
-                BlockColliderID = FitPosition.BlockId;
+                BlockColliderID = FitPosition.BlockID;
                 HitPoint = FitPosition.WorldPosition;
             }
         }
@@ -49,7 +49,8 @@ namespace ZE.Purastic {
                 _lastBlocksHostId = hostID;
                 _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
             }
-            if (_selectedBlocksHost != null) _selectedPoint = new( _selectedBlocksHost.PointToPin(_selectedPoint.BlockColliderID, _selectedPoint.HitPoint));
+            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.HitPoint, out var fitPosition)) 
+                _selectedPoint = new(fitPosition);
         }
         public bool TryPinDetail(BlockProperties block) => _selectedBlocksHost?.TryPinDetail(_selectedPoint.FitPosition, block) ?? false;
     }

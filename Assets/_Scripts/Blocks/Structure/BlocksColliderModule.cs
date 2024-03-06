@@ -34,16 +34,13 @@ namespace ZE.Purastic {
             host.OnBlockPlacedEvent += OnBlockAdded;
         }
 
-        private void OnBlockAdded(int id)
-        {           
-            if (_blocksList.TryGetBlock(id, out PlacedBlock block))
-            {
-                var collider = _host.CollidersHost.AddComponent<BoxCollider>();
-                var bounds = block.Properties.ModelSize;
-                collider.size = bounds;
-                collider.center = 0.5f * bounds.y * Vector3.up;
-                AddColliderToList(collider, block.ID);
-            }
+        private void OnBlockAdded(PlacedBlock block)
+        {
+            var collider = _host.CollidersHost.AddComponent<BoxCollider>();
+            var bounds = block.Properties.ModelSize;
+            collider.size = bounds;
+            collider.center = 0.5f * bounds.y * Vector3.up;
+            AddColliderToList(collider, block.ID);
         }
         private void AddColliderToList(Collider collider, int blockID)
         {

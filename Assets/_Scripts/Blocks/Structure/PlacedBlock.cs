@@ -22,9 +22,10 @@ namespace ZE.Purastic {
             this.Rotation = rotation;
         }
 
-        public Vector3 TransformPoint(Vector2 point, BlockFaceDirection face)
+        public Vector3 TransformPoint(Vector2 inPlanePoint, BlockFaceDirection face)
         {
-
+            Vector3 zeroPos = face.GetZeroPosition(LocalPosition, Properties.ModelSize);
+            return zeroPos + face.ToRotation() * (inPlanePoint.x * Vector3.right + inPlanePoint.y * Vector3.up);
         }
         public BlockFaceDirection DefineFaceDirection(Vector3 structureSpaceHitPos)
         {
@@ -60,10 +61,6 @@ namespace ZE.Purastic {
                 else direction = FaceDirection.Down;
             }
             return new BlockFaceDirection(direction);
-        }
-        public bool TryFormFitInfo(FitElementPosition position, BlockProperties connectingBlock, out FitInfo info)
-        {
-            return FitPlanesConnector.TryConnect(position.PinIndex,Vector2Byte.zero, Properties.FitPlanesHash, connectingBlock.FitPlanesHash, out info);
         }
     }
 }

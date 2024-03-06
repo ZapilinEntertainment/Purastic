@@ -10,9 +10,18 @@ namespace ZE.Purastic {
 	}
 	public static class FitTypeExtension
 	{
-		public static bool CanConnect(this FitType type, FitType otherType)
+		public static PinConnectionResult GetConnectResult(this FitType type, FitType otherType)
 		{
-			return type != otherType;
+			if (type == FitType.Knob)
+			{
+				if (type == FitType.Knob) return PinConnectionResult.Blocked;
+				else return PinConnectionResult.Connected;
+			}
+			else
+			{
+				if (type == FitType.Slot) return PinConnectionResult.Connected;
+				else return PinConnectionResult.NoResult;
+			}
 		}
 	}
 }

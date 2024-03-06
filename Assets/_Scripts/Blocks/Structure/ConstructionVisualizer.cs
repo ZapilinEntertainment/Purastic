@@ -34,7 +34,7 @@ namespace ZE.Purastic {
 			if (_needRedraw) FullRedrawAsync();
         }
 
-        private void OnBlockPlaced(int id)
+        private void OnBlockPlaced(PlacedBlock block)
 		{
 			_needRedraw = true;
 		}

@@ -20,7 +20,7 @@ namespace ZE.Purastic {
             base.Start();
            var blockCreateService = await ServiceLocatorObject.GetWhenLinkReady<BlockCreateService>();
 
-            var block = new BlockProperties(new Grid(_dimensions.x, _dimensions.z, _dimensions.y), _blockMaterial);
+            var block = new BlockProperties(new FitsGridConfig(FitType.Knob, _dimensions.x, _dimensions.z), _blockMaterial, _dimensions.y);
             _model = await blockCreateService.CreateBlockModel(block);
             _model.transform.SetParent(transform, false);
         }

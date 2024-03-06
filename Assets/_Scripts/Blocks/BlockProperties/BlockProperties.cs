@@ -10,22 +10,25 @@ namespace ZE.Purastic {
 		public readonly BlockMaterial Material;
 		public readonly Vector3 ModelSize;
 		public readonly int FitPlanesHash;
-		public BlockProperties(Vector3 size, BlockMaterial material, int planesHash)
+		public readonly int Thick;
+		public BlockProperties(Vector3 size, BlockMaterial material, int planesHash, int thick)
 		{
 			FitPlanesHash = planesHash;
 			ModelSize = size;
 			Material = material;
+			Thick= thick;
 		}
-		public BlockProperties(FitsGrid knobGrid, BlockMaterial material)
+		public BlockProperties(FitsGridConfig grid, BlockMaterial material, int thick)
 		{
 			Material = material;
-			ModelSize = new Vector3(knobGrid.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(knobGrid.HeightInPlates), knobGrid.Length * GameConstants.BLOCK_SIZE) ;
-            FitPlanesHash = knobGrid.GetHashCode();
+			ModelSize = new Vector3(grid.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), grid.Length * GameConstants.BLOCK_SIZE) ;
+            FitPlanesHash = grid.GetHashCode();
+			Thick= thick;
 		}
         public override int GetHashCode()
         {
 			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash);
         }
-		public FitPlanesList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
+		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

@@ -28,11 +28,9 @@ namespace ZE.Purastic {
         public bool HaveMultipleColliders => _colliderModule.HaveMultipleColliders;
         #endregion
 
-        private BlockProperties GetRootBlock() => new BlockProperties(            
-            new Vector3(Width * GameConstants.BLOCK_SIZE, GameConstants.PLATE_THICK, Length * GameConstants.BLOCK_SIZE),
-            _material,
-            FitPlanesConfigsDepot.SaveConfig(new Grid(Width, Length))
-            );
+        private BlockProperties GetRootBlock() {
+            return new BlockProperties(new FitsGridConfig(FitType.Knob, Width, Length), _material, 1);
+        }
 
         private void Start()
         {
@@ -43,11 +41,11 @@ namespace ZE.Purastic {
             _cuttingPlanesManager = new CuttingPlanesManager(this, _placedBlocksList);
         }
 
-        public bool TryPinDetail(FitElementPosition position, BlockProperties block)
+        public bool TryPinDetail(FitElementStructureAddress pinStructureAddress, BlockProperties newBlockProperties)
         {
-            if (_placedBlocksList.TryGetBlock(position.BlockId, out var placedBlock) 
-                && placedBlock.TryFormFitInfo(position, block, out var fitInfo)
-                && _structureModule.TryAddBlock( block, position, fitInfo, out var newPlacedBlock)
+            if (_placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var placedBlock) 
+                && _cuttingPlanesManager.TryConnectNewBlock(placedBlock, pinStructureAddress, newBlockProperties.GetPlanesList(), out var connectedPins)
+                && _structureModule.TryAddBlock( newBlockProperties, pinStructureAddress, connectedPins, out var newPlacedBlock)
                )
             {
                 var blockLink = newPlacedBlock;
@@ -58,7 +56,7 @@ namespace ZE.Purastic {
            
         }
 
-        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FitElementPosition position)
+        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FitElementStructureAddress position)
         {
             if (_colliderModule.TryGetBlock(colliderID, out int blockID) && _placedBlocksList.TryGetBlock(blockID, out var placedBlock))
             {

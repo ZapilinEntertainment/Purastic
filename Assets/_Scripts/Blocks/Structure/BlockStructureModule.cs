@@ -6,26 +6,13 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public class BlockStructureModule
 	{	
-		private readonly struct BlocksConnection
-		{
-			public readonly int ID;
-			public readonly int BlockID_A, BlockID_B;
-			public readonly FitInfo FitInfo;
-
-			public BlocksConnection(int id, int blockID_A, int blockID_B, FitInfo fitInfo)
-			{
-				ID = id;
-				BlockID_A= blockID_A;
-				BlockID_B= blockID_B;
-				FitInfo= fitInfo;
-			}
-		}		
-		
-		private int _nextBlockId = Utilities.GenerateInteger(), _nextConnectionID = Utilities.GenerateInteger();
+		private int _nextConnectionID = Utilities.GenerateInteger();
 		private readonly PlacedBlocksListHandler _blockList;		
 		private Dictionary<int, PlacedBlock> _placedBlocks = new();
 		private Dictionary<int, BlocksConnection> _connections = new();
+		public System.Action<BlocksConnection> OnConnectionCreatedEvent;
 
+		public IReadOnlyCollection<BlocksConnection> GetConnections() => _connections.Values;
 
 
         public BlockStructureModule(PlacedBlocksListHandler list)
@@ -33,13 +20,13 @@ namespace ZE.Purastic {
 			_blockList= list;
 		}
 
-		public bool TryAddBlock(BlockProperties blockProperty, FitElementPosition fitPoint, FitInfo fitInfo, out PlacedBlock placedBlock)
+		public bool TryAddBlock(BlockProperties blockProperty,BlockFaceDirection placeDirection, FitElementStructureAddress fitPoint, List<LockedPin> connectedPins, out PlacedBlock placedBlock)
 		{
-			if (_placedBlocks.TryGetValue(fitPoint.BlockId, out PlacedBlock block))
+			if (_placedBlocks.TryGetValue(fitPoint.BlockID, out PlacedBlock baseBlock))
 			{
 				placedBlock = _blockList.RegisterBlock(blockProperty, fitPoint.WorldPosition);
 				_placedBlocks.Add(placedBlock.ID, placedBlock);
-				RegisterConnection(fitPoint.BlockId, placedBlock.ID, fitInfo);
+				RegisterConnection(baseBlock, placedBlock, fitPoint.Direction,placeDirection , connectedPins);
 				return true;
 			}
 			else
@@ -49,10 +36,12 @@ namespace ZE.Purastic {
 			}
 		}
 
-		private void RegisterConnection(int blockId_A, int blockId_B, FitInfo fitInfo)
+		private void RegisterConnection(PlacedBlock blockA, PlacedBlock blockB, BlockFaceDirection directionA, BlockFaceDirection directionB, List<LockedPin> connectedPins)
 		{
 			int id = _nextConnectionID++;
-            _connections.Add(id, new BlocksConnection(id, blockId_A, blockId_B, fitInfo));
+			var connection = new BlocksConnection(id, blockA, blockB, directionA, directionB, connectedPins);
+            _connections.Add(id, connection);
+			OnConnectionCreatedEvent?.Invoke(connection);
         }
 	}
 }

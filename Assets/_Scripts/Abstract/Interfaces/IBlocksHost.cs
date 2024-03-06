@@ -13,7 +13,7 @@ namespace ZE.Purastic {
         public Action<PlacedBlock> OnBlockPlacedEvent { get; set; }
         public IReadOnlyCollection<BlockProperties> GetBlocks();
 
-		public bool TryPinDetail(FitElementPosition position, BlockProperties block);
-        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FitElementPosition position);
+		public bool TryPinDetail(FitElementStructureAddress position, BlockProperties block);
+        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FitElementStructureAddress position);
     }
 }

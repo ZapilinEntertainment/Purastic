@@ -6,14 +6,14 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public static class FitPlanesConfigsDepot
 	{
-		private static Dictionary<int, FitPlanesList> _fitPlanes = new();
+		private static Dictionary<int, FitPlanesConfigList> _fitPlanes = new();
 
-		public static int SaveConfig(FitPlanesList container)
+		public static int SaveConfig(FitPlanesConfigList container)
 		{
 			int id = container.GetHashCode();
 			_fitPlanes.TryAdd(id, container);
 			return id;
 		}
-		public static FitPlanesList LoadConfig(int hash) => _fitPlanes[hash];
+		public static FitPlanesConfigList LoadConfig(int hash) => _fitPlanes[hash];
 	}
 }

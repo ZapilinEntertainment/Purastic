@@ -67,12 +67,17 @@ namespace ZE.Purastic {
 			var size = block.ModelSize;
 			model.transform.localPosition = 0.5f * size.y * Vector3.up;
 			model.transform.localScale = size;
-			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(block.FitPlanesHash).GetAllFitElements();
+			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(block.FitPlanesHash).Planes;
 			if (fitPlanes.Count > 0)
 			{
 				foreach (var plane in fitPlanes)
 				{
-					Object.Instantiate(_brickModelsPack.KnobPrefab, position: plane.Position, rotation: Quaternion.identity, parent: host);
+					var pinsPositions = plane.GetFitElementsPositions();
+					var prefab = _brickModelsPack.GetFitElementPrefab(plane.FitType);
+					foreach (var pinPosition in pinsPositions)
+					{
+						Object.Instantiate(prefab, position: pinPosition, rotation: Quaternion.identity, parent: host);
+					}
 				}
 			}
 			return host.gameObject;

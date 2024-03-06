@@ -4,51 +4,31 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public readonly struct BlockFaceDirection
-	{
-		public readonly FaceDirection Direction;
-		public readonly sbyte CustomValue;
-
-		public Vector3 Normal
-		{
-			get
-			{
-				Vector3 baseDirection = Direction.ToNormal();
-				if (Direction != FaceDirection.Custom)
-				{
-					return baseDirection;
-				}
-				else
-				{
-					//indev
-					return Vector3.up;
-				}
-			}
-		}
-
-        public BlockFaceDirection(FaceDirection direction)
-        {
-            this.Direction = direction;
-            CustomValue = 0;
-        }
-
-        public Vector2 ToPlanePosition(Vector3 projectedDir)
-        {
-            var rotation = Direction.ToPlaneRotation();
-            Vector3 right = rotation * Vector3.right, up = rotation * Vector3.up;
-            float x = Vector3.Dot(projectedDir, right),
-                y = Vector3.Dot(projectedDir, up);
-            return new Vector2(x, y);
-        }
-        public Vector3 GetZeroPosition(Vector3 modelCenter, Vector3 modelSize) => Direction.GetZeroPos(modelCenter, modelSize);
-        public Quaternion ToRotation() => Direction.ToPlaneRotation();
-	}
+	
 	public enum FaceDirection : byte
 	{
 		Undefined, Forward, Right, Back, Left, Up, Down, Custom
 	}
 	public static class FaceDirectionExtension
 	{
+        public static FaceDirection RotateRight(this FaceDirection dir)
+        {
+            if (dir > FaceDirection.Undefined && dir < FaceDirection.Up)
+            {
+                if (dir == FaceDirection.Left) return FaceDirection.Forward;
+                else return dir+1;
+            }
+            else return dir;
+        }
+        public static FaceDirection RotateLeft(this FaceDirection dir)
+        {
+            if (dir > FaceDirection.Undefined && dir < FaceDirection.Up)
+            {
+                if (dir == FaceDirection.Forward) return FaceDirection.Left;
+                else return dir-1;
+            }
+            else return dir;
+        }
         public static Vector3 ToNormal(this FaceDirection direction)
         {
             switch (direction)
@@ -88,5 +68,6 @@ namespace ZE.Purastic {
                 default: return Vector3.zero;
             }
         }
+        
     }
 }
