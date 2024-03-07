@@ -14,12 +14,12 @@ namespace ZE.Purastic {
 		{
 			if (type == FitType.Knob)
 			{
-				if (type == FitType.Knob) return PinConnectionResult.Blocked;
+				if (otherType == FitType.Knob) return PinConnectionResult.Blocked;
 				else return PinConnectionResult.Connected;
 			}
 			else
 			{
-				if (type == FitType.Slot) return PinConnectionResult.Connected;
+				if (otherType == FitType.Slot) return PinConnectionResult.Connected;
 				else return PinConnectionResult.NoResult;
 			}
 		}

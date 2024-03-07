@@ -19,5 +19,6 @@ namespace ZE.Purastic {
 			y = (byte)b;
 		}
         public static implicit operator Vector2(Vector2Byte pos) => new Vector2(pos.x,pos.y);
+		public override string ToString() => $"({x}:{y})";
     }
 }

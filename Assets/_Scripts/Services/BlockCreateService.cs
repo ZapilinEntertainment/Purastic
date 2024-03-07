@@ -56,7 +56,7 @@ namespace ZE.Purastic {
             return blockModel;
         }
 
-		private async Awaitable<GameObject> CreateModel(BlockProperties block)
+		private async Awaitable<GameObject> CreateModel(BlockProperties properties)
 		{
             if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
             Transform host = new GameObject("modelHost").transform;
@@ -64,19 +64,23 @@ namespace ZE.Purastic {
 			model.transform.SetParent(host,false);
 			model.gameObject.layer = _pinplanesLayer;
 
-			var size = block.ModelSize;
-			model.transform.localPosition = 0.5f * size.y * Vector3.up;
+			var size = properties.ModelSize;
+            model.transform.localPosition = 0.5f * size.y * Vector3.up;
 			model.transform.localScale = size;
-			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(block.FitPlanesHash).Planes;
+
+			VirtualBlock virtualBlock = new VirtualBlock(model.transform.position, new PlacingBlockInfo(properties, PlacedBlockRotation.NoRotation));
+			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(properties.FitPlanesHash).Planes;
 			if (fitPlanes.Count > 0)
 			{
 				foreach (var plane in fitPlanes)
 				{
-					var pinsPositions = plane.GetFitElementsPositions();
+					var pinsPositions = plane.PinsConfiguration.GetAllPins();
 					var prefab = _brickModelsPack.GetFitElementPrefab(plane.FitType);
-					foreach (var pinPosition in pinsPositions)
+					var rotation = plane.Face.ToRotation();
+
+					foreach (var pin in pinsPositions)
 					{
-						Object.Instantiate(prefab, position: pinPosition, rotation: Quaternion.identity, parent: host);
+						Object.Instantiate(prefab, position: virtualBlock.TransformPoint(pin.PlanePosition, plane.Face), rotation: rotation, parent: host);
 					}
 				}
 			}

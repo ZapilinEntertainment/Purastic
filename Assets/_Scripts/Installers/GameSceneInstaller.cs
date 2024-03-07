@@ -19,6 +19,7 @@ namespace ZE.Purastic {
             RegisterInstance(_resourcesPack);
             RegisterInstance(_resourcesPack.MaterialsPack);
             RegisterInstance(_resourcesPack.BrickModelsPack);
+            RegisterInstance(_resourcesPack.ColorSettings);
 
             RegisterInstruction<CharacterCreateService>();
             RegisterInstruction<BlockCreateService>();
@@ -26,6 +27,7 @@ namespace ZE.Purastic {
 
             RegisterInstruction<ColliderListSystem>();
             RegisterMonoComponentInstruction<BlockPlaceSystem>(true);
+            RegisterMonoComponentInstruction<UpdateSystem>();
 
             RegisterInstruction<MaterialsDepot>();
         }

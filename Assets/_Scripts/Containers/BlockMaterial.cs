@@ -11,6 +11,12 @@ namespace ZE.Purastic {
         [field: SerializeField] public VisualMaterialType VisualMaterialType{ get; private set; }
         [field: SerializeField] public BlockColor BlockColor { get; private set; }
 
+        public BlockMaterial(VisualMaterialType type, BlockColor color)
+        {
+            VisualMaterialType = type;
+            BlockColor = color;
+        }
+
         public override int GetHashCode()
         {
             return HashCode.Combine(BlockColor.GetHashCode(), VisualMaterialType.GetHashCode());

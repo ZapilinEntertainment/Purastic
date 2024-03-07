@@ -11,6 +11,9 @@ namespace ZE.Purastic
 
         public const float MAX_POINT_CAST_DISTANCE = 100f;
 
+        public static BlockFaceDirection DefaultPlacingFace=> new BlockFaceDirection(DefaultPlacingDirection);
+        private const FaceDirection DefaultPlacingDirection = FaceDirection.Down;
+
         public static float GetHeight(int platesCount) => (platesCount / PLATES_IN_BLOCK) * BLOCK_SIZE + (platesCount % PLATES_IN_BLOCK) * PLATE_THICK;
     }
 }

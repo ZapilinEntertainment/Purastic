@@ -18,49 +18,42 @@ namespace ZE.Purastic {
         public readonly BlockFaceDirection DirectionA, DirectionB;
         public readonly ILockedPinsContainer LockedPins; 
 
-        public BlocksConnection(int id, PlacedBlock blockA, PlacedBlock blockB, BlockFaceDirection dirA, BlockFaceDirection dirB, List<LockedPin> lockedPins)
+        public BlocksConnection(int id, PlacedBlock blockA, PlacedBlock blockB, ICuttingPlane newBlockCutPlane, ConnectedAndLockedPinsContainer pinsContainer)
         {
             ID = id;
             BlockA = blockA;
             BlockB = blockB;
-            DirectionA = dirA;
-            DirectionB = dirB;            
+            var planeA = pinsContainer.BasementCutPlane;
+            DirectionA = planeA.Face;
+            DirectionB = newBlockCutPlane.Face;            
 
-            if (lockedPins.Count == 2)
+            if (pinsContainer.PairsCount == 1)
             {
-                LockedPins = new TwoPinsContainer(lockedPins[0], lockedPins[1]);
+                LockedPins = new TwoPinsContainer(planeA.ID, pinsContainer.BasementConnectedPins[0], newBlockCutPlane.ID, pinsContainer.NewBlockConnectedPins[0]);
             }
             else
             {
-                List<FitElementPlaneAddress> listA = new(), listB = new();
-                int keyA = lockedPins[0].CuttingPlaneID, keyB = -1;
-                foreach (var pin in lockedPins)
-                {
-                    if (pin.CuttingPlaneID == keyA) listA.Add(pin.PlaneAddress);
-                    else
-                    {
-                        keyB = pin.CuttingPlaneID;
-                        listB.Add(pin.PlaneAddress);
-                    }
-                }
-                LockedPins = new TwoListsContainer(keyA, listA, keyB, listB);
+                LockedPins = new TwoListsContainer(planeA.ID, pinsContainer.BasementConnectedPins, newBlockCutPlane.ID, pinsContainer.NewBlockConnectedPins);
             }
         }
 
         
         private struct TwoPinsContainer : ILockedPinsContainer
         {
-            private readonly LockedPin _pinA, _pinB;
+            private readonly int _idA, _idB;
+            private readonly FitElementPlaneAddress _pinA, _pinB;
 
-            public TwoPinsContainer(LockedPin pinA, LockedPin pinB)
+            public TwoPinsContainer(int idA, FitElementPlaneAddress pinA, int idB, FitElementPlaneAddress pinB)
             {
+                _idA = idA;
+                _idB = idB;
                 _pinA = pinA;
                 _pinB = pinB;
             }
-            public int CutPlaneA_id => _pinA.CuttingPlaneID;
-            public int CutPlaneB_id => _pinB.CuttingPlaneID;
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsA() => new FitElementPlaneAddress[1] { _pinA.PlaneAddress };
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsB() => new FitElementPlaneAddress[1] { _pinB.PlaneAddress };
+            public int CutPlaneA_id => _idA;
+            public int CutPlaneB_id => _idB;
+            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsA() => new FitElementPlaneAddress[1] { _pinA };
+            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsB() => new FitElementPlaneAddress[1] { _pinB };
         }
         private struct TwoListsContainer : ILockedPinsContainer
         {

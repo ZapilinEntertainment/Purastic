@@ -9,5 +9,6 @@ namespace ZE.Purastic {
 
         private static System.Random _random = new();
         public static int GenerateInteger() => _random.Next();
+
     }
 }

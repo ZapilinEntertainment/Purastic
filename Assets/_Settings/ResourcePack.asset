@@ -10,11 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f829cb6c24a1aa343964758e2fcfb4d0, type: 3}
-  m_Name: DefaultResourcePack
+  m_Name: ResourcePack
   m_EditorClassIdentifier: 
   <DefaultCharacter>k__BackingField: {fileID: 1865817074574123475, guid: c4e988dc1e9669b4d8339b5106b1ef9b,
     type: 3}
   <BrickModelsPack>k__BackingField: {fileID: 11400000, guid: bf12706aedbcff44cafc5f91ca70acc8,
     type: 2}
   <MaterialsPack>k__BackingField: {fileID: 11400000, guid: b1c3ef9365467b74c9ed49924a3f420a,
+    type: 2}
+  <ColorSettings>k__BackingField: {fileID: 11400000, guid: de006cce30d5664439bb6a6877a64f9c,
     type: 2}

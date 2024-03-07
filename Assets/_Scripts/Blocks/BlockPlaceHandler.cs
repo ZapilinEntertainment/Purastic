@@ -29,11 +29,13 @@ namespace ZE.Purastic {
             }
         }
 
+        public bool IsPlacingAllowed { get; private set; } = false;
         private int _lastBlocksHostId = -1;
         private CastResult _selectedPoint;
         private IBlocksHost _selectedBlocksHost = null;
         private readonly ColliderListSystem _collidersList;
-        public Vector3 ModelPosition => _selectedPoint.HitPoint; 
+        public Vector3 ModelPosition => _selectedPoint.HitPoint;
+        public System.Action<bool> OnPlacingPermitChangedEvent;
 
         public BlockPlaceHandler(ColliderListSystem colliderListSystem)
         {
@@ -47,11 +49,18 @@ namespace ZE.Purastic {
             if (hostID != _lastBlocksHostId)
             {
                 _lastBlocksHostId = hostID;
-                _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
+                 _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
             }
-            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.HitPoint, out var fitPosition)) 
+            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.HitPoint, out var fitPosition))
+            {
                 _selectedPoint = new(fitPosition);
+            }
+            if (_selectedPoint.CanBePlaced != IsPlacingAllowed)
+            {
+                IsPlacingAllowed = _selectedPoint.CanBePlaced;
+                OnPlacingPermitChangedEvent?.Invoke(IsPlacingAllowed);
+            }
         }
-        public bool TryPinDetail(BlockProperties block) => _selectedBlocksHost?.TryPinDetail(_selectedPoint.FitPosition, block) ?? false;
+        public bool TryAddDetail(PlacingBlockInfo placingBlockInfo) => _selectedBlocksHost?.TryAddDetail(_selectedPoint.FitPosition, placingBlockInfo) ?? false;
     }
 }

@@ -10,6 +10,7 @@ namespace ZE.Purastic {
 
 		[field:SerializeField] public byte Width = 16, Length = 16;
         public int ID => GetInstanceID();
+        public int RootBlockId => _placedBlocksList.RootBlockId;
         public Transform ModelsHost => transform;
         public GameObject CollidersHost => gameObject;
 
@@ -29,30 +30,38 @@ namespace ZE.Purastic {
         #endregion
 
         private BlockProperties GetRootBlock() {
-            return new BlockProperties(new FitsGridConfig(FitType.Knob, Width, Length), _material, 1);
+            return new BlockProperties(new BaseplateConfig(Width, Length), _material, 1);
         }
 
         private void Start()
         {
-            _placedBlocksList = new(GetRootBlock());
+            var rootBlock = GetRootBlock();
+
+            _placedBlocksList = new(new PlacingBlockInfo(rootBlock,PlacedBlockRotation.NoRotation));
             _structureModule = new(_placedBlocksList);
             _visualizer = gameObject.AddComponent<ConstructionVisualizer>();
+            _visualizer.Setup(this, _placedBlocksList);
             _colliderModule = new (this, _placedBlocksList);
-            _cuttingPlanesManager = new CuttingPlanesManager(this, _placedBlocksList);
+            _cuttingPlanesManager = new CuttingPlanesManager(this, _placedBlocksList, _structureModule);
+
+            ServiceLocatorObject.Get<ColliderListSystem>().AddBlockhost(this);
         }
 
-        public bool TryPinDetail(FitElementStructureAddress pinStructureAddress, BlockProperties newBlockProperties)
+        public bool TryAddDetail(FitElementStructureAddress pinStructureAddress, PlacingBlockInfo placingBlockInfo)
         {
-            if (_placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var placedBlock) 
-                && _cuttingPlanesManager.TryConnectNewBlock(placedBlock, pinStructureAddress, newBlockProperties.GetPlanesList(), out var connectedPins)
-                && _structureModule.TryAddBlock( newBlockProperties, pinStructureAddress, connectedPins, out var newPlacedBlock)
+            if (  _placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var baseBlock)
+             &&   _cuttingPlanesManager.TryConnectNewBlock(baseBlock, pinStructureAddress, placingBlockInfo, out var connectedPins)
                )
             {
+                _structureModule.AddBlock(baseBlock, pinStructureAddress,placingBlockInfo, connectedPins, out var newPlacedBlock);
                 var blockLink = newPlacedBlock;
                 OnBlockPlacedEvent?.Invoke(blockLink);
                 return true;
             }
-            else return false;
+            else
+            {                
+                return false;
+            }
            
         }
 
@@ -60,7 +69,8 @@ namespace ZE.Purastic {
         {
             if (_colliderModule.TryGetBlock(colliderID, out int blockID) && _placedBlocksList.TryGetBlock(blockID, out var placedBlock))
             {
-                Vector3 localHitPos = ModelsHost.InverseTransformPoint(point);                
+               // Debug.Log("here");
+                Vector3 localHitPos = ModelsHost.InverseTransformPoint(point);
                 return _cuttingPlanesManager.TryGetFitElementPosition(localHitPos, placedBlock, out position);
             }
             position = default;

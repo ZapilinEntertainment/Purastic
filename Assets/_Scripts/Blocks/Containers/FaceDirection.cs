@@ -49,8 +49,8 @@ namespace ZE.Purastic {
                 case FaceDirection.Right: return Quaternion.AngleAxis(90f, Vector3.up);
                 case FaceDirection.Back: return Quaternion.AngleAxis(180f, Vector3.up);
                 case FaceDirection.Left: return Quaternion.AngleAxis(-90f, Vector3.up);
-                case FaceDirection.Up: return Quaternion.AngleAxis(90f, Vector3.right);
-                case FaceDirection.Down: return Quaternion.AngleAxis(-90f, Vector3.right);
+                case FaceDirection.Up: return Quaternion.AngleAxis(90f, Vector3.left);
+                case FaceDirection.Down: return Quaternion.AngleAxis(-90f, Vector3.left);
                 default: return Quaternion.identity;
             }
         }

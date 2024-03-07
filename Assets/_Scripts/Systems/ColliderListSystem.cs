@@ -108,7 +108,9 @@ namespace ZE.Purastic {
                     BlocksHost = host;
                     CollidersIDs = BlocksHost.GetColliderIDs();
                     foreach (int id in CollidersIDs) _host._blocksColliders.Add(id, this);
+                    BlocksHost.OnBlockPlacedEvent +=OnBlockAdded;
                 }
+                private void OnBlockAdded(PlacedBlock block) => Update();
                 public void Update()
                 {
                     var newIdsList = new List<int> (BlocksHost.GetColliderIDs());
@@ -128,6 +130,7 @@ namespace ZE.Purastic {
                     {
                        _host._hostsList.Remove(id);
                     }
+                    if (BlocksHost != null) BlocksHost.OnBlockPlacedEvent -= OnBlockAdded;
                 }
             }
             private Dictionary<int, BlockpartsCollider> _blocksColliders = new(), _hostsList = new();

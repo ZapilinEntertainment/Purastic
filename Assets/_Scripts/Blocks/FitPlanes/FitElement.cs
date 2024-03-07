@@ -6,19 +6,29 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
 
-	public readonly struct FitElement
+    public readonly struct FitElementFullAddress
+    {
+        public readonly Vector2 DetailSubPlanePosition; // IFitPlaneDataProvider
+        public readonly Vector2Int DetailSubPlaneIndex;
+        public readonly int DetailSubPlaneID; // id of subplane inside a cutPlane
+        public readonly int CutPlaneID;
+        public readonly BlockFaceDirection Face; // block face that element's plane belongs to. One face may contain a few planes
+        public readonly int BlockID;
+        public readonly int BaseplateID;
+    }
+    public readonly struct FitElement
 	{
 		public readonly FitType FitType;
-		public readonly Vector2 CutPlanePosition;
+		public readonly Vector2 PlanePosition;
 
 		public FitElement(FitType type, Vector2 pos)
 		{
 			this.FitType = type;
-			this.CutPlanePosition = pos;
+			this.PlanePosition = pos;
 		}
-		public override int GetHashCode() => (FitType, CutPlanePosition.GetHashCode()).GetHashCode();
+		public override int GetHashCode() => (FitType, PlanePosition.GetHashCode()).GetHashCode();
 
-		public bool CanConnectWith(FitElement other) => FitType.GetConnectResult(other.FitType);
+		public PinConnectionResult GetConnectionResult(FitElement other) => FitType.GetConnectResult(other.FitType);
     }
     // address of pin on the plane. A block face can contain multiple planes, so we need to store plane id.
     public readonly struct FitElementPlaneAddress
@@ -36,53 +46,73 @@ namespace ZE.Purastic {
             PlaneContainerID = 0;
             PinIndex = index;
         }
+        public FitElementPlaneAddress(int x, int y) : this(new Vector2Byte(x,y)) { }
     }
-    public readonly struct ConnectionPin
+    public readonly struct FitElementPlanePosition
+    {
+        public readonly int SubPlaneId;
+        public readonly Vector2 CutPlanePos;
+
+        public FitElementPlanePosition(int SubPlaneID, Vector2 cutPlanePos)
+        {
+            SubPlaneId = SubPlaneID;
+            CutPlanePos= cutPlanePos;
+        }
+    }
+    public readonly struct ConnectingPin // for placing block
     {
         public readonly FitElement FitElement;
-        public readonly FitElementPlaneAddress CutPlaneAddress;
-
-        public FitType FitType => FitElement.FitType;
-        public Vector2 CutPlanePosition => FitElement.CutPlanePosition;
-
-        public ConnectionPin(FitElement element, FitElementPlaneAddress adress )
-        {
-            FitElement = element;
-            CutPlaneAddress = adress;
-        }
-    }
-    public readonly struct LockedPin
-    {
-        public readonly int CuttingPlaneID;
         public readonly FitElementPlaneAddress PlaneAddress;
 
-        public LockedPin(int cutPlaneID, FitElementPlaneAddress address)
+        public FitType FitType => FitElement.FitType;
+        public Vector2 CutPlanePosition => FitElement.PlanePosition;
+
+        public ConnectingPin(FitElement element, FitElementPlaneAddress adress )
         {
-            CuttingPlaneID = cutPlaneID;
-            PlaneAddress = address;
+            FitElement = element;
+            PlaneAddress = adress;
         }
+    }
+    public readonly struct FitElementCutPlanePosition
+    {
+        public readonly int CutPlaneID;
+        public readonly int SubPlaneDataProviderID;
+        public readonly Vector2 CutPlanePosition;
+        
+        public FitElementCutPlanePosition(int cutPlaneId, int subPlaneId, Vector2 cutPlanePos)
+        {
+            CutPlaneID = cutPlaneId;
+            SubPlaneDataProviderID = subPlaneId;
+            CutPlanePosition = cutPlanePos;
+        }
+        public FitElementCutPlanePosition(int cutPlaneID, ConnectingPin pin)
+        {
+            CutPlaneID = cutPlaneID;
+            SubPlaneDataProviderID = pin.PlaneAddress.PlaneContainerID;
+            CutPlanePosition = pin.FitElement.PlanePosition;
+        }
+        public FitElementPlanePosition ToPlanePosition() => new FitElementPlanePosition(SubPlaneDataProviderID, CutPlanePosition);
     }
     public readonly struct FitElementStructureAddress
     {
         public readonly int BlockID;
-        public readonly BlockFaceDirection Direction;
-        public readonly FitElementPlaneAddress PlanePinPosition;
+        public readonly int CutPlaneID;
+        public readonly BlockFaceDirection ContactFace;
+        public readonly FitElementPlaneAddress PlaneAddress;
 
-        public readonly Vector3 WorldPosition;
-
-        public FitElementStructureAddress(Vector3 modelPos)
-        {
-            WorldPosition = modelPos;
-            BlockID = -1;
-            Direction = default;
-            PlanePinPosition = default;
-        }
-        public FitElementStructureAddress(int blockID, BlockFaceDirection direction, FitElementPlaneAddress planePinPosition, Vector3 position)
+        public FitElementStructureAddress(int blockID,int cutPlaneID, BlockFaceDirection direction, FitElementPlaneAddress planePinPosition)
         {
             BlockID = blockID;
-            Direction = direction;
-            WorldPosition = position;
-            PlanePinPosition = planePinPosition;
+            CutPlaneID = cutPlaneID;
+            ContactFace = direction;
+            PlaneAddress = planePinPosition;
+        }
+        public FitElementStructureAddress(int blockID, int cutPlaneID, FaceDirection direction, FitElementPlaneAddress planePinPosition)
+        {
+            BlockID = blockID;
+            CutPlaneID = cutPlaneID;
+            ContactFace = new BlockFaceDirection(direction);
+            PlaneAddress = planePinPosition;
         }
     }
 }

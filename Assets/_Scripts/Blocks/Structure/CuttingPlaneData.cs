@@ -7,17 +7,19 @@ namespace ZE.Purastic {
     public interface ICuttingPlane
     {
         public int ID { get; }
-        public BlockFaceDirection Direction { get; }
+        public BlockFaceDirection Face { get; }
         public float Coordinate { get; }
 
         public ICuttingPlane AddFitPlaneProvider(IFitPlanesDataProvider provider);
         public bool TryDefineFitPlane(Vector2 pos, out IFitPlanesDataProvider dataProvider);
-        public Vector3 GetLocalPos(Vector2 inPlanePos);
+        public Vector2 LocalToPlanePos(Vector3 localPos);
+        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos);
+        public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress address);
         public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
     }
 
     // contains one or more fitplanes on one face of a block
-    
+
     public readonly struct CuttingPlaneCoordinate
     {
         public readonly BlockFaceDirection Direction;
@@ -28,6 +30,7 @@ namespace ZE.Purastic {
             Direction = direction;
             Coordinate = coordinate;
         }
+        public override string ToString() => $"{Direction} :{Coordinate}";
     }
 
     // make a lock zone on a cutting plane, to prevent connections in it
@@ -61,7 +64,7 @@ namespace ZE.Purastic {
         protected readonly int _id;
         protected readonly float _coordinate;
         protected readonly BlockFaceDirection _direction;
-        public BlockFaceDirection Direction => _direction;
+        public BlockFaceDirection Face => _direction;
         public float Coordinate => _coordinate;
         public int ID => _id;
 
@@ -74,11 +77,17 @@ namespace ZE.Purastic {
 
         abstract public ICuttingPlane AddFitPlaneProvider(IFitPlanesDataProvider provider);
         abstract public bool TryDefineFitPlane(Vector2 pos, out IFitPlanesDataProvider fitPlane);
-        public Vector3 GetLocalPos(Vector2 inPlanePos)
+        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos)
         {
             Vector3 localPos = new Vector3(inPlanePos.x, inPlanePos.y, Coordinate);
-            return Quaternion.Inverse( Direction.ToRotation()) * localPos;
+            return Quaternion.Inverse( Face.ToRotation()) * localPos;
         }
+        public Vector2 LocalToPlanePos(Vector3 localPos)
+        {
+            Vector3 projected = Vector3.ProjectOnPlane(localPos, Face.Normal);
+            return Face.InverseVector(projected);
+        }
+        abstract public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress address);
 
         abstract public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
     }
@@ -89,9 +98,10 @@ namespace ZE.Purastic {
         {
            
         }
+        public override Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress address) => CutPlaneToLocalPos(Vector2.zero);
         public override ICuttingPlane AddFitPlaneProvider(IFitPlanesDataProvider provider)
         {
-            return new OneItemCuttingPlane(ID, provider, Direction, Coordinate);
+            return new OneItemCuttingPlane(ID, provider, Face, Coordinate);
         }
 
         public override bool TryDefineFitPlane(Vector2 pos, out IFitPlanesDataProvider fitPlane)
@@ -112,7 +122,7 @@ namespace ZE.Purastic {
 
         public override ICuttingPlane AddFitPlaneProvider(IFitPlanesDataProvider provider)
         {
-            var complexData = new ComplexCuttingPlane(ID, Direction, Coordinate);
+            var complexData = new ComplexCuttingPlane(ID, Face, Coordinate);
             complexData.AddFitPlaneProvider(_provider);
             complexData.AddFitPlaneProvider(provider);
             return complexData;
@@ -131,7 +141,8 @@ namespace ZE.Purastic {
                 return false;
             }
         }
-        public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect) => new FitsConnectionZone(ID, _provider.GetPinsInZone(rect));
+        public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect) => new (ID, _provider.GetPinsInZone(rect));
+        public override Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress address) => _provider.PlaneAddressToPosition(address);
     }
     public class ComplexCuttingPlane : CuttingPlaneBase
     {
@@ -159,13 +170,20 @@ namespace ZE.Purastic {
             fitPlane= default; return false;
         }
 
-        public override FitsConnectionZone GetLandingPinsList(Rect rect, Quaternion quaternion)
+        public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect)
         {
-            var list = new List<ConnectionPin>();
+            var list = new List<ConnectingPin>();
             foreach (var provider in _providers)
             {
-                var rectangle = provider.ToRectangle();
+                if (provider.ToRectangle().IsIntersects(rect)) list.AddRange(provider.GetPinsInZone(rect));
             }
+            return new FitsConnectionZone(ID, list);
+        }
+        public override Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress address)
+        {
+            int id = address.PlaneContainerID;
+            if (id > _providers.Count) id = 0;
+            return _providers[id].PlaneAddressToPosition(address);
         }
     }
 }

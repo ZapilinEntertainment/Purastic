@@ -7,20 +7,18 @@ namespace ZE.Purastic {
 	public enum PinConnectionResult : byte { NoResult, Connected, Blocked}
 	public class FitsConnectionZone
 	{
-		public readonly int CutPlaneID;
-		public readonly List<ConnectionPin> Pins;
+		public readonly List<ConnectingPin> Pins;
 
-		public FitsConnectionZone(int cutPlaneId, IReadOnlyCollection<ConnectionPin> fits)
+		public FitsConnectionZone(int cutPlaneId, IReadOnlyCollection<ConnectingPin> fits)
 		{
-			CutPlaneID = cutPlaneId;
 			Pins = new( fits);
 		}
 
-		public PinConnectionResult TryConnect(FitElement element, out ConnectionPin usedPin)
+		public PinConnectionResult TryConnect(FitElement element, out ConnectingPin usedPin)
 		{
 			foreach (var pin in Pins)
 			{
-				if (pin.CutPlanePosition == element.CutPlanePosition)
+				if (pin.CutPlanePosition == element.PlanePosition)
 				{
                     usedPin = pin;
                     var result = pin.FitType.GetConnectResult(element.FitType);

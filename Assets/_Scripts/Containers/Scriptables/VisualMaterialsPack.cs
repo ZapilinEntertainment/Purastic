@@ -8,11 +8,11 @@ namespace ZE.Purastic {
     public sealed class VisualMaterialsPack : ScriptableObject
     {
         [field: SerializeField] public Material Plastic { get; private set; }
-        [field: SerializeField] public Material PlacingPart { get; private set; }
+        [field: SerializeField] public Material Hologramm { get; private set; }
 
         public Material GetMaterial(VisualMaterialType type)
         {
-            if (type == VisualMaterialType.PlacingPart) return PlacingPart;
+            if (type == VisualMaterialType.Hologramm) return Hologramm;
             else return Plastic;
         }
     }

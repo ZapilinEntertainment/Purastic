@@ -78,7 +78,8 @@ namespace ZE.Purastic {
 				}
 				else
 				{
-					_managers.Add(property, new PooledModelsManager(property, this));
+					manager = new PooledModelsManager(property, this);
+                    _managers.Add(property, manager);
 				}
 				manager.CacheModel(blockModel);
 				return;

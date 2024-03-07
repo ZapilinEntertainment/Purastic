@@ -9,7 +9,16 @@ namespace ZE.Purastic {
 	{
         [field: SerializeField] public GameObject CubePrefab { get; private set; }
         [field: SerializeField] public GameObject KnobPrefab { get; private set; }
+        [field: SerializeField] public GameObject SlotPrefab { get; private set; }
 
-        public GameObject GetFitElementPrefab(FitType fitType) => KnobPrefab;
+        public GameObject GetFitElementPrefab(FitType fitType)
+        {
+            switch (fitType)
+            {
+                case FitType.Slot: return SlotPrefab;
+                case FitType.Knob: return KnobPrefab;
+                default: return null;
+            }
+        }
     }
 }

@@ -18,16 +18,31 @@ namespace ZE.Purastic {
 			Material = material;
 			Thick= thick;
 		}
-		public BlockProperties(FitsGridConfig grid, BlockMaterial material, int thick)
+
+
+		//platform :
+		public  BlockProperties(BaseplateConfig config, BlockMaterial material, int thick)
 		{
 			Material = material;
-			ModelSize = new Vector3(grid.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), grid.Length * GameConstants.BLOCK_SIZE) ;
-            FitPlanesHash = grid.GetHashCode();
+			ModelSize = new Vector3(config.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), config.Length * GameConstants.BLOCK_SIZE) ;
+            FitPlanesHash = FitPlanesConfigsDepot.SaveConfig(
+				new FitPlanesConfigList(
+				new FitPlaneConfig(config, config.FitType, new BlockFaceDirection(FaceDirection.Up), Vector2.zero)
+				));
 			Thick= thick;
 		}
+        public BlockProperties(FitPlaneConfig[] configs, BlockMaterial material, Vector3Int size)
+        {
+            Material = material;
+            ModelSize = new Vector3(size.x * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(size.y), size.z * GameConstants.BLOCK_SIZE);
+
+            FitPlanesHash = FitPlanesConfigsDepot.SaveConfig(
+                new FitPlanesConfigList(configs));
+            Thick = size.y;
+        }
         public override int GetHashCode()
         {
-			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash);
+			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash, Thick);
         }
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }

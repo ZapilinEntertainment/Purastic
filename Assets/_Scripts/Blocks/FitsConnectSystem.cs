@@ -6,27 +6,26 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public static class FitsConnectSystem
 	{
-		public static bool TryConnect(FitsConnectionZone landingZone, FitsConnectionZone blockZone, out List<LockedPin> lockedPins)
+		public static bool TryConnect(ICuttingPlane plane, FitsConnectionZone landingZone, FitsConnectionZone blockZone, out ConnectedAndLockedPinsContainer pinsContainer)
 		{
-            lockedPins = new();
-			foreach (var pin in blockZone.Pins)
+			pinsContainer = new ConnectedAndLockedPinsContainer(plane);
+			foreach (var blockPin in blockZone.Pins)
 			{
-				var connectResult = landingZone.TryConnect(pin.FitElement, out var landingpin);
-				if (connectResult == PinConnectionResult.NoResult) continue;
+				var connectResult = landingZone.TryConnect(blockPin.FitElement, out var landingpin);
+                if (connectResult == PinConnectionResult.NoResult) continue;
 				else
 				{
 					if (connectResult == PinConnectionResult.Blocked)
 					{
-						return false;
+						break;
 					}
 					else
 					{
-                        lockedPins.Add(new LockedPin(blockZone.CutPlaneID, pin.CutPlaneAddress));
-                        lockedPins.Add(new LockedPin(landingZone.CutPlaneID, landingpin.CutPlaneAddress));						
+						pinsContainer.AddPair(landingpin,blockPin);
 					}
 				}
 			}
-			return lockedPins.Count > 0;
+			return pinsContainer.PairsCount > 0;
 		}
 	}
 }

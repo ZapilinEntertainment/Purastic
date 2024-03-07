@@ -7,7 +7,7 @@ using System;
 namespace ZE.Purastic {
 	public class PlacedBlocksListHandler
 	{
-		private int _rootBlockId;
+		public int RootBlockId { get; private set; }
 		private int _nextID = Utilities.GenerateInteger();
 		private Dictionary<int, PlacedBlock> _placedBlocks = new();
 
@@ -25,16 +25,16 @@ namespace ZE.Purastic {
 		}
         public IReadOnlyCollection<PlacedBlock> GetPlacedBlocks() => _placedBlocks.Values;
 
-        public PlacedBlocksListHandler(BlockProperties rootBlock) {
-			var root = RegisterBlock(rootBlock, Vector3.zero);
-			_rootBlockId = root.ID;
+        public PlacedBlocksListHandler(PlacingBlockInfo blockInfo) {
+			var root = RegisterBlock(blockInfo, Vector3.zero);
+			RootBlockId = root.ID;
 		}
 
 		public bool TryGetBlock(int id, out PlacedBlock block) => _placedBlocks.TryGetValue(id, out block);
-		public PlacedBlock RegisterBlock(BlockProperties properties, Vector3 localPos)
+		public PlacedBlock RegisterBlock(PlacingBlockInfo placingBlockInfo, Vector3 localPos)
 		{
 			int id = _nextID++;
-			var placedBlock = new PlacedBlock(id, localPos, properties);
+			var placedBlock = new PlacedBlock(id, localPos, placingBlockInfo);
             _placedBlocks.Add(id, placedBlock);
 			return placedBlock;
 		}

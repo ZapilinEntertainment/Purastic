@@ -16,3 +16,5 @@ MonoBehaviour:
     type: 3}
   <KnobPrefab>k__BackingField: {fileID: 7816409783668133872, guid: 7dcdd119a33561843b1a4dfede59dcd2,
     type: 3}
+  <SlotPrefab>k__BackingField: {fileID: 2475703735384542583, guid: 1537f44adc0f9204a9097d4f5acfeef7,
+    type: 3}

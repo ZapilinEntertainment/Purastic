@@ -72,27 +72,19 @@ namespace ZE.Purastic {
 				cuttingPlane = new OneItemCuttingPlane(_nextCuttingPlaneId++, dataProvider, direction, coordinate);
 				_cuttingPlanes.Add(key, cuttingPlane);
 			}
-			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);			
+			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);
+			Debug.Log(key.ToString());
 		}
-		public void AddLockZones(List<LockedPin> lockedPins)
+		public void AddLockZones(int cutPlaneID, List<FitElementPlaneAddress> lockedPins)
 		{
-            CuttingPlaneLockZone cachedLockZone = null;
-			int cachedPlaneId = -1;
-			foreach (var pin in lockedPins)
-			{
-				if (pin.CuttingPlaneID == cachedPlaneId) cachedLockZone.AddLockedPin(pin.PlaneAddress);
-				else
-				{
-					cachedPlaneId = pin.CuttingPlaneID;
-					if (!_lockZones.TryGetValue(cachedPlaneId, out cachedLockZone))
-					{
-						cachedLockZone = new CuttingPlaneLockZone(cachedPlaneId);
-						_lockZones.Add(cachedPlaneId, cachedLockZone);
-					}
-                    cachedLockZone.AddLockedPin(pin.PlaneAddress);
-                }
-			}
-		}
+			CuttingPlaneLockZone zone;
+            if (!_lockZones.TryGetValue(cutPlaneID, out zone))
+            {
+                zone = new CuttingPlaneLockZone(cutPlaneID);
+                _lockZones.Add(cutPlaneID, zone);
+            }
+			zone.AddLockedPins(lockedPins);
+        }
 
         public bool TryGetFitElementPosition(Vector3 localPos, PlacedBlock block, out FitElementStructureAddress fitPosition)
 		{
@@ -100,30 +92,32 @@ namespace ZE.Purastic {
             float coordinate = GetCoordinate(localPos, direction.Normal, out Vector3 projection);
 			if (_cuttingPlanes.TryGetValue(new(direction, coordinate), out var cuttingPlane))
 			{
-				Vector2 planePos = direction.ToPlanePosition(projection);
-				if (cuttingPlane.TryDefineFitPlane(planePos, out IFitPlanesDataProvider fitPlanes) && fitPlanes.TryGetPinPosition(planePos, out var pinIndex))
+				Vector2 planePos = direction.InverseVector(projection);
+				if (cuttingPlane.TryDefineFitPlane(planePos, out IFitPlanesDataProvider fitPlanes) && fitPlanes.TryGetPinPosition(planePos, out var planeAddress))
 				{
-					Vector2 pinPosition = fitPlanes.PinIndexToPosition(pinIndex);
-					Vector3 pinLocalPos = cuttingPlane.GetLocalPos(pinPosition);
-					fitPosition = new FitElementStructureAddress(block.ID, direction, pinIndex, _blocksHost.ModelsHost.TransformPoint(pinLocalPos));
+					fitPosition = new FitElementStructureAddress(block.ID,cuttingPlane.ID, direction, planeAddress);
 					return true;
 				}
 			}
+			Debug.Log("no cutting plane");
 			fitPosition = default;
 			return false;
         }
-		public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, FitPlanesConfigList newBlockPlanes, out List<LockedPin> connectedPins)
+
+		public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, PlacingBlockInfo placingBlockInfo, out ConnectedAndLockedPinsContainer pinsContainer)
 		{
-			var key = BlockPlanePosition(blockBase,address.Direction);
+			var key = BlockPlanePosition(blockBase,address.ContactFace);
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
-				cuttingPlane.(address.PlanePinPosition)
-				var landingPins = cuttingPlane.GetLandingPinsList();
-				var newBlockPins = newBlockPlanes.GetLandingPins(blockBase.Rotation.TransformDirection(address.Direction));
+				var landingRectangle = blockBase.GetCutPlaneRectangle(cuttingPlane);
 
-				return FitsConnectSystem.TryConnect(landingPins, newBlockPins, out connectedPins);				
+                var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
+				var connectFace = placingBlockInfo.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
+				var newBlockPins = placingBlockInfo.Properties.GetPlanesList().CreateLandingPinsList(blockBase, connectFace, landingRectangle, cuttingPlane.ID);
+
+				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		
             }
-			connectedPins = null;
+            pinsContainer = null;
 			return false;
 		}
 
@@ -137,6 +131,6 @@ namespace ZE.Purastic {
             projectionVector = Vector3.Project(localPos, planeNormal);
             return Vector3.Dot(localPos - projectionVector, planeNormal);
         }
-		private CuttingPlaneCoordinate BlockPlanePosition(PlacedBlock block, BlockFaceDirection direction) => new CuttingPlaneCoordinate(direction, GetCoordinate(block.LocalPosition, direction.Normal));
+		public CuttingPlaneCoordinate BlockPlanePosition(PlacedBlock block, BlockFaceDirection direction) => new CuttingPlaneCoordinate(direction, GetCoordinate(block.LocalPosition, direction.Normal));
     }
 }

@@ -8,7 +8,6 @@ namespace ZE.Purastic {
 	{	
 		private int _nextConnectionID = Utilities.GenerateInteger();
 		private readonly PlacedBlocksListHandler _blockList;		
-		private Dictionary<int, PlacedBlock> _placedBlocks = new();
 		private Dictionary<int, BlocksConnection> _connections = new();
 		public System.Action<BlocksConnection> OnConnectionCreatedEvent;
 
@@ -20,26 +19,20 @@ namespace ZE.Purastic {
 			_blockList= list;
 		}
 
-		public bool TryAddBlock(BlockProperties blockProperty,BlockFaceDirection placeDirection, FitElementStructureAddress fitPoint, List<LockedPin> connectedPins, out PlacedBlock placedBlock)
+		public void AddBlock(PlacedBlock baseBlock, FitElementStructureAddress fitInfo, PlacingBlockInfo placingBlockInfo, ConnectedAndLockedPinsContainer pinsContainer, out PlacedBlock placedBlock)
 		{
-			if (_placedBlocks.TryGetValue(fitPoint.BlockID, out PlacedBlock baseBlock))
-			{
-				placedBlock = _blockList.RegisterBlock(blockProperty, fitPoint.WorldPosition);
-				_placedBlocks.Add(placedBlock.ID, placedBlock);
-				RegisterConnection(baseBlock, placedBlock, fitPoint.Direction,placeDirection , connectedPins);
-				return true;
-			}
-			else
-			{
-				placedBlock = null;
-				return false;
-			}
-		}
+			Vector3 basementPoint = pinsContainer.BasementCutPlane.PlaneAddressToLocalPos(pinsContainer.BasementConnectedPins[0]);
+			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace);
+            Vector3 newBlockLocalPos = placingBlockInfo.CalculateLocalPosition(basementPoint, pinsContainer.NewBlockConnectedPins[0], newBlockContactFace);
 
-		private void RegisterConnection(PlacedBlock blockA, PlacedBlock blockB, BlockFaceDirection directionA, BlockFaceDirection directionB, List<LockedPin> connectedPins)
+            placedBlock = _blockList.RegisterBlock(placingBlockInfo, newBlockLocalPos);
+            RegisterConnection(baseBlock, placedBlock, , pinsContainer);
+        }
+
+		private void RegisterConnection(PlacedBlock blockA, PlacedBlock blockB, ICuttingPlane newBlockCutPlane, ConnectedAndLockedPinsContainer pinsContainer)
 		{
 			int id = _nextConnectionID++;
-			var connection = new BlocksConnection(id, blockA, blockB, directionA, directionB, connectedPins);
+			var connection = new BlocksConnection(id, blockA, blockB, newBlockCutPlane, pinsContainer);
             _connections.Add(id, connection);
 			OnConnectionCreatedEvent?.Invoke(connection);
         }

@@ -34,10 +34,12 @@ namespace ZE.Purastic {
 			if (_needRedraw) FullRedrawAsync();
         }
 
-        private void OnBlockPlaced(PlacedBlock block)
+        private async void OnBlockPlaced(PlacedBlock block)
 		{
-			_needRedraw = true;
-		}
+            var model = await BlockCreateService.CreateBlockModel(block.Properties);
+            model.transform.SetParent(_host.ModelsHost, false);
+            _models.Add(model);
+        }
 		public async void FullRedrawAsync()
 		{
 			int count = _models.Count;

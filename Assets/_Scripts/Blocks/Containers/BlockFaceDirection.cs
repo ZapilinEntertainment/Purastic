@@ -16,6 +16,10 @@ namespace ZE.Purastic {
         public static bool operator ==(BlockFaceDirection lhs, BlockFaceDirection rhs) => lhs.Equals(rhs);
         public static bool operator !=(BlockFaceDirection lhs, BlockFaceDirection rhs) => !(lhs == rhs);
         #endregion
+        public override string ToString()
+        {
+            return $"{Direction}({CustomValue})";
+        }
         public Vector3 Normal
         {
             get
@@ -39,7 +43,20 @@ namespace ZE.Purastic {
             CustomValue = 0;
         }
 
-        public Vector2 ToPlanePosition(Vector3 projectedDir)
+        public BlockFaceDirection Inverse()
+        {
+            switch (Direction)
+            {
+                case FaceDirection.Forward: return new BlockFaceDirection(FaceDirection.Back);
+                case FaceDirection.Right: return new BlockFaceDirection(FaceDirection.Left);
+                case FaceDirection.Back: return new BlockFaceDirection(FaceDirection.Forward);
+                case FaceDirection.Left: return new BlockFaceDirection(FaceDirection.Right);
+                case FaceDirection.Up: return new BlockFaceDirection(FaceDirection.Down);
+                case FaceDirection.Down: return new BlockFaceDirection(FaceDirection.Up);
+                default: return this;
+            }
+        }
+        public Vector2 InverseVector(Vector3 projectedDir)
         {
             var rotation = Direction.ToPlaneRotation();
             Vector3 right = rotation * Vector3.right, up = rotation * Vector3.up;
@@ -49,5 +66,6 @@ namespace ZE.Purastic {
         }
         public Vector3 GetZeroPosition(Vector3 modelCenter, Vector3 modelSize) => Direction.GetZeroPos(modelCenter, modelSize);
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
+        public Rotation2D ToPlaneRotation() => Rotation2D.NoRotation; // wait for custom
     }
 }

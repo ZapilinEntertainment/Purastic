@@ -5,81 +5,75 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
     public enum PlaceableModelStatus : byte { NotSelected, Hidden, CannotBePlaced, CanBePlaced }
+
     public sealed class BlockPlaceSystem : MonoBehaviour
 	{
-
-        private PlaceableModelStatus _placementStatus = PlaceableModelStatus.NotSelected;
-        private IPlaceable _placeableModel;
-
         private int _castMask;
-		private BlockPlaceHandler _placeHandler;
-		private LocatorLinkWrapper<BlockModelPoolService> _modelCacheServiceWrapper;
+        private PlaceableModelStatus _placementStatus = PlaceableModelStatus.NotSelected;
+        private BlockPlaceHandler _placeHandler;
+		private PlacingBlockModelController _modelController;
+		
 		private InputController InputController => _resolver.Item2;
 		private CameraController CameraController => _resolver.Item1;
-		private VisualMaterialsPack MaterialsPack => _resolver.Item3;
-		private BlockCreateService BlockCreateService => _resolver.Item4;
+		private BlockCreateService BlockCreateService => _resolver.Item3;
 		private IBlockPlacer _blockPlacer;
-		private ComplexResolver<CameraController, InputController, VisualMaterialsPack, BlockCreateService> _resolver;
+		private ComplexResolver<CameraController, InputController,  BlockCreateService> _resolver;
+
+		public System.Action<PlaceableModelStatus> OnPlacementStatusChangedEvent;
 
         private void Awake()
         {
 			_castMask = LayerConstants.GetCustomLayermask(CustomLayermask.BlockPlaceCast);
         }
         public void Start() {
-            enabled = false;
-
+			ChangePlacingStatus(PlaceableModelStatus.NotSelected);
 			_resolver = new (OnDependenciesResolved);
-			_resolver.CheckDependencies();
-
-			_placeHandler = new(ServiceLocatorObject.Get<ColliderListSystem>());
+			_resolver.CheckDependencies();			
 
             var signalBus = ServiceLocatorObject.Get<SignalBus>();
 			signalBus.SubscribeToSignal<ActivateBlockPlaceSystemSignal>(OnPlaceSystemActivated);
 			signalBus.SubscribeToSignal<DeactivateBlockPlaceSystemSignal>(OnPlaceSystemDeactivated);
-
-			_modelCacheServiceWrapper = ServiceLocatorObject.GetLinkWrapper<BlockModelPoolService>();
 		}
 		private void OnDependenciesResolved()
+		{ 		
+            _placeHandler = new(ServiceLocatorObject.Get<ColliderListSystem>());
+            _modelController = new PlacingBlockModelController(this, _placeHandler);
+
+            InputController.SubscribeToKeyEvents(ControlButtonID.PlaceBlockButton, TryPlaceBlock);
+        }
+		private void ChangePlacingStatus(PlaceableModelStatus status)
 		{
-			InputController.SubscribeToKeyEvents(ControlButtonID.PlaceBlockButton, TryPlaceBlock);
-		}
+            _placementStatus = status;
+			enabled = status != PlaceableModelStatus.NotSelected;
+
+			OnPlacementStatusChangedEvent?.Invoke(status);
+        }
 
 		private async void OnPlaceSystemActivated(ActivateBlockPlaceSystemSignal signal)
 		{
 			_blockPlacer = signal.BlockPlacer;
 			var equippedModel = _blockPlacer.GetPlaceableModel();
-			_placeableModel = await BlockCreateService.CreateBlockModel(equippedModel.GetBlockProperty());
+			var model = await BlockCreateService.CreateBlockModel(equippedModel.GetBlockProperty());
 
-			if (_placeableModel != null)
-			{
-				_placeableModel.IsVisible = false;
-				_placeableModel.SetDrawMaterial(MaterialsPack.PlacingPart);
-                _placementStatus = PlaceableModelStatus.Hidden;
-                enabled = true;				
-			}
-			else
-			{
-				_placementStatus = PlaceableModelStatus.NotSelected;
-			}
+            if (model != null)
+            {
+                _modelController.SetModel(model);
+				ChangePlacingStatus(PlaceableModelStatus.Hidden);
+                enabled = true;
+            }
+            else
+            {
+                ChangePlacingStatus(PlaceableModelStatus.NotSelected);
+            }
+            
+
 		}
-		private void OnPlaceSystemDeactivated()
-		{
-			enabled = false;
-			if (_placeableModel != null)
-			{
-				if (_placeableModel is IPoolableModel) _modelCacheServiceWrapper.Value.CacheModel(_placeableModel as IPoolableModel);
-				else
-				{
-					_placeableModel.Dispose();
-				}
-				_placeableModel = null;
-			}
-		}
+		private void OnPlaceSystemDeactivated() => ChangePlacingStatus(PlaceableModelStatus.NotSelected);
 		private void TryPlaceBlock()
 		{
 			if (enabled && _placementStatus == PlaceableModelStatus.CanBePlaced)
 			{
-				if (_placeHandler.TryPinDetail(_placeableModel.GetBlockProperty()))
+				if (_placeHandler.TryAddDetail(_modelController.PlacingBlockInfo))
 				{
 					_blockPlacer.OnDetailPlaced();
 				}
@@ -92,24 +86,19 @@ namespace ZE.Purastic {
 			{
 				if (CameraController.TryRaycast(InputController.CursorPosition, out RaycastHit raycastHit, _castMask))
 				{
-					_placeableModel.IsVisible = true;
 					_placeHandler.OnPinplaneHit(raycastHit);
-					_placementStatus = PlaceableModelStatus.CanBePlaced;
+					ChangePlacingStatus(PlaceableModelStatus.CanBePlaced);
 					// todo: check for placement here
 				}
 				else
 				{
-					_placeableModel.IsVisible = false;
-                    _placementStatus = PlaceableModelStatus.Hidden;
+                    ChangePlacingStatus(PlaceableModelStatus.Hidden);
                 }
 			}
         }
         private void Update()
         {
-            if (enabled && _placementStatus == PlaceableModelStatus.CanBePlaced)
-			{
-				_placeableModel.SetPlacePosition(_placeHandler.ModelPosition);
-			}
+            if (_resolver.AllDependenciesCompleted) _modelController.UpdatePosition();
         }
     }
 }

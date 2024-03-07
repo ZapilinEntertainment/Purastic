@@ -6,41 +6,48 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 
 	// contains info about pins plane
-	public abstract class FitPlaneConfig
+    // just a config. For receiving actual data, create IFitPlanesDataProvider with CreateDataProvider
+	public class FitPlaneConfig
 	{
-		private readonly IFitPlaneConfiguration _pinsConfiguration;
+		public readonly IFitPlaneConfiguration PinsConfiguration;
 		public readonly FitType FitType;
         public BlockFaceDirection Face { get; }
 		public Vector2 PlaneZeroPos { get; }
 
+		public FitPlaneConfig(IFitPlaneConfiguration pinsConfiguration, FitType fitType, BlockFaceDirection face, Vector2 planeZeroPos)
+        {
+            PinsConfiguration = pinsConfiguration;
+            FitType = fitType;
+            Face = face;
+            PlaneZeroPos = planeZeroPos;
+        }
 
-        public abstract Vector2Byte GetPinIndex(Vector2 cutPlanePos);
-		public abstract Vector2 GetInCutPlanePosition(Vector2Byte pinPos);
-		public abstract IReadOnlyCollection<Vector2> GetFitElementsPositions(); 
-		public IFitPlanesDataProvider CreateDataProvider(PlacedBlock block) => _pinsConfiguration.ToDataProvider(block.TransformPoint(PlaneZeroPos, Face), block.Rotation);
+        // plate with knobs
+        public FitPlaneConfig(FitType fitType, Vector3Int dimensions, FaceDirection direction) : 
+            this (new FitsGridConfig(fitType, dimensions.x, dimensions.z), fitType, new BlockFaceDirection(direction), Vector2.zero)
+        { }
+
+        public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
+        public Vector2 GetLocalPosition(Vector2Byte index) => PinsConfiguration.GetLocalPoint(index);
+		public IFitPlanesDataProvider CreateDataProvider(PlacedBlock block) => PinsConfiguration.ToDataProvider(
+			block.TransformPoint(PlaneZeroPos, Face), 
+			block.Rotation.TransformPlaneRotation(Face)
+			);
+        public IFitPlanesDataProvider CreateDataProvider(Vector2 zeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(zeroPoint, rotation);
+
+        public override int GetHashCode()
+        {
+            return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), PlaneZeroPos.GetHashCode());
+        }
     }
-
-	/*
-	public readonly struct ConnectingFitPlane
-	{
-		public readonly int FitPlanesContainerHash;
-		public readonly BlockFaceDirection Direction;
-		public readonly Vector2Byte InitialPinIndex;
-
-		public ConnectingFitPlane(int hash, BlockFaceDirection direction, Vector2Byte index)
-		{
-			FitPlanesContainerHash= hash;
-			Direction= direction;
-			InitialPinIndex= index;
-		}
-	}
-	*/
 
 	public interface IFitPlaneConfiguration 
 		// contains info only about pins
 	{
         public int GetHashCode();
+        public Vector2 GetLocalPoint(Vector2Byte index);
         public Vector2Byte GetFitIndex(Vector2 planedPos);
-		public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, PlacedBlockRotation rotation);
+		public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation);
+        public IReadOnlyCollection<FitElement> GetAllPins();
     }
 }

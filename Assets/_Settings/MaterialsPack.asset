@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Plastic>k__BackingField: {fileID: 2100000, guid: b15982ea5c0709e46b2cea9988bef394,
     type: 2}
-  <PlacingPart>k__BackingField: {fileID: 2100000, guid: c23eb281bfc37834f91acf23a39ac68b,
+  <Hologramm>k__BackingField: {fileID: 2100000, guid: c23eb281bfc37834f91acf23a39ac68b,
     type: 2}
