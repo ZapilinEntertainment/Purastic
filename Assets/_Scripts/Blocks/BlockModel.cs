@@ -33,9 +33,9 @@ namespace ZE.Purastic {
             }
         }
 
-        public void SetPlacePosition(Vector3 pos)
+        public void SetPoint(Vector3 pos, Quaternion rotation)
         {
-            transform.position = pos;
+            transform.SetPositionAndRotation(pos, rotation);
         }
 
         public void Dispose() => Destroy(gameObject);

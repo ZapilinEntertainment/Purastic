@@ -11,6 +11,10 @@ namespace ZE.Purastic {
         {
             this.ID = id;
         }
+        public PlacedBlock(int id, VirtualBlock virtualBlock) : base (virtualBlock)
+        {
+            this.ID = id;
+        }
 
     }
 }

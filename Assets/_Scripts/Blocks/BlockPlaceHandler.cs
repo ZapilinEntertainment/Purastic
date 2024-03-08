@@ -10,22 +10,22 @@ namespace ZE.Purastic {
         {
             public readonly bool CanBePlaced;
             public readonly int BlockColliderID;
-            public readonly Vector3 HitPoint;
-            public readonly FitElementStructureAddress FitPosition;
+            public readonly VirtualPoint Point;
+            public readonly FitElementStructureAddress StructureAddress;
 
             public CastResult(RaycastHit hit)
             {
                 BlockColliderID = hit.colliderInstanceID;
-                HitPoint = hit.point;
+                Point = new( hit.point, Quaternion.identity);
                 CanBePlaced = false;
-                FitPosition = new();
+                StructureAddress = new();
             }
-            public CastResult(FitElementStructureAddress position)
+            public CastResult(FoundedFitElementPosition position)
             {
-                FitPosition= position;
+                StructureAddress= position.StructureAddress;
                 CanBePlaced = true;
-                BlockColliderID = FitPosition.BlockID;
-                HitPoint = FitPosition.WorldPosition;
+                BlockColliderID = StructureAddress.BlockID;
+                Point = position.WorldPoint;
             }
         }
 
@@ -34,7 +34,7 @@ namespace ZE.Purastic {
         private CastResult _selectedPoint;
         private IBlocksHost _selectedBlocksHost = null;
         private readonly ColliderListSystem _collidersList;
-        public Vector3 ModelPosition => _selectedPoint.HitPoint;
+        public VirtualPoint ModelPoint => _selectedPoint.Point;
         public System.Action<bool> OnPlacingPermitChangedEvent;
 
         public BlockPlaceHandler(ColliderListSystem colliderListSystem)
@@ -51,7 +51,7 @@ namespace ZE.Purastic {
                 _lastBlocksHostId = hostID;
                  _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
             }
-            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.HitPoint, out var fitPosition))
+            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.Point.Position, out var fitPosition))
             {
                 _selectedPoint = new(fitPosition);
             }
@@ -61,6 +61,6 @@ namespace ZE.Purastic {
                 OnPlacingPermitChangedEvent?.Invoke(IsPlacingAllowed);
             }
         }
-        public bool TryAddDetail(PlacingBlockInfo placingBlockInfo) => _selectedBlocksHost?.TryAddDetail(_selectedPoint.FitPosition, placingBlockInfo) ?? false;
+        public bool TryAddDetail(PlacingBlockInfo placingBlockInfo) => _selectedBlocksHost?.TryAddDetail(_selectedPoint.StructureAddress, placingBlockInfo) ?? false;
     }
 }

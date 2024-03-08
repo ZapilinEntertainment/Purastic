@@ -64,6 +64,14 @@ namespace ZE.Purastic {
                 y = Vector3.Dot(projectedDir, up);
             return new Vector2(x, y);
         }
+        public Vector3 TransformVector(Vector2 planePos, IBlocksHost host)
+        {
+            Vector3 planeZeroPos3d = GetZeroPosition(Vector3.zero, host.ZeroPoint);
+            var rotation = ToRotation();
+            Vector3 planeRight = rotation * Vector3.right, planeUp = rotation * Vector3.up;
+            return planeZeroPos3d + planeRight * planePos.x + planeUp * planePos.y;
+        }
+
         public Vector3 GetZeroPosition(Vector3 modelCenter, Vector3 modelSize) => Direction.GetZeroPos(modelCenter, modelSize);
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
         public Rotation2D ToPlaneRotation() => Rotation2D.NoRotation; // wait for custom

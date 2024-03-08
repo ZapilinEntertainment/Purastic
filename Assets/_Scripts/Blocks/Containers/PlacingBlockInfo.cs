@@ -14,11 +14,5 @@ namespace ZE.Purastic {
 			this.Properties = properties;
 			this.Rotation = rotation;
 		}
-
-		public Vector3 CalculateLocalPosition(Vector3 contactPoint, FitElementPlaneAddress contactingPinAddress, BlockFaceDirection basementContactFace)
-		{
-			Vector2 pinOffset = Properties.GetPlanesList().GetFitPlane(contactingPinAddress.PlaneContainerID).GetLocalPosition(contactingPinAddress.PinIndex);
-
-        }
-	}
+    }
 }

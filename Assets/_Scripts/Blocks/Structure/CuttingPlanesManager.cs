@@ -5,30 +5,40 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
 	
-	public class CuttingPlanesManager
+	public class CuttingPlanesManager : SubcontainerModule
 	{
 		// Imagine you cut the building at specific point (coordinate) and direction(face direction)
 		private int _nextCuttingPlaneId = 1;
-		private readonly IBlocksHost _blocksHost;
-		private readonly PlacedBlocksListHandler _blocksList;
         private Dictionary<CuttingPlaneCoordinate, ICuttingPlane> _cuttingPlanes = new();
 		private Dictionary<int, CuttingPlaneLockZone> _lockZones = new();
+		private Dictionary<int, ICuttingPlane> _cuttingPlanesById = new();
+		private readonly ComplexResolver<IBlocksHost, PlacedBlocksListHandler, BlockStructureModule> _localResolver;
+		protected IBlocksHost BlocksHost => _localResolver.Item1;
+		protected PlacedBlocksListHandler BlocksList => _localResolver.Item2;
+		protected BlockStructureModule BlocksStructure => _localResolver.Item3;
 
-		public CuttingPlanesManager(IBlocksHost blocksHost, PlacedBlocksListHandler blocksList, BlockStructureModule structureModule)
+		public CuttingPlanesManager(Container container) : base(container)
 		{
-			_blocksList = blocksList;
-            _blocksHost = blocksHost;
-
-            var blocks = _blocksList.GetPlacedBlocks();
+			_localResolver = new(OnLocalDependenciesResolved, container);
+			_localResolver.CheckDependencies();
+		}
+		private void OnLocalDependenciesResolved()
+		{
+            var blocks = BlocksList.GetPlacedBlocks();
             if (blocks.Count > 0) foreach (var block in blocks) OnBlockAdded(block);
-            _blocksHost.OnBlockPlacedEvent += OnBlockAdded;
+            BlocksHost.OnBlockPlacedEvent += OnBlockAdded;
 
-			var connections = structureModule.GetConnections();
-			if (connections.Count > 0)
-			{
-				foreach (var connection in connections) OnConnectionCreated(connection);
-			}
-			structureModule.OnConnectionCreatedEvent += OnConnectionCreated;
+            var connections = BlocksStructure.GetConnections();
+            if (connections.Count > 0)
+            {
+                foreach (var connection in connections) OnConnectionCreated(connection);
+            }
+            BlocksStructure.OnConnectionCreatedEvent += OnConnectionCreated;
+        }
+		private void AddCuttingPlane(CuttingPlaneCoordinate coordinate, ICuttingPlane plane)
+		{
+			_cuttingPlanes.Add(coordinate, plane);
+			_cuttingPlanesById.Add(plane.ID, plane);
 		}
 
 		private void OnBlockAdded(PlacedBlock block)
@@ -70,10 +80,10 @@ namespace ZE.Purastic {
 			if (!_cuttingPlanes.TryGetValue(key, out cuttingPlane))
 			{
 				cuttingPlane = new OneItemCuttingPlane(_nextCuttingPlaneId++, dataProvider, direction, coordinate);
-				_cuttingPlanes.Add(key, cuttingPlane);
+				AddCuttingPlane(key, cuttingPlane);
 			}
 			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);
-			Debug.Log(key.ToString());
+			//Debug.Log(key.ToString());
 		}
 		public void AddLockZones(int cutPlaneID, List<FitElementPlaneAddress> lockedPins)
 		{
@@ -86,6 +96,7 @@ namespace ZE.Purastic {
 			zone.AddLockedPins(lockedPins);
         }
 
+		public bool TryGetCuttingPlane(FitElementStructureAddress address, out ICuttingPlane plane) => _cuttingPlanesById.TryGetValue(address.CutPlaneID, out plane);
         public bool TryGetFitElementPosition(Vector3 localPos, PlacedBlock block, out FitElementStructureAddress fitPosition)
 		{
             var direction = block.DefineFaceDirection(localPos);
@@ -103,18 +114,18 @@ namespace ZE.Purastic {
 			fitPosition = default;
 			return false;
         }
-
-		public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, PlacingBlockInfo placingBlockInfo, out ConnectedAndLockedPinsContainer pinsContainer)
+		public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, VirtualBlock planningBlock, out ConnectedAndLockedPinsContainer pinsContainer)
 		{
-			var key = BlockPlanePosition(blockBase,address.ContactFace);
+			var key = GetCutPlaneCoordinate(blockBase,address.ContactFace);
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
-				var landingRectangle = blockBase.GetCutPlaneRectangle(cuttingPlane);
+				var landingRectangle = Utilities.ProjectBlock(cuttingPlane, planningBlock);
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
-				var connectFace = placingBlockInfo.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
-				var newBlockPins = placingBlockInfo.Properties.GetPlanesList().CreateLandingPinsList(blockBase, connectFace, landingRectangle, cuttingPlane.ID);
+				var connectFace = planningBlock.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
+				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(blockBase, connectFace, landingRectangle, cuttingPlane.ID);
 
+				if (landingPins != null && newBlockPins != null) 
 				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		
             }
             pinsContainer = null;
@@ -131,6 +142,17 @@ namespace ZE.Purastic {
             projectionVector = Vector3.Project(localPos, planeNormal);
             return Vector3.Dot(localPos - projectionVector, planeNormal);
         }
-		public CuttingPlaneCoordinate BlockPlanePosition(PlacedBlock block, BlockFaceDirection direction) => new CuttingPlaneCoordinate(direction, GetCoordinate(block.LocalPosition, direction.Normal));
+		public CuttingPlaneCoordinate GetCutPlaneCoordinate(PlacedBlock block, BlockFaceDirection direction) => new CuttingPlaneCoordinate(direction, GetCoordinate(block.LocalPosition, direction.Normal));
+		public ICuttingPlane GetOrCreateCutPlane(CuttingPlaneCoordinate coord)
+		{
+			ICuttingPlane plane;
+			if (!_cuttingPlanes.TryGetValue(coord, out plane))
+			{
+				plane = new CuttingPlanePlaceholder(_nextCuttingPlaneId++,coord);
+				AddCuttingPlane(coord, plane);
+			}
+			return plane;
+		}
+		public ICuttingPlane GetUpLookingPlane(byte height = 0) => GetOrCreateCutPlane(new CuttingPlaneCoordinate(new BlockFaceDirection(FaceDirection.Up), height));
     }
 }

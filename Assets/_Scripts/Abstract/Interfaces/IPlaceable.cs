@@ -7,7 +7,7 @@ namespace ZE.Purastic {
 	public interface IPlaceable
 	{
 		public bool IsVisible { get; set; }
-		public void SetPlacePosition(Vector3 pos);
+		public void SetPoint(Vector3 pos, Quaternion rotation);
 		public void SetDrawMaterial(Material material);
 		public BlockProperties GetBlockProperty();
 

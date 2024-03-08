@@ -16,55 +16,11 @@ namespace ZE.Purastic {
             this.Properties = info.Properties;
             this.Rotation = info.Rotation;
         }
-
-        public AngledRectangle GetCutPlaneRectangle(ICuttingPlane cuttingPlane)
+        public VirtualBlock(VirtualBlock block)
         {
-            var localBlockDirection = Rotation.TransformDirection(cuttingPlane.Face);
-
-            Vector3 localSize = Rotation.Quaternion * Properties.ModelSize;
-            Vector2 size;
-            //for non-custom
-            switch (localBlockDirection.Direction)
-            {                    
-                case FaceDirection.Up:
-                    {
-                        size = new Vector2(localSize.x, localSize.z);
-                        break;
-                    }
-                case FaceDirection.Right:
-                    {
-                        size = new Vector2(localSize.z, localSize.y);
-                        break;
-                    }
-                case FaceDirection.Back:
-                    {
-                        size = new Vector2(localSize.x, localSize.y);
-                        break;
-                    }
-                case FaceDirection.Left:
-                    {
-                        size = new Vector2(localSize.z, localSize.y);
-                        break;
-                    }
-                default:
-                    {
-                        size = new Vector2(localSize.x, localSize.y);
-                        break;
-                    }
-            }
-            return new AngledRectangle(new Rect(cuttingPlane.LocalToPlanePos(LocalPosition), size), Vector2.up, Vector2.right);
-
-            /*
-            Vector3 blockPlaneZeroPoint = localBlockDirection.GetZeroPosition(LocalPosition, Properties.ModelSize);
-
-            Vector2 planeProjectedZeroPos = cuttingPlane.LocalToPlanePos(blockPlaneZeroPoint);
-            var blockPlaneRotation = localBlockDirection.ToRotation();
-            Vector3 projectedUpDirection = Vector3.ProjectOnPlane(blockPlaneRotation * Vector3.up, localBlockDirection.Normal).normalized,
-                projectedRightDirection = Vector3.ProjectOnPlane(blockPlaneRotation * Vector3.left, localBlockDirection.Normal).normalized;
-            Vector2 projectedSize = localBlockDirection.InverseVector(Vector3.ProjectOnPlane( Rotation.Quaternion * Properties.ModelSize, localBlockDirection.Normal));
-            projectedSize = new Vector2(Mathf.Abs(projectedSize.x), Mathf.Abs(projectedSize.y));
-            return new AngledRectangle(new Rect(planeProjectedZeroPos, projectedSize), projectedUpDirection, projectedRightDirection);
-            */
+            this.LocalPosition = block.LocalPosition;
+            this.Properties = block.Properties;
+            this.Rotation = block.Rotation;
         }
         public Vector3 TransformPoint(Vector2 inPlanePoint, BlockFaceDirection face)
         {

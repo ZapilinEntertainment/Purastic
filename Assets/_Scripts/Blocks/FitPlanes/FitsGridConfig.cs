@@ -71,6 +71,8 @@ namespace ZE.Purastic {
             }
             return list;
         }
+
+        public Vector2 GetLocalPoint(Vector2Byte index) => IndexToPosition(index);
     }
     public readonly struct BaseplateConfig : IFitPlaneConfiguration
     {
@@ -87,5 +89,7 @@ namespace ZE.Purastic {
         public IReadOnlyCollection<FitElement> GetAllPins() => ToGrid().GetAllPins();
         public Vector2Byte GetFitIndex(Vector2 planedPos) => ToGrid().GetFitIndex(planedPos);
         public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new FullGridProvider(new Vector2Byte(Width, Length), FitType);
+
+        public Vector2 GetLocalPoint(Vector2Byte index) => FitsGridConfig.IndexToPosition(index);
     }
 }

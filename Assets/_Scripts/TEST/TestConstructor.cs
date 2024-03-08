@@ -10,22 +10,29 @@ namespace ZE.Purastic {
 
 		private async void Start()
 		{
-            await Awaitable.WaitForSecondsAsync(0.5f);
+            if (!(_baseplate as ILateInitializable).IsInitialized)
+            {
+                var aws = new AwaitableCompletionSource();
+                _baseplate.InitStatusModule.OnInitializedEvent += aws.SetResult;
+                await aws.Awaitable;
+                aws = null;
+            }
 			int rootId = _baseplate.RootBlockId;
 			bool x =_baseplate.TryAddDetail(
-				new FitElementStructureAddress(rootId, FaceDirection.Up, new FitElementPlaneAddress(1, 1)),
+				_baseplate.FormPlateAddress(new Vector2Byte(4,4)),
 				new PlacingBlockInfo(
 					BlockPresetsList.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
 					PlacedBlockRotation.NoRotation
 				));
+            return;
             _baseplate.TryAddDetail(
-                new FitElementStructureAddress(rootId, FaceDirection.Up, new FitElementPlaneAddress(4, 8)),
+                _baseplate.FormPlateAddress(new Vector2Byte(4, 8)),
                 new PlacingBlockInfo(
                     BlockPresetsList.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
                     PlacedBlockRotation.NoRotation
                 ));
             _baseplate.TryAddDetail(
-                new FitElementStructureAddress(rootId, FaceDirection.Up, new FitElementPlaneAddress(8, 4)),
+                _baseplate.FormPlateAddress(new Vector2Byte(8, 4)),
                 new PlacingBlockInfo(
                     BlockPresetsList.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
                     PlacedBlockRotation.NoRotation

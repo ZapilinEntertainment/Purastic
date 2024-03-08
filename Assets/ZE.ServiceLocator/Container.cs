@@ -44,18 +44,25 @@ namespace ZE.ServiceLocator
         public readonly int ID;
 
         public Container(int id) => ID = id;
+
+        private Type DefineKey<T>(T instance)
+        {
+            if (typeof(T).IsInterface) return typeof(T);
+            else return instance.GetType();
+        }
         private IResolvable CreateResolver<T>()
         {
             return (IResolvable)Activator.CreateInstance(_baseWrapperType.MakeGenericType(typeof(T)));
         }
         private IResolvable CreateResolver<T>(T instance)
         {
-            return (IResolvable)Activator.CreateInstance(_baseWrapperType.MakeGenericType(typeof(T)), instance);
+            return (IResolvable)Activator.CreateInstance(_baseWrapperType.MakeGenericType(DefineKey<T>(instance)), instance);
         }
 
         public void RegisterInstance<T>(T instance, bool writeOverIfPresented = true)
         {
-            Type key = typeof(T);
+            Type key = DefineKey<T>(instance);            
+            //if (ID != 0) Debug.Log(key.ToString());
             if (!_resolvablesList.ContainsKey(key))
             {
                 _resolvablesList.Add(key, CreateResolver(instance));

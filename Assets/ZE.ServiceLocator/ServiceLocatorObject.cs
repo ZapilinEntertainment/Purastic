@@ -12,7 +12,7 @@ namespace ZE.ServiceLocator
         [SerializeField] private InstallerBase[] _installers;
         private bool _isPrepared = false;
         private int _activeContainerId = 0, _nextContainerId = 1;
-        private List<Container> _containers ;
+        private Dictionary<int,Container> _containers =new() ;
         public Container Container => _containers[_activeContainerId];
         private static ServiceLocatorObject _instance;
         public static ServiceLocatorObject Instance
@@ -45,7 +45,8 @@ namespace ZE.ServiceLocator
         {
             if (!_isPrepared)
             {
-                _containers = new List<Container>() { new Container(0) };
+                int id = 0;
+                _containers = new() { { id, new Container(id) } };
                 if (_installers != null && _installers.Length > 0)
                 {
                     foreach (var installer in _installers)
@@ -57,7 +58,23 @@ namespace ZE.ServiceLocator
             }
         }
 
+        public int ReserveContainer()
+        {
+            int id = _nextContainerId++;
+            _containers.Add(id, new Container(id));
+            return id;
+        }
+        public Container ReserveAndGetContainer()
+        {
+            int id = _nextContainerId++;
+            var container = new Container(id);
+            _containers.Add(id, container);
+            return container;
+        }
+        public void ReleaseContainer(int id) => _containers.Remove(id);
         public Container GetContainer(int id) => _containers[id];
+       
+        public static void s_ReleaseContainer(int id) => _instance?.ReleaseContainer(id);
         public static void GetWhenLinkReady<T>(Action<T> resolveAction, int containerID = 0) => Instance._containers[containerID].GetWhenLinkReady(resolveAction);
         public static Awaitable<T> GetWhenLinkReady<T>(int containerID = 0) => Instance._containers[containerID].GetWhenLinkReady<T>();
         public static bool TryGet<T>(out T link, int containerID = 0) => Instance._containers[containerID].TryGet<T>(out link);

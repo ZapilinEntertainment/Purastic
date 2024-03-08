@@ -37,7 +37,7 @@ namespace ZE.ServiceLocator
             _oneShot = oneShot;
             OnCompleteEvent = completeEvent;
         }
-        public void SetFlag(int x)
+        public void CompleteFlag(int x)
         {
             if (_mask.CompleteFlag(x))
             {

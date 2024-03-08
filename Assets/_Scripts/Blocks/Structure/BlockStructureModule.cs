@@ -4,29 +4,39 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public class BlockStructureModule
+	public class BlockStructureModule : SubcontainerModule
 	{	
+
 		private int _nextConnectionID = Utilities.GenerateInteger();
-		private readonly PlacedBlocksListHandler _blockList;		
+		private readonly ComplexResolver<PlacedBlocksListHandler, CuttingPlanesManager> _resolver;		
 		private Dictionary<int, BlocksConnection> _connections = new();
+		protected PlacedBlocksListHandler BlocksList => _resolver.Item1;
+		protected CuttingPlanesManager CutPlanes => _resolver.Item2;	
+
 		public System.Action<BlocksConnection> OnConnectionCreatedEvent;
 
 		public IReadOnlyCollection<BlocksConnection> GetConnections() => _connections.Values;
 
 
-        public BlockStructureModule(PlacedBlocksListHandler list)
+        public BlockStructureModule(Container container) : base(container) 
 		{
-			_blockList= list;
+			_resolver = new(OnDependenciesReady, container);
+			_resolver.CheckDependencies();
 		}
+		private void OnDependenciesReady() { }
 
-		public void AddBlock(PlacedBlock baseBlock, FitElementStructureAddress fitInfo, PlacingBlockInfo placingBlockInfo, ConnectedAndLockedPinsContainer pinsContainer, out PlacedBlock placedBlock)
+		public void AddBlock(PlacedBlock baseBlock, FitElementStructureAddress fitInfo, VirtualBlock virtualBlock, ConnectedAndLockedPinsContainer pinsContainer, out PlacedBlock placedBlock)
 		{
-			Vector3 basementPoint = pinsContainer.BasementCutPlane.PlaneAddressToLocalPos(pinsContainer.BasementConnectedPins[0]);
-			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace);
-            Vector3 newBlockLocalPos = placingBlockInfo.CalculateLocalPosition(basementPoint, pinsContainer.NewBlockConnectedPins[0], newBlockContactFace);
 
-            placedBlock = _blockList.RegisterBlock(placingBlockInfo, newBlockLocalPos);
-            RegisterConnection(baseBlock, placedBlock, , pinsContainer);
+			var cutPlane = pinsContainer.BasementCutPlane;
+			Vector2 cutPlanePoint = cutPlane.PlaneAddressToCutPlanePos(pinsContainer.BasementConnectedPins[0]);
+			Vector3 contactPoint = baseBlock.TransformPoint(cutPlanePoint, cutPlane.Face);
+
+			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace.Inverse());
+
+            placedBlock = BlocksList.RegisterBlock(virtualBlock);
+			var cutPlaneCoord = CutPlanes.GetCutPlaneCoordinate(placedBlock, newBlockContactFace);
+            RegisterConnection(baseBlock, placedBlock, CutPlanes.GetOrCreateCutPlane(cutPlaneCoord), pinsContainer);
         }
 
 		private void RegisterConnection(PlacedBlock blockA, PlacedBlock blockB, ICuttingPlane newBlockCutPlane, ConnectedAndLockedPinsContainer pinsContainer)

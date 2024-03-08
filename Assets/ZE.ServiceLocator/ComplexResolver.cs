@@ -9,13 +9,14 @@ namespace ZE.ServiceLocator
         public bool AllDependenciesCompleted { get; private set; }
         private int _containerID = 0;
         protected IntCompleteMask _completeMask;
-        protected Container Container { get; private set; }
-        public System.Action OnAllDependenciesResolvedEvent;
+        protected readonly Container Container;
+        public Action OnAllDependenciesResolvedEvent;
 
-        public ComplexResolver(Action completeCallback, int containerID = 0)
+        public ComplexResolver(Action completeCallback, int containerID = 0) : this(completeCallback, ServiceLocatorObject.Instance.GetContainer(containerID)) { }
+        public ComplexResolver(Action completeCallback, Container container)
         {
             OnAllDependenciesResolvedEvent += completeCallback;
-            Container = ServiceLocatorObject.Instance.GetContainer(containerID);
+            Container = container;
         }
         protected void MakeComplete()
         {
@@ -32,7 +33,7 @@ namespace ZE.ServiceLocator
         public T2 Item2 => Wrapper2.Value;
         public readonly LocatorLinkWrapper<T1> Wrapper1;
         public readonly LocatorLinkWrapper<T2> Wrapper2;
-        public ComplexResolver(Action completeCallback, int containerID = 0) : base(completeCallback, containerID) 
+        public ComplexResolver(Action completeCallback, Container container) : base(completeCallback, container) 
         {
             _completeMask = new IntCompleteMask(2);         
             Wrapper1 = Container.GetLinkWrapper<T1>();          
@@ -41,6 +42,7 @@ namespace ZE.ServiceLocator
             Wrapper1.OnValueSetEvent += CheckDependencies;
             Wrapper2.OnValueSetEvent += CheckDependencies;
         }
+        public ComplexResolver(Action completeCallback, int containerID = 0) : this(completeCallback, ServiceLocatorObject.Instance.GetContainer(containerID)) { }
 
         public void CheckDependencies()
         {
@@ -64,7 +66,7 @@ namespace ZE.ServiceLocator
         public readonly LocatorLinkWrapper<T1> Wrapper1;
         public readonly LocatorLinkWrapper<T2> Wrapper2;
         public readonly LocatorLinkWrapper<T3> Wrapper3;
-        public ComplexResolver(Action completeCallback, int containerID = 0) : base(completeCallback, containerID)
+        public ComplexResolver(Action completeCallback, Container container) : base(completeCallback, container)
         {
             _completeMask = new IntCompleteMask(3);
             Wrapper1 = Container.GetLinkWrapper<T1>();
@@ -75,6 +77,7 @@ namespace ZE.ServiceLocator
             Wrapper2.OnValueSetEvent += CheckDependencies;
             Wrapper3.OnValueSetEvent += CheckDependencies;
         }
+        public ComplexResolver(Action completeCallback, int containerID = 0) : this(completeCallback, ServiceLocatorObject.Instance.GetContainer(containerID)) { }
 
         public void CheckDependencies()
         {
@@ -101,7 +104,7 @@ namespace ZE.ServiceLocator
         public readonly LocatorLinkWrapper<T2> Wrapper2;
         public readonly LocatorLinkWrapper<T3> Wrapper3;
         public readonly LocatorLinkWrapper<T4> Wrapper4;
-        public ComplexResolver(Action completeCallback, int containerID = 0) : base(completeCallback, containerID)
+        public ComplexResolver(Action completeCallback, Container container) : base(completeCallback, container)
         {
             _completeMask = new IntCompleteMask(4);
             Wrapper1 = Container.GetLinkWrapper<T1>();
@@ -114,6 +117,7 @@ namespace ZE.ServiceLocator
             Wrapper3.OnValueSetEvent += CheckDependencies;
             Wrapper4.OnValueSetEvent += CheckDependencies;
         }
+        public ComplexResolver(Action completeCallback, int containerID = 0) : this(completeCallback, ServiceLocatorObject.Instance.GetContainer(containerID)) { }
 
         public void CheckDependencies()
         {
@@ -144,7 +148,7 @@ namespace ZE.ServiceLocator
         public readonly LocatorLinkWrapper<T3> Wrapper3;
         public readonly LocatorLinkWrapper<T4> Wrapper4;
         public readonly LocatorLinkWrapper<T5> Wrapper5;
-        public ComplexResolver(Action completeCallback, int containerID = 0) : base(completeCallback, containerID)
+        public ComplexResolver(Action completeCallback, Container container) : base(completeCallback, container)
         {
             _completeMask = new IntCompleteMask(5);
             var serviceLocator = ServiceLocatorObject.Instance.Container;
@@ -160,6 +164,7 @@ namespace ZE.ServiceLocator
             Wrapper4.OnValueSetEvent += CheckDependencies;
             Wrapper5.OnValueSetEvent += CheckDependencies;
         }
+        public ComplexResolver(Action completeCallback, int containerID = 0) : this(completeCallback, ServiceLocatorObject.Instance.GetContainer(containerID)) { }
 
         public void CheckDependencies()
         {

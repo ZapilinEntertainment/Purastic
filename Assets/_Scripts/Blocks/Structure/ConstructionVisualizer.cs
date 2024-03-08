@@ -7,28 +7,47 @@ namespace ZE.Purastic {
 	public sealed class ConstructionVisualizer : MonoBehaviour
 	{
 		private bool _needRedraw = false;
-		private BlockCreateService BlockCreateService => _resolver.Item1;
-		private BlockModelPoolService CacheService => _resolver.Item3;
-        private IBlocksHost _host;
-		private PlacedBlocksListHandler _blocksHandler;
-		private ComplexResolver<BlockCreateService, GameResourcesPack, BlockModelPoolService> _resolver;
+		private MultiFlagsCondition _dependencyFlags;
+		private ComplexResolver<IBlocksHost, PlacedBlocksListHandler> _localResolver;
+		private BlockCreateService BlockCreateService => _outerResolver.Item1;
+		private BlockModelPoolService CacheService => _outerResolver.Item3;
+		private IBlocksHost BlocksHost => _localResolver.Item1;
+		private PlacedBlocksListHandler BlocksList=> _localResolver.Item2;
+        private ComplexResolver<BlockCreateService, GameResourcesPack, BlockModelPoolService> _outerResolver;
 		private List<BlockModel> _models = new();
-		
 
-		public void Setup(IBlocksHost host, PlacedBlocksListHandler blocksHandler) { 
-			_host= host;
-            _blocksHandler = blocksHandler;
+		public void Setup(Container container) {
+			_dependencyFlags = new MultiFlagsCondition(3, OnAllDependenciesResolved);
 
-            _resolver = new(OnResolved);
-			_resolver.CheckDependencies();
-
-			_host.OnBlockPlacedEvent += OnBlockPlaced;
+			_localResolver = new(OnLocalContainerResolved, container);
+            _outerResolver = new(() => _dependencyFlags.CompleteFlag(0));
+			_outerResolver.CheckDependencies();
+			_localResolver.CheckDependencies();
         }
 
-		private void OnResolved()
+		private void OnLocalContainerResolved()
 		{
-            FullRedrawAsync();			
+			_dependencyFlags.CompleteFlag(1);
+            if (BlocksHost.IsInitialized)
+			{
+				_dependencyFlags.CompleteFlag(2);		
+			}
+			else
+			{
+				BlocksHost.InitStatusModule.OnInitializedEvent += () => _dependencyFlags.CompleteFlag(2);
+			}
         }
+		private void OnAllDependenciesResolved()
+		{
+			var blocks = BlocksList.GetPlacedBlocks();
+			foreach (var block in blocks)
+			{
+				OnBlockPlaced(block);
+			}
+            BlocksHost.OnBlockPlacedEvent += OnBlockPlaced;
+        }
+
+
         private void Update()
         {
 			if (_needRedraw) FullRedrawAsync();
@@ -37,7 +56,7 @@ namespace ZE.Purastic {
         private async void OnBlockPlaced(PlacedBlock block)
 		{
             var model = await BlockCreateService.CreateBlockModel(block.Properties);
-            model.transform.SetParent(_host.ModelsHost, false);
+            model.transform.SetParent(BlocksHost.ModelsHost, false);
             _models.Add(model);
         }
 		public async void FullRedrawAsync()
@@ -51,8 +70,8 @@ namespace ZE.Purastic {
 				}
 				_models.Clear();
 			}			
-			var blockData = _host.GetBlocks();
-			Transform host = _host.ModelsHost;
+			var blockData = BlocksHost.GetBlocks();
+			Transform host = BlocksHost.ModelsHost;
 			foreach (var data in blockData)
 			{
                 var block = await BlockCreateService.CreateBlockModel(data);

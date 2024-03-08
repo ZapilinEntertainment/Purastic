@@ -74,7 +74,7 @@ namespace ZE.Purastic {
 
         public void UpdatePosition()
         {
-            if (_isActive && _placeableModel != null) _placeableModel.SetPlacePosition(_placeHandler.ModelPosition);
+            if (_isActive && _placeableModel != null) _placeableModel.SetPoint(_placeHandler.ModelPoint.Position, _placeHandler.ModelPoint.Rotation);
         }
     }
 }

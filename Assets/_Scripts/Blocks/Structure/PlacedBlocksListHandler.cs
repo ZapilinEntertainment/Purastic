@@ -5,13 +5,14 @@ using ZE.ServiceLocator;
 using System;
 
 namespace ZE.Purastic {
-	public class PlacedBlocksListHandler
+	public class PlacedBlocksListHandler : SubcontainerModule
 	{
-		public int RootBlockId { get; private set; }
+		
 		private int _nextID = Utilities.GenerateInteger();
 		private Dictionary<int, PlacedBlock> _placedBlocks = new();
-
-		public IReadOnlyCollection<BlockProperties> GetBlocksProperties()
+        public int RootBlockId { get; private set; }
+		public PlacedBlock RootBlock => _placedBlocks[RootBlockId];
+        public IReadOnlyCollection<BlockProperties> GetBlocksProperties()
 		{
 			var values = _placedBlocks.Values;
 			int count = values.Count;
@@ -25,8 +26,8 @@ namespace ZE.Purastic {
 		}
         public IReadOnlyCollection<PlacedBlock> GetPlacedBlocks() => _placedBlocks.Values;
 
-        public PlacedBlocksListHandler(PlacingBlockInfo blockInfo) {
-			var root = RegisterBlock(blockInfo, Vector3.zero);
+        public PlacedBlocksListHandler(PlacingBlockInfo initialBlock, Container container) : base(container) {
+			var root = RegisterBlock(initialBlock, Vector3.zero);
 			RootBlockId = root.ID;
 		}
 
@@ -38,5 +39,12 @@ namespace ZE.Purastic {
             _placedBlocks.Add(id, placedBlock);
 			return placedBlock;
 		}
-	}
+        public PlacedBlock RegisterBlock(VirtualBlock block)
+        {
+            int id = _nextID++;
+            var placedBlock = new PlacedBlock(id, block);
+            _placedBlocks.Add(id, placedBlock);
+            return placedBlock;
+        }
+    }
 }

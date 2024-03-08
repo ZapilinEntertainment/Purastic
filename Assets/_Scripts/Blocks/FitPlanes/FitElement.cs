@@ -10,7 +10,7 @@ namespace ZE.Purastic {
     {
         public readonly Vector2 DetailSubPlanePosition; // IFitPlaneDataProvider
         public readonly Vector2Int DetailSubPlaneIndex;
-        public readonly int DetailSubPlaneID; // id of subplane inside a cutPlane
+        public readonly byte DetailPlaneID; // index of block plane. Every block have at least one plane
         public readonly int CutPlaneID;
         public readonly BlockFaceDirection Face; // block face that element's plane belongs to. One face may contain a few planes
         public readonly int BlockID;
@@ -33,20 +33,22 @@ namespace ZE.Purastic {
     // address of pin on the plane. A block face can contain multiple planes, so we need to store plane id.
     public readonly struct FitElementPlaneAddress
     {
-        public readonly int PlaneContainerID; // not a cutplaneID, but an inner planes-container id
+        public readonly int DetailPlaneID; // not a cutplaneID, but an inner planes-container id
         public readonly Vector2Byte PinIndex;
 
         public FitElementPlaneAddress(int containerID, Vector2Byte index)
         {
-            PlaneContainerID = containerID;
+            DetailPlaneID = containerID;
             PinIndex = index;
         }
         public FitElementPlaneAddress(Vector2Byte index)
         {
-            PlaneContainerID = 0;
+            DetailPlaneID = 0;
             PinIndex = index;
         }
         public FitElementPlaneAddress(int x, int y) : this(new Vector2Byte(x,y)) { }
+
+        public override string ToString() => $"plane {DetailPlaneID}: {PinIndex}";
     }
     public readonly struct FitElementPlanePosition
     {
@@ -88,7 +90,7 @@ namespace ZE.Purastic {
         public FitElementCutPlanePosition(int cutPlaneID, ConnectingPin pin)
         {
             CutPlaneID = cutPlaneID;
-            SubPlaneDataProviderID = pin.PlaneAddress.PlaneContainerID;
+            SubPlaneDataProviderID = pin.PlaneAddress.DetailPlaneID;
             CutPlanePosition = pin.FitElement.PlanePosition;
         }
         public FitElementPlanePosition ToPlanePosition() => new FitElementPlanePosition(SubPlaneDataProviderID, CutPlanePosition);
@@ -113,6 +115,17 @@ namespace ZE.Purastic {
             CutPlaneID = cutPlaneID;
             ContactFace = new BlockFaceDirection(direction);
             PlaneAddress = planePinPosition;
+        }
+    }
+    public readonly struct FoundedFitElementPosition
+    {
+        public readonly FitElementStructureAddress StructureAddress;
+        public readonly VirtualPoint WorldPoint;
+
+        public FoundedFitElementPosition(FitElementStructureAddress structureAddress, VirtualPoint worldPoint)
+        {
+            StructureAddress = structureAddress;
+            WorldPoint = worldPoint;
         }
     }
 }

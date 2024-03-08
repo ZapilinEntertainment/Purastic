@@ -20,7 +20,7 @@ namespace ZE.Purastic {
         {
             _planes = planes;
         }
-        public FitPlaneConfig GetFitPlane(int planeID) => _planes[planeID];
+        public FitPlaneConfig GetFitPlane(int subPlaneID) => _planes[subPlaneID];
         public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, int cutPlaneID)
         {
             // planes always contain pins
