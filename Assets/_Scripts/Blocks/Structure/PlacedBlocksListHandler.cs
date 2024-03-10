@@ -26,8 +26,8 @@ namespace ZE.Purastic {
 		}
         public IReadOnlyCollection<PlacedBlock> GetPlacedBlocks() => _placedBlocks.Values;
 
-        public PlacedBlocksListHandler(PlacingBlockInfo initialBlock, Container container) : base(container) {
-			var root = RegisterBlock(initialBlock, Vector3.zero);
+        public PlacedBlocksListHandler(VirtualBlock initialBlock, Container container) : base(container) {
+			var root = RegisterBlock(initialBlock );
 			RootBlockId = root.ID;
 		}
 

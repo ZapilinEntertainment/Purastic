@@ -12,14 +12,16 @@ namespace ZE.Purastic {
 		public readonly IFitPlaneConfiguration PinsConfiguration;
 		public readonly FitType FitType;
         public BlockFaceDirection Face { get; }
-		public Vector2 PlaneZeroPos { get; }
+		public Vector2 FaceZeroPos { get; }
+        // local rotation of plane not needed - there is no such details with rotated pins
+        // for vertical rotation, place plane on a suitable face
 
 		public FitPlaneConfig(IFitPlaneConfiguration pinsConfiguration, FitType fitType, BlockFaceDirection face, Vector2 planeZeroPos)
         {
             PinsConfiguration = pinsConfiguration;
             FitType = fitType;
             Face = face;
-            PlaneZeroPos = planeZeroPos;
+            FaceZeroPos = planeZeroPos;
         }
 
         // plate with knobs
@@ -27,27 +29,46 @@ namespace ZE.Purastic {
             this (new FitsGridConfig(fitType, dimensions.x, dimensions.z), fitType, new BlockFaceDirection(direction), Vector2.zero)
         { }
 
-        public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
-        public Vector2 GetLocalPosition(Vector2Byte index) => PinsConfiguration.GetLocalPoint(index);
-		public IFitPlanesDataProvider CreateDataProvider(PlacedBlock block) => PinsConfiguration.ToDataProvider(
-			block.TransformPoint(PlaneZeroPos, Face), 
-			block.Rotation.TransformPlaneRotation(Face)
-			);
-        public IFitPlanesDataProvider CreateDataProvider(Vector2 zeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(zeroPoint, rotation);
 
+        public bool TryGetFaceSpacePosition(Vector2Byte index, out Vector2 pos)
+        {
+            if (PinsConfiguration.TryGetLocalPoint(index, out var planePos))
+            {
+                pos = PlanePositionToFacePosition(planePos);
+                return true;
+            }
+            else
+            {
+                pos = Vector2.zero;
+                return false;
+            }
+        }
+        public Vector2 PlanePositionToFacePosition(Vector2 planeSpace) => FaceZeroPos + planeSpace;
+        
+        public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
+        public Vector2 GetFaceSpacePosition(Vector2Byte index) => PlanePositionToFacePosition( PinsConfiguration.GetLocalPoint(index));
+        public IFitPlaneDataProvider CreateDataProvider(Vector2 cutPlaneZeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(cutPlaneZeroPoint, rotation);
+        public IFitPlaneDataProvider CreateDataProvider(VirtualBlock block, BlockFaceDirection face)
+        {  
+            var rect = Utilities.ProjectBlock(face, block);
+            return CreateDataProvider(rect.Rect.position, rect.Rotation);
+        }
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), PlaneZeroPos.GetHashCode());
+            return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), FaceZeroPos.GetHashCode());
         }
     }
 
 	public interface IFitPlaneConfiguration 
-		// contains info only about pins
 	{
+        // contains detail-space planes data
+        // no instance data contained
         public int GetHashCode();
+        public bool TryGetLocalPoint(Vector2Byte index, out Vector2 pos);
+        public Rect ToRect(Vector2 zeroPos);
         public Vector2 GetLocalPoint(Vector2Byte index);
         public Vector2Byte GetFitIndex(Vector2 planedPos);
-		public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation);
-        public IReadOnlyCollection<FitElement> GetAllPins();
+        public IFitPlaneDataProvider ToDataProvider(Vector2 cutPlaneZeroPoint, Rotation2D rotation);
+        public FitElementPlanePosition[] GetAllPinsInPlaneSpace(); // not read-only for further transformations
     }
 }

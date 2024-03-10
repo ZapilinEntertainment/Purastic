@@ -4,9 +4,9 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public readonly struct FitsGridConfig : IFitPlaneConfiguration
+	public class FitsGridConfig : IFitPlaneConfiguration
 	{
-		public readonly byte Width, Length;
+		public readonly byte Width =1, Length = 1;
 		public readonly FitType FitType;
         public Vector2Byte Size => new Vector2Byte(Width, Length);
 
@@ -41,10 +41,11 @@ namespace ZE.Purastic {
 
         public FitElement GetFitElement(Vector2Byte index) => new FitElement(
 			FitType,
+            FitElementSpace.Plane,
 			GetFitPosition(index)
 			);
 
-		public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(this, zeroPoint, rotation);
+		virtual public IFitPlaneDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(this, zeroPoint, rotation);
         public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect)
         {
             var list = new List<ConnectingPin>();
@@ -53,7 +54,7 @@ namespace ZE.Purastic {
                 for (byte j = 0; j < Length; j++)
                 {
                     Vector2 pos = IndexToPosition(i, j);
-                    if (rect.Contains(pos)) list.Add(new ConnectingPin(new FitElement(FitType, pos), new FitElementPlaneAddress(0, new Vector2Byte(i, j))));
+                    if (rect.Contains(pos)) list.Add(new ConnectingPin(new FitElement(FitType, FitElementSpace.Plane, pos), new FitElementPlaneAddress(0, new Vector2Byte(i, j))));
                 }
             }
             return list;
@@ -66,30 +67,44 @@ namespace ZE.Purastic {
             {
                 for (byte j = 0; j < length; j++)
                 {
-                    list[i * length + j] = new FitElement(FitType, IndexToPosition(i, j));                    
+                    list[i * length + j] = new FitElement(FitType, FitElementSpace.Plane, IndexToPosition(i, j));                    
                 }
             }
             return list;
         }
 
         public Vector2 GetLocalPoint(Vector2Byte index) => IndexToPosition(index);
-    }
-    public readonly struct BaseplateConfig : IFitPlaneConfiguration
-    {
-        public readonly byte Width, Length;
-        public FitType FitType => FitType.Knob;
 
-        public BaseplateConfig(byte width, byte length)
+        public bool TryGetLocalPoint(Vector2Byte index, out Vector2 pos)
         {
-            Width= width;
-            Length= length;
+            if (index.x < Width && index.y < Length)
+            {
+                pos = IndexToPosition(index);
+                return true;
+            }
+            else
+            {
+                pos = default;
+                return false;
+            }
         }
-
-        private FitsGridConfig ToGrid() => new FitsGridConfig(FitType, Width, Length);
-        public IReadOnlyCollection<FitElement> GetAllPins() => ToGrid().GetAllPins();
-        public Vector2Byte GetFitIndex(Vector2 planedPos) => ToGrid().GetFitIndex(planedPos);
-        public IFitPlanesDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new FullGridProvider(new Vector2Byte(Width, Length), FitType);
-
-        public Vector2 GetLocalPoint(Vector2Byte index) => FitsGridConfig.IndexToPosition(index);
+        public Rect ToRect(Vector2 zeroPos) => new Rect(zeroPos.x, zeroPos.y, Width, Length);
+        public FitElementPlanePosition[] GetAllPinsInPlaneSpace()
+        {
+            var pins = new FitElementPlanePosition[Width * Length];
+            for (byte i = 0; i < Width; i++)
+            {
+                for (byte j = 0; j < Length; j++)
+                {
+                    pins[i * Length + j] = new FitElementPlanePosition(i, j, IndexToPosition(i, j));
+                }
+            }
+            return pins;
+        }
+    }
+    public class BaseplateConfig : FitsGridConfig
+    {
+        public BaseplateConfig(int width, int length) : base(FitType.Knob, width, length) { }
+        public override IFitPlaneDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new FullGridProvider(new Vector2Byte(Width, Length), FitType);
     }
 }

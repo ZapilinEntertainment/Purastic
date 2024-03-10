@@ -30,7 +30,7 @@ namespace ZE.Purastic {
 
 			var cutPlane = pinsContainer.BasementCutPlane;
 			Vector2 cutPlanePoint = cutPlane.PlaneAddressToCutPlanePos(pinsContainer.BasementConnectedPins[0]);
-			Vector3 contactPoint = baseBlock.TransformPoint(cutPlanePoint, cutPlane.Face);
+			Vector3 contactPoint = baseBlock.FacePositionToModelPosition(cutPlanePoint, cutPlane.Face);
 
 			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace.Inverse());
 

@@ -651,6 +651,7 @@ GameObject:
   - component: {fileID: 526537836}
   - component: {fileID: 526537835}
   - component: {fileID: 526537837}
+  - component: {fileID: 526537838}
   m_Layer: 0
   m_Name: TEST
   m_TagString: Untagged
@@ -699,6 +700,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _baseplate: {fileID: 1865433961}
+--- !u!114 &526537838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526537834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4575b79451251a24b8f1ab09110bfeb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _update: 0
+  _spawnPoint: {x: 4, y: 4}
+  _horizontalRotation:
+    Rotation: 0
+    Step: 0
+  _verticalRotation:
+    Rotation: 0
+    Step: 0
+  _blockPreset: 2
+  _basePlate: {fileID: 1865433961}
 --- !u!1 &628095447
 GameObject:
   m_ObjectHideFlags: 0

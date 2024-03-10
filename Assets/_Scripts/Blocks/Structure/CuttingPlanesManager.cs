@@ -70,16 +70,17 @@ namespace ZE.Purastic {
         }
 		private void AddFitPlane(FitPlaneConfig plane, PlacedBlock block)
 		{
-			BlockFaceDirection direction = plane.Face;
-			Vector3 normal = direction.Normal;
-			float coordinate = GetCoordinate(plane.PlaneZeroPos, normal);
+			BlockFaceDirection face = plane.Face;
+			Vector3 normal = face.Normal;
+			float coordinate = GetCoordinate(plane.FaceZeroPos, normal);
 			ICuttingPlane cuttingPlane;
 
-			var dataProvider = plane.CreateDataProvider(block);
-			var key = new CuttingPlaneCoordinate(direction, coordinate);
+			var dataProvider = plane.CreateDataProvider(block, face);
+			var key = new CuttingPlaneCoordinate(face, coordinate);
+
 			if (!_cuttingPlanes.TryGetValue(key, out cuttingPlane))
 			{
-				cuttingPlane = new OneItemCuttingPlane(_nextCuttingPlaneId++, dataProvider, direction, coordinate);
+				cuttingPlane = new OneItemCuttingPlane(_nextCuttingPlaneId++, dataProvider, face, coordinate);
 				AddCuttingPlane(key, cuttingPlane);
 			}
 			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);
@@ -104,7 +105,7 @@ namespace ZE.Purastic {
 			if (_cuttingPlanes.TryGetValue(new(direction, coordinate), out var cuttingPlane))
 			{
 				Vector2 planePos = direction.InverseVector(projection);
-				if (cuttingPlane.TryDefineFitPlane(planePos, out IFitPlanesDataProvider fitPlanes) && fitPlanes.TryGetPinPosition(planePos, out var planeAddress))
+				if (cuttingPlane.TryDefineFitPlane(planePos, out IFitPlaneDataProvider fitPlanes) && fitPlanes.TryGetPinPosition(planePos, out var planeAddress))
 				{
 					fitPosition = new FitElementStructureAddress(block.ID,cuttingPlane.ID, direction, planeAddress);
 					return true;
@@ -119,11 +120,11 @@ namespace ZE.Purastic {
 			var key = GetCutPlaneCoordinate(blockBase,address.ContactFace);
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
-				var landingRectangle = Utilities.ProjectBlock(cuttingPlane, planningBlock);
+				var landingRectangle = Utilities.ProjectBlock(cuttingPlane.Face, planningBlock);
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
 				var connectFace = planningBlock.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
-				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(blockBase, connectFace, landingRectangle, cuttingPlane.ID);
+				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(blockBase, connectFace, landingRectangle, cuttingPlane);
 
 				if (landingPins != null && newBlockPins != null) 
 				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		

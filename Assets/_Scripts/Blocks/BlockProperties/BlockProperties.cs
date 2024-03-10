@@ -21,7 +21,7 @@ namespace ZE.Purastic {
 
 
 		//platform :
-		public  BlockProperties(BaseplateConfig config, BlockMaterial material, int thick)
+		public  BlockProperties(FitsGridConfig config, BlockMaterial material, int thick)
 		{
 			Material = material;
 			ModelSize = new Vector3(config.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), config.Length * GameConstants.BLOCK_SIZE) ;
@@ -44,6 +44,7 @@ namespace ZE.Purastic {
         {
 			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash, Thick);
         }
+	
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

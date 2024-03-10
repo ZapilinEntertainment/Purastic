@@ -5,7 +5,7 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
 	
-	public struct PlacedBlockRotation
+	public readonly struct PlacedBlockRotation
 	{
 		public readonly Rotation2D HorizontalRotation;
 		public readonly Rotation2D VerticalRotation;
@@ -61,7 +61,7 @@ namespace ZE.Purastic {
         public Rotation2D TransformPlaneRotation(BlockFaceDirection face)
 		{
 			var directionInModel = TransformDirection(face);
-			return directionInModel.ToPlaneRotation();
+			return directionInModel.GetHorizontalRotation();
 		}
     }
 }

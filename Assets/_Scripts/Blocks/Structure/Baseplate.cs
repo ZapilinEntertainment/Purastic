@@ -11,7 +11,6 @@ namespace ZE.Purastic {
 		[field:SerializeField] public byte Width = 16, Length = 16;
         public int ID { get; private set; }
         public int RootBlockId => _placedBlocksList.RootBlockId;
-        public Vector3 ZeroPoint => BlocksHost.TransformPosition(new Vector3(-0.5f * Width, 0f, -0.5f * Length));        
         public Transform ModelsHost => transform;
         public GameObject CollidersHost => gameObject;
 
@@ -35,7 +34,7 @@ namespace ZE.Purastic {
 
         #endregion
         
-        private BlockProperties GetRootBlock() {
+        private BlockProperties GetRootBlockProperties() {
             return new BlockProperties(new BaseplateConfig(Width, Length), _material, 1);
         }
         private void Awake()
@@ -45,8 +44,6 @@ namespace ZE.Purastic {
         private void Start()
         {
 
-            var rootBlock = GetRootBlock();
-
             _modulesContainer = ServiceLocatorObject.Instance.ReserveAndGetContainer();
             _modulesContainer.RegisterInstance(this as IBlocksHost);
             
@@ -55,12 +52,18 @@ namespace ZE.Purastic {
             _visualizer.Setup(_modulesContainer);
             _colliderModule = new (_modulesContainer);
             _cuttingPlanesManager = new CuttingPlanesManager(_modulesContainer);
-            _placedBlocksList = new(new PlacingBlockInfo(rootBlock, PlacedBlockRotation.NoRotation), _modulesContainer);
+
+            var initialBlock = new VirtualBlock(Vector3.zero, new PlacingBlockInfo(GetRootBlockProperties()));
+            _placedBlocksList = new( initialBlock,_modulesContainer); 
             OnBlockPlacedEvent?.Invoke(_placedBlocksList.RootBlock);
 
             ServiceLocatorObject.Get<ColliderListSystem>().AddBlockhost(this);
 
             InitStatusModule.OnInitialized();
+
+            // test view:
+            //var virtualBlock = new VirtualBlock(GetPlatePinPosition(Vector2Byte.one * 2), new PlacingBlockInfo(BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))));
+            //OnBlockPlacedEvent?.Invoke(new PlacedBlock(-1,virtualBlock));   
         }
 
 
@@ -69,10 +72,8 @@ namespace ZE.Purastic {
         {
             if (  _placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var baseBlock) && _cuttingPlanesManager.TryGetCuttingPlane(pinStructureAddress, out var plane)) 
             {
-                Vector2 predictedLocalContactPoint = plane.PlaneAddressToCutPlanePos(pinStructureAddress.PlaneAddress);
-                Vector3 localPos = plane.PlaneAddressToLocalPos(pinStructureAddress,BlocksHost);
-                Debug.Log(BlocksHost.TransformPosition(localPos));
-                var virtualBlock = new VirtualBlock(localPos, placingBlockInfo);
+                Vector3 predictedLocalContactPoint = plane.PlaneAddressToLocalPos(pinStructureAddress);
+                var virtualBlock = new VirtualBlock(placingBlockInfo.GetBlockCenterPosition(predictedLocalContactPoint) , placingBlockInfo);
                 if (_cuttingPlanesManager.TryConnectNewBlock(baseBlock, pinStructureAddress, virtualBlock, out var connectedPins))
                 {
                     _structureModule.AddBlock(baseBlock, pinStructureAddress, virtualBlock, connectedPins, out var newPlacedBlock);
@@ -98,6 +99,14 @@ namespace ZE.Purastic {
             return false;
         }
 
+        public Vector3 GetPlatePinPosition(Vector2Byte index)
+        {
+            var rootBlock = _placedBlocksList.RootBlock;
+            var plane = rootBlock.Properties.GetPlanesList().GetFitPlane(0);
+            var facePos = plane.GetFaceSpacePosition(index);
+            Vector3 modelPos = rootBlock.FacePositionToModelPosition(facePos, BlockFaceDirection.Up);
+            return BlocksHost.TransformPosition( modelPos);
+        }
         public IReadOnlyCollection<BlockProperties> GetBlocks() => _placedBlocksList.GetBlocksProperties();
         public FitElementStructureAddress FormPlateAddress(Vector2Byte index)
         {
@@ -113,5 +122,9 @@ namespace ZE.Purastic {
         {
             ServiceLocatorObject.s_ReleaseContainer(_modulesContainer.ID);
         }
+
+        public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);
+
+        public Vector3 TransformPosition(Vector3 position) => ModelsHost.TransformPoint(position);
     }
 }

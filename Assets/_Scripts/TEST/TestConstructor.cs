@@ -19,23 +19,20 @@ namespace ZE.Purastic {
             }
 			int rootId = _baseplate.RootBlockId;
 			bool x =_baseplate.TryAddDetail(
-				_baseplate.FormPlateAddress(new Vector2Byte(4,4)),
+				_baseplate.FormPlateAddress(new Vector2Byte(2,2)),
 				new PlacingBlockInfo(
-					BlockPresetsList.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
-					PlacedBlockRotation.NoRotation
-				));
-            return;
+					BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
+                ));
+            
             _baseplate.TryAddDetail(
                 _baseplate.FormPlateAddress(new Vector2Byte(4, 8)),
                 new PlacingBlockInfo(
-                    BlockPresetsList.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
-                    PlacedBlockRotation.NoRotation
+                    BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
                 ));
             _baseplate.TryAddDetail(
                 _baseplate.FormPlateAddress(new Vector2Byte(8, 4)),
                 new PlacingBlockInfo(
-                    BlockPresetsList.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender)),
-                    PlacedBlockRotation.NoRotation
+                    BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
                 ));
         }
 	}

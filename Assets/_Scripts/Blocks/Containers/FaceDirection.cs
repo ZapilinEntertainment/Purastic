@@ -54,20 +54,6 @@ namespace ZE.Purastic {
                 default: return Quaternion.identity;
             }
         }
-		public static Vector3 GetZeroPos(this FaceDirection direction, Vector3 modelCenter, Vector3 modelSize)
-		{            
-            // zero pos is bottom-left corner (like ui)
-            switch (direction)
-            {
-                case FaceDirection.Forward: return modelCenter + 0.5f * new Vector3(-modelSize.x, -modelSize.y, modelSize.z);
-                case FaceDirection.Right: return modelCenter + 0.5f * new Vector3(modelSize.x, -modelSize.y, modelSize.z);
-                case FaceDirection.Back: return modelCenter + 0.5f * new Vector3(modelSize.x, -modelSize.y, -modelSize.z);
-                case FaceDirection.Left: return modelCenter + 0.5f * new Vector3(-modelSize.x, -modelSize.y, -modelSize.z);
-                case FaceDirection.Up: return modelCenter + 0.5f * new Vector3(-modelSize.x, modelSize.y, modelSize.z);
-                case FaceDirection.Down: return modelCenter + 0.5f * new Vector3(-modelSize.x, -modelSize.y, -modelSize.z);
-                default: return Vector3.zero;
-            }
-        }
         
     }
 }

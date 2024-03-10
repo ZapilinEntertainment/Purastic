@@ -18,7 +18,13 @@ namespace ZE.Purastic {
 			x = (byte)a;
 			y = (byte)b;
 		}
+        public Vector2Byte(Vector2Int pos)
+        {
+            x = (byte)pos.x;
+            y = (byte)pos.y;
+        }
         public static implicit operator Vector2(Vector2Byte pos) => new Vector2(pos.x,pos.y);
-		public override string ToString() => $"({x}:{y})";
+        public static Vector2Byte operator*(Vector2Byte vector, int value) => new Vector2Byte(vector.x * value, vector.y * value);
+        public override string ToString() => $"({x}:{y})";
     }
 }

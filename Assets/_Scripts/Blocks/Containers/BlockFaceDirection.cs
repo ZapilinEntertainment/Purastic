@@ -64,16 +64,47 @@ namespace ZE.Purastic {
                 y = Vector3.Dot(projectedDir, up);
             return new Vector2(x, y);
         }
-        public Vector3 TransformVector(Vector2 planePos, IBlocksHost host)
-        {
-            Vector3 planeZeroPos3d = GetZeroPosition(Vector3.zero, host.ZeroPoint);
-            var rotation = ToRotation();
-            Vector3 planeRight = rotation * Vector3.right, planeUp = rotation * Vector3.up;
-            return planeZeroPos3d + planeRight * planePos.x + planeUp * planePos.y;
-        }
 
-        public Vector3 GetZeroPosition(Vector3 modelCenter, Vector3 modelSize) => Direction.GetZeroPos(modelCenter, modelSize);
+        public Vector3 GetNormalizedZeroPoint()
+        {
+            //bottom-left corner of a face
+            switch (Direction)
+            {
+                case FaceDirection.Forward: return new Vector3(-1f, -1f, 1f);
+                case FaceDirection.Right: return new Vector3(1f, -1f, 1f);
+                case FaceDirection.Back: return new Vector3(1f, -1f, -1f);
+                case FaceDirection.Left: return new Vector3(-1f, -1f, -1f);
+                case FaceDirection.Up: return new Vector3(-1f, 1f, 1f);
+                case FaceDirection.Down: return new Vector3(-1f, -1f, -1f);
+                default: return Vector3.zero;
+            }
+        }
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
-        public Rotation2D ToPlaneRotation() => Rotation2D.NoRotation; // wait for custom
+        public Rotation2D GetHorizontalRotation()
+        {
+            switch (Direction) {
+                case FaceDirection.Right: return Rotation2D.SquareRotation(1);
+                case FaceDirection.Back: return Rotation2D.SquareRotation(2);
+                case FaceDirection.Left: return Rotation2D.SquareRotation(-1);
+                default: return Rotation2D.NoRotation;
+            }
+        }
+        public Rotation2D GetVerticalRotation()
+        {
+            switch (Direction)
+            {
+                case FaceDirection.Up: return Rotation2D.SquareRotation(1);
+                case FaceDirection.Down: return Rotation2D.SquareRotation(-1);
+                default: return Rotation2D.NoRotation;
+            }
+        }
+        public PlacedBlockRotation ToBlockRotation() => new PlacedBlockRotation(GetHorizontalRotation(), GetVerticalRotation());
+
+        public static BlockFaceDirection Up => new(FaceDirection.Up);
+        public static BlockFaceDirection Down => new(FaceDirection.Down);
+        public static BlockFaceDirection Left => new(FaceDirection.Left);
+        public static BlockFaceDirection Right => new(FaceDirection.Right);
+        public static BlockFaceDirection Forward => new(FaceDirection.Forward);
+        public static BlockFaceDirection Back => new(FaceDirection.Back);
     }
 }

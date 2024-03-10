@@ -10,7 +10,7 @@ namespace ZE.Purastic {
 	public class FitPlanesConfigList
 	{
         private readonly FitPlaneConfig[] _planes;
-        public IReadOnlyCollection<FitPlaneConfig> Planes => _planes;
+        public IList<FitPlaneConfig> Planes => _planes;
 
         public FitPlanesConfigList(FitPlaneConfig plane)
         {
@@ -21,7 +21,20 @@ namespace ZE.Purastic {
             _planes = planes;
         }
         public FitPlaneConfig GetFitPlane(int subPlaneID) => _planes[subPlaneID];
-        public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, int cutPlaneID)
+        public FitElementFacePosition GetFaceSpacePosition(Vector2Byte index, BlockFaceDirection face)
+        {
+            //return the pin on first suitable plane
+            for (int i = 0; i < _planes.Length; i++)
+            {
+                var plane = _planes[i];
+                if (plane.Face == face && plane.TryGetFaceSpacePosition(index, out var pos))
+                {
+                    return new FitElementFacePosition(i, pos);
+                }
+            }
+            return default;
+        }
+        public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
         {
             // planes always contain pins
             var elements = new List<ConnectingPin>();
@@ -29,15 +42,14 @@ namespace ZE.Purastic {
                 var plane = _planes[i]; 
                 if (plane.Face == face)
                 {
-                    var pinPositions = plane.CreateDataProvider(block).GetPinsInZone(zone);
-                    var pinType = plane.FitType;
+                    var pinPositions = plane.CreateDataProvider(block, cuttingPlane.Face).GetPinsInZone(zone);
                     foreach (var pinPos in pinPositions)
                     {
                         elements.Add(pinPos);
                     }
                 }
             }
-            return new FitsConnectionZone(cutPlaneID, elements);
+            return new FitsConnectionZone(cuttingPlane.ID, elements);
         }
 
         public override int GetHashCode()

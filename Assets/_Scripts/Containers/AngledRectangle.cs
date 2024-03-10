@@ -7,20 +7,27 @@ namespace ZE.Purastic {
 	public readonly struct AngledRectangle
 	{
 		public readonly Rect Rect;
-		public readonly Vector2 Up, Right;
+		public readonly Rotation2D Rotation;
 
-		public AngledRectangle(Rect rect, Vector2 up, Vector2 right)
+		public AngledRectangle(Rect rect, Rotation2D rotation)
 		{
 			Rect = rect;
-			Up= up;
-			Right= right;
+			Rotation = rotation;
 		}
 
+		public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos) => new AngledRectangle(new Rect(Rect.position + planeZeroPos, Rect.size), Rotation);
 		public Vector2 BottomLeft => Rect.min;
-		public Vector2 BottomRight => Rect.min + Right * Rect.width;
-		public Vector2 TopLeft => Rect.min + Up * Rect.height;
-		public Vector2 TopRight => BottomRight + Up * Rect.width;
-		public Vector2 Center => Rect.min + 0.5f * Rect.width * Right + 0.5f * Rect.height * Up;
+		public Vector2 BottomRight => Rect.min + Rotation.Right * Rect.width;
+		public Vector2 TopLeft => Rect.min + Rotation.Up * Rect.height;
+		public Vector2 TopRight => BottomRight + Rotation.Up * Rect.width;
+		public Vector2 Center
+		{
+			get
+			{
+				var orths = Rotation.CreateOrths();
+				return Rect.min + 0.5f * Rect.width * orths.right + 0.5f * Rect.height * orths.up;
+			}
+		}
 
 		public LineSegment[] GetBorders() => new LineSegment[4] {
 			new LineSegment(TopLeft, TopRight),
@@ -31,15 +38,20 @@ namespace ZE.Purastic {
 
 		public LineSegment GetVerticalCenterSegment()
 		{
-			Vector2 halfWidth = 0.5f * Rect.width * Right;
+			Vector2 halfWidth = 0.5f * Rect.width * Rotation.Right;
 			return new LineSegment(BottomLeft + halfWidth, TopLeft + halfWidth);
 		}
 
 		public bool Contains(Vector2 point)
 		{
-			Vector2 dir = point - Rect.min;
-			Vector2 localPos = new (Vector2.Dot(dir, Right), Vector2.Dot(dir, Up));
-			return Rect.Contains(localPos);
+			if (Rotation.IsDefaultRotation) return Rect.Contains(point);
+			else
+			{
+				Vector2 dir = point - Rect.position;
+				var orths = Rotation.CreateOrths();
+				Vector2 localPos = new(Vector2.Dot(dir, orths.right), Vector2.Dot(dir, orths.up));
+				return Rect.Contains(localPos + Rect.position);
+			}
 		}
 		public bool IsIntersects(AngledRectangle other)
 		{

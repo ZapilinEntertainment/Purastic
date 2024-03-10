@@ -16,7 +16,7 @@ namespace ZE.Purastic {
 				else
 				{
 					if (connectResult == PinConnectionResult.Blocked)
-					{
+					{						
 						break;
 					}
 					else
@@ -25,7 +25,8 @@ namespace ZE.Purastic {
 					}
 				}
 			}
-			return pinsContainer.PairsCount > 0;
+			Debug.Log(pinsContainer.PairsCount);
+            return pinsContainer.PairsCount > 0;
 		}
 	}
 }

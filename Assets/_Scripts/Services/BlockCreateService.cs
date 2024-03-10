@@ -65,22 +65,22 @@ namespace ZE.Purastic {
 			model.gameObject.layer = _pinplanesLayer;
 
 			var size = properties.ModelSize;
-            model.transform.localPosition = 0.5f * size.y * Vector3.up;
+			model.transform.localPosition = Vector3.zero;//0.5f * size.y * Vector3.up;
 			model.transform.localScale = size;
 
-			VirtualBlock virtualBlock = new VirtualBlock(model.transform.position, new PlacingBlockInfo(properties, PlacedBlockRotation.NoRotation));
+			VirtualBlock virtualBlock = new VirtualBlock(model.transform.position, new PlacingBlockInfo(properties));
 			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(properties.FitPlanesHash).Planes;
 			if (fitPlanes.Count > 0)
 			{
 				foreach (var plane in fitPlanes)
 				{
-					var pinsPositions = plane.PinsConfiguration.GetAllPins();
+					var pinsPositions = plane.PinsConfiguration.GetAllPinsInPlaneSpace();
 					var prefab = _brickModelsPack.GetFitElementPrefab(plane.FitType);
 					var rotation = plane.Face.ToRotation();
 
 					foreach (var pin in pinsPositions)
 					{
-						Object.Instantiate(prefab, position: virtualBlock.TransformPoint(pin.PlanePosition, plane.Face), rotation: rotation, parent: host);
+						Object.Instantiate(prefab, position: virtualBlock.FacePositionToModelPosition(pin.PlanePosition, plane.Face), rotation: rotation, parent: host);
 					}
 				}
 			}
