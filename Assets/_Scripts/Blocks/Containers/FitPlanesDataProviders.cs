@@ -11,6 +11,7 @@ namespace ZE.Purastic {
         public FitElementPlaneAddress ToPinIndex(Vector2 pos);
         public Vector2 PlaneAddressToCutPlanePosition(FitElementPlaneAddress pinPosition);
         public AngledRectangle ToRectangle();
+        public VirtualPoint GetFitElementFaceVirtualPoint(Vector2Byte index);
 
         public IReadOnlyCollection<FitElement> GetAllPins();
         public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect);
@@ -24,25 +25,33 @@ namespace ZE.Purastic {
         private readonly Rotation2D _rotation;
         private float Width => _grid.Width * GameConstants.BLOCK_SIZE;
         private float Length => _grid.Length * GameConstants.BLOCK_SIZE;
+        private float ElementWidth => GameConstants.KNOB_SCALE * GameConstants.BLOCK_SIZE;
+        private float ElementLength => ElementWidth;
         public GridDataProvider(FitsGridConfig grid, Vector2 cutPlaneZeroPos, Rotation2D rotation)
         {
             _cutPlaneZeroPos = cutPlaneZeroPos; _grid = grid;
             _rotation= rotation;
         }
 
-        private Vector2 PlanePositionToCutPlanePosition(Vector2 planePos) => _cutPlaneZeroPos + _rotation.Rotate(planePos); 
+        private Vector2 PlanePositionToCutPlanePosition(Vector2 planePos) => _cutPlaneZeroPos + _rotation.Rotate(planePos);
+        private Vector2 CutPlanePositionToPlanePosition(Vector2 cutPlanePos)
+        {
+            Vector2 dir = cutPlanePos - _cutPlaneZeroPos;
+            return _rotation.InverseDirection(dir);
+        }
+
         public bool Contains(Vector2 pos) => ToRectangle().Contains(pos);
         public FitElementPlaneAddress ToPinIndex(Vector2 pos)
         {
-            Vector2 dir = pos - _cutPlaneZeroPos;
-            return ToPlanePinPosition(dir.x / Width, dir.y / Length);
+            Vector2 dir = CutPlanePositionToPlanePosition(pos);
+            return ToPlanePinPosition(dir.x / ElementWidth, dir.y / ElementLength);
         }
-        public bool TryGetPinPosition(Vector2 pos, out FitElementPlaneAddress index)
+        public bool TryGetPinPosition(Vector2 cutPlanePosition, out FitElementPlaneAddress index)
         {
-            Vector2 dir = pos - _cutPlaneZeroPos;
-            if (dir.x > 0f && dir.y > 0f && dir.x < Width && dir.y < Length)
+            Vector2 planePos = CutPlanePositionToPlanePosition(cutPlanePosition);
+            if (planePos.x > 0f && planePos.y > 0f && planePos.x < Width && planePos.y < Length)
             {
-                index = ToPlanePinPosition(dir.x / Width, dir.y / Length);
+                index = ToPlanePinPosition(planePos.x / ElementWidth, planePos.y / ElementLength);
                 return true;
             }
             else
@@ -52,37 +61,11 @@ namespace ZE.Purastic {
             }
         }
         public Vector2 PlaneAddressToCutPlanePosition(FitElementPlaneAddress pinPosition) => PlanePositionToCutPlanePosition(FitsGridConfig.IndexToPosition(pinPosition.PinIndex));
-        private FitElementPlaneAddress ToPlanePinPosition(float x, float y) => new FitElementPlaneAddress(0, new Vector2Byte(x, y));
+        private FitElementPlaneAddress ToPlanePinPosition(float x, float y) => new (0, new Vector2Byte(x, y));
 
         public AngledRectangle ToRectangle() => new AngledRectangle(new Rect(_cutPlaneZeroPos, _grid.ToSize()), _rotation);
+        public VirtualPoint GetFitElementFaceVirtualPoint(Vector2Byte index) => new (PlanePositionToCutPlanePosition(FitsGridConfig.IndexToPosition(index)), _rotation.ToQuaternion());
         public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect) => _grid.GetPinsInZone(rect);
         public IReadOnlyCollection<FitElement> GetAllPins() => _grid.GetAllPins();
-    }
-    public class FullGridProvider : IFitPlaneDataProvider
-    {
-        public readonly FitType FitType;
-        private readonly Vector2 _modelSize;
-
-        public FullGridProvider(Vector2Byte size, FitType fitType)
-        {
-            _modelSize = (Vector2)size * GameConstants.BLOCK_SIZE;
-            FitType = fitType;
-        }
-        public bool Contains(Vector2 pos) => true;
-
-
-        public bool TryGetPinPosition(Vector2 pos, out FitElementPlaneAddress index)
-        {
-            index = ToPinIndex(pos);
-            return true;
-        }
-        public Vector2 PlaneAddressToCutPlanePosition(FitElementPlaneAddress pinPosition) => FitsGridConfig.IndexToPosition(pinPosition.PinIndex);
-
-        public FitElementPlaneAddress ToPinIndex(Vector2 pos) => new FitElementPlaneAddress(new Vector2Byte(pos.x / _modelSize.x, pos.y / _modelSize.y));
-
-        public AngledRectangle ToRectangle() => new (new Rect(Vector2.zero, _modelSize), Rotation2D.NoRotation);
-        private FitsGridConfig ToGrid() => new FitsGridConfig(FitType, _modelSize);
-        public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect) => this.ToGrid().GetPinsInZone(rect);
-        public IReadOnlyCollection<FitElement> GetAllPins() => this.ToGrid().GetAllPins();
     }
 }

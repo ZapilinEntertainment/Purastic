@@ -58,7 +58,7 @@ namespace ZE.Purastic {
             var model = await BlockCreateService.CreateBlockModel(block.Properties);
 			var modelTransform = model.transform;
             modelTransform.SetParent(BlocksHost.ModelsHost, false);
-			modelTransform.SetLocalPositionAndRotation(BlocksHost.TransformPosition(block.LocalPosition), block.Rotation.Quaternion);
+			modelTransform.SetLocalPositionAndRotation(block.LocalPosition, block.Rotation.Quaternion);
             _models.Add(model);
         }
 		public async void FullRedrawAsync()

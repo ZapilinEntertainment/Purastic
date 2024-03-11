@@ -15,7 +15,7 @@ namespace ZE.Purastic {
         public IReadOnlyCollection<BlockProperties> GetBlocks();
 
 		public bool TryAddDetail(FitElementStructureAddress position, PlacingBlockInfo placingBlockInfo);
-        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FoundedFitElementPosition position);
+        public bool TryGetFitElementPosition(RaycastHit hit, out FoundedFitElementPosition position);
 
         public Vector3 InverseTransformPosition(Vector3 position);
         public Vector3 TransformPosition(Vector3 position);

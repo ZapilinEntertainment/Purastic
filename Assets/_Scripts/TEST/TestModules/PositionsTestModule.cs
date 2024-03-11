@@ -14,8 +14,7 @@ namespace ZE.Purastic {
         }
 
         [SerializeField] private bool _update = false;        
-        [SerializeField] private Vector2Int _spawnPoint;
-        [SerializeField] private Vector2Byte _initialPin;
+        [SerializeField] private Vector2Int _spawnPoint, _initialPin;
         [SerializeField] private RotationSettings _horizontalRotation, _verticalRotation;
         [SerializeField] private BlockPreset _blockPreset = BlockPreset.StandartBrick_2x4;
         [SerializeField] private Baseplate _basePlate;
@@ -39,7 +38,7 @@ namespace ZE.Purastic {
                 await Awaitable.WaitForSecondsAsync(0.1f);
             }
 
-            Debug.Log(_basePlate.GetPlatePinPosition(Vector2Byte.zero));
+            //Debug.Log(_basePlate.GetPlatePinPosition(Vector2Byte.zero));
 
             Redraw();
         }
@@ -51,8 +50,8 @@ namespace ZE.Purastic {
 
         private void DrawBlock(Vector3 pinPosition)
         {
-            var placingInfo = new PlacingBlockInfo(_initialPin, _properties, BlockFaceDirection.Down);
-            var blockPos = _basePlate.TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
+            var placingInfo = new PlacingBlockInfo(new Vector2Byte(_initialPin), _properties, BlockFaceDirection.Down);
+            var blockPos =  _basePlate.TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
 
             var rotation = new PlacedBlockRotation(new Rotation2D(_horizontalRotation.Rotation, _horizontalRotation.Step), new Rotation2D(_verticalRotation.Rotation, _verticalRotation.Step));
             var virtualBlock = new VirtualBlock(blockPos, placingInfo);

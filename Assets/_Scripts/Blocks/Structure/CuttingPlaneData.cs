@@ -9,6 +9,7 @@ namespace ZE.Purastic {
         public int ID { get; }
         public BlockFaceDirection Face { get; }
         public float Coordinate { get; }
+        public int PlanesCount { get; }
 
         public ICuttingPlane AddFitPlaneProvider(IFitPlaneDataProvider provider);
         public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider dataProvider);
@@ -68,6 +69,7 @@ namespace ZE.Purastic {
         public BlockFaceDirection Face => _direction;
         public float Coordinate => _coordinate;
         public int ID => _id;
+        public abstract int PlanesCount { get; }
 
         public CuttingPlaneBase(int id, BlockFaceDirection direction, float coordinate)
         {
@@ -83,7 +85,7 @@ namespace ZE.Purastic {
         public Vector2 LocalToCutPlanePos(Vector3 localPos)
         {
             Vector3 projected = Vector3.ProjectOnPlane(localPos, Face.Normal);
-            return Face.InverseVector(projected);
+            return Face.LocalToFaceDirection(projected);
         }
         abstract public Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address);
 
@@ -92,6 +94,7 @@ namespace ZE.Purastic {
    
     public class CuttingPlanePlaceholder : CuttingPlaneBase
     {
+        public override int PlanesCount => 0;
         public CuttingPlanePlaceholder(int id, CuttingPlaneCoordinate coordinate) : base(id, coordinate.Direction, coordinate.Coordinate)
         {
            
@@ -111,6 +114,7 @@ namespace ZE.Purastic {
     }
     public class OneItemCuttingPlane : CuttingPlaneBase
     {
+        public override int PlanesCount => 1;
         private readonly IFitPlaneDataProvider _provider;
 
         public OneItemCuttingPlane(int id, IFitPlaneDataProvider dataProvider, BlockFaceDirection direction, float coordinate) : base(id, direction, coordinate)
@@ -128,8 +132,10 @@ namespace ZE.Purastic {
 
         public override bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider dataProvider)
         {
+            //Debug.Log($"pos {pos} in {_provider.ToRectangle().Rect}");
             if (_provider.Contains(pos))
             {
+               
                 dataProvider = _provider;
                 return true;
             }
@@ -145,6 +151,7 @@ namespace ZE.Purastic {
     public class ComplexCuttingPlane : CuttingPlaneBase
     {
         private readonly List<IFitPlaneDataProvider> _providers = new();
+        public override int PlanesCount => _providers.Count;
         public ComplexCuttingPlane(int id, BlockFaceDirection direction, float coordinate) : base(id, direction, coordinate)
         {
             

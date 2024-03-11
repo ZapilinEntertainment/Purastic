@@ -42,6 +42,46 @@ namespace ZE.Purastic {
             this.Direction = direction;
             CustomValue = 0;
         }
+        public BlockFaceDirection (Vector3 normal)
+        {
+            float verticalDot = Vector3.Dot(normal, Vector3.up);
+            if (verticalDot == 1f) Direction = FaceDirection.Up;
+            else
+            {
+                if (verticalDot == -1f) Direction = FaceDirection.Down;
+                else
+                {
+                    if (verticalDot == 0f)
+                    {
+                        float horizontalDot = Vector3.Dot(normal, Vector3.forward);
+                        if (horizontalDot == 0f)
+                        {
+                            float sideDot = Vector3.Dot(normal, Vector3.right);
+                            if (sideDot == 1f) Direction = FaceDirection.Right;
+                            else
+                            {
+                                if (sideDot == -1f) Direction = FaceDirection.Left;
+                                else Direction = FaceDirection.Custom;
+                            }
+                        }
+                        else
+                        {
+                            if (horizontalDot == 1f) Direction = FaceDirection.Forward;
+                            else
+                            {
+                                if (horizontalDot == -1f) Direction = FaceDirection.Back;
+                                else Direction = FaceDirection.Custom;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Direction = FaceDirection.Custom;
+                    }
+                }
+            }
+            CustomValue = 0;
+        }
 
         public BlockFaceDirection Inverse()
         {
@@ -56,13 +96,18 @@ namespace ZE.Purastic {
                 default: return this;
             }
         }
-        public Vector2 InverseVector(Vector3 projectedDir)
+        public Vector2 LocalToFaceDirection(Vector3 direction)
         {
             var rotation = Direction.ToPlaneRotation();
             Vector3 right = rotation * Vector3.right, up = rotation * Vector3.up;
-            float x = Vector3.Dot(projectedDir, right),
-                y = Vector3.Dot(projectedDir, up);
+            float x = Vector3.Dot(direction, right),
+                y = Vector3.Dot(direction, up);
             return new Vector2(x, y);
+        }
+        public Vector3 TransformPoint(Vector2 facePoint)
+        {
+            var rotation = ToRotation();
+            return rotation * new Vector3(facePoint.x, facePoint.y, 0f);
         }
 
         public Vector3 GetNormalizedZeroPoint()

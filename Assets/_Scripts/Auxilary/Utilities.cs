@@ -24,15 +24,14 @@ namespace ZE.Purastic {
                 case FaceDirection.Up:
                     {
                         size = new Vector2(localSize.x, localSize.z);
-                        var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(-1, -1f, -1f), Vector3.up);
-                        zeroPos = new Vector2(projectedPos.x, projectedPos.z);
+                        Vector3 corner = block.TransformNormalizedPoint(new Vector3(-1f, -1f, 1f));
+                        zeroPos = face.LocalToFaceDirection(corner);
                         break;
                     }
                 case FaceDirection.Down:
                     {
                         size = new Vector2(localSize.x, localSize.z);
-                        var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(-1, 1f, -1f), Vector3.up);
-                        zeroPos = new Vector2(projectedPos.x, projectedPos.z);
+                       // zeroPos = face.InverseVector(block.TransformNormalizedPoint(-1, 1f, -1f));
                         break;
                     }
 

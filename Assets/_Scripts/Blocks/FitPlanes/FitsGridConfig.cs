@@ -102,9 +102,4 @@ namespace ZE.Purastic {
             return pins;
         }
     }
-    public class BaseplateConfig : FitsGridConfig
-    {
-        public BaseplateConfig(int width, int length) : base(FitType.Knob, width, length) { }
-        public override IFitPlaneDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new FullGridProvider(new Vector2Byte(Width, Length), FitType);
-    }
 }

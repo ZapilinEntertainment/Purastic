@@ -35,7 +35,7 @@ namespace ZE.Purastic {
         #endregion
         
         private BlockProperties GetRootBlockProperties() {
-            return new BlockProperties(new BaseplateConfig(Width, Length), _material, 1);
+            return new BlockProperties(new FitsGridConfig(FitType.Knob, Width, Length), _material, 1);
         }
         private void Awake()
         {
@@ -60,7 +60,6 @@ namespace ZE.Purastic {
             ServiceLocatorObject.Get<ColliderListSystem>().AddBlockhost(this);
 
             InitStatusModule.OnInitialized();
-
             // test view:
             //var virtualBlock = new VirtualBlock(GetPlatePinPosition(Vector2Byte.one * 2), new PlacingBlockInfo(BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))));
             //OnBlockPlacedEvent?.Invoke(new PlacedBlock(-1,virtualBlock));   
@@ -84,16 +83,12 @@ namespace ZE.Purastic {
             }
             return false;
         }
-        public bool TryGetFitElementPosition(int colliderID, Vector3 point, out FoundedFitElementPosition position)
+        public bool TryGetFitElementPosition(RaycastHit hit, out FoundedFitElementPosition position)
         {
-            if (_colliderModule.TryGetBlock(colliderID, out int blockID) && _placedBlocksList.TryGetBlock(blockID, out var placedBlock))
+            if (_colliderModule.TryGetBlock(hit.colliderInstanceID, out int blockID) && _placedBlocksList.TryGetBlock(blockID, out var placedBlock))
             {
-               // Debug.Log("here");
-                Vector3 localHitPos = ModelsHost.InverseTransformPoint(point);
-                if ( _cuttingPlanesManager.TryGetFitElementPosition(localHitPos, placedBlock, out var structureAddress))
-                {
-                    position = new FoundedFitElementPosition(structureAddress, new VirtualPoint(point, ModelsHost.rotation));
-                }
+                Vector3 localHitPos = ModelsHost.InverseTransformPoint(hit.point);
+                return _cuttingPlanesManager.TryGetFitElementPosition(localHitPos, hit.normal, placedBlock, out position) ;
             }
             position = default;
             return false;

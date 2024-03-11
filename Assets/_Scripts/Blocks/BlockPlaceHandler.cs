@@ -51,7 +51,7 @@ namespace ZE.Purastic {
                 _lastBlocksHostId = hostID;
                  _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
             }
-            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(_selectedPoint.BlockColliderID, _selectedPoint.Point.Position, out var fitPosition))
+            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(hit, out var fitPosition))
             {
                 _selectedPoint = new(fitPosition);
             }

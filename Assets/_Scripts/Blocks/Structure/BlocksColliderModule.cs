@@ -44,7 +44,7 @@ namespace ZE.Purastic {
             var collider = BlocksHost.CollidersHost.AddComponent<BoxCollider>();
             var bounds = block.Properties.ModelSize;
             collider.size = bounds;
-            collider.center = 0.5f * bounds.y * Vector3.up;
+            collider.center = block.LocalPosition;
             AddColliderToList(collider, block.ID);
         }
         private void AddColliderToList(Collider collider, int blockID)

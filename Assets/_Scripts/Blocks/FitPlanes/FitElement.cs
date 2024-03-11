@@ -138,13 +138,15 @@ namespace ZE.Purastic {
     }
     public readonly struct FoundedFitElementPosition
     {
+        public readonly Vector3 HitPlaneNormal;
         public readonly FitElementStructureAddress StructureAddress;
         public readonly VirtualPoint WorldPoint;
 
-        public FoundedFitElementPosition(FitElementStructureAddress structureAddress, VirtualPoint worldPoint)
+        public FoundedFitElementPosition(FitElementStructureAddress structureAddress, VirtualPoint worldPoint, Vector3 normal)
         {
             StructureAddress = structureAddress;
             WorldPoint = worldPoint;
+            HitPlaneNormal = normal;
         }
     }
 }

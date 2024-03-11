@@ -29,11 +29,11 @@ namespace ZE.Purastic {
 			var pinFacePosition = planes.GetFaceSpacePosition(InitialPinIndex, ConnectFace);
 			Vector2 pos = pinFacePosition.PlanePos;
 
-			var orths = ConnectFace.GetHorizontalRotation().CreateOrths();
 			Vector3 bounds = 0.5f * Properties.ModelSize, zeroPosNormalized = ConnectFace.GetNormalizedZeroPoint();
-			Vector3 modelSpacePinPos = new Vector3(zeroPosNormalized.x * bounds.x, zeroPosNormalized.y * bounds.y, zeroPosNormalized.z * bounds.z) + ConnectFace.ToRotation() * new Vector3(pos.x, pos.y, 0f);
-			Debug.Log(modelSpacePinPos);
-			return initialPinAddressLocalPosition - modelSpacePinPos;
+			Vector3 faceCornerPosition = new Vector3(zeroPosNormalized.x * bounds.x, zeroPosNormalized.y * bounds.y, zeroPosNormalized.z * bounds.z);
+			Vector3 pinPositionInModelSpace = ConnectFace.TransformPoint(pos) + faceCornerPosition;
+			Debug.Log(pinPositionInModelSpace);
+			return initialPinAddressLocalPosition - pinPositionInModelSpace;
 		}
     }
 }
