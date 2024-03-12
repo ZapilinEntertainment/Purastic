@@ -18,22 +18,22 @@ namespace ZE.Purastic {
                 aws = null;
             }
 			int rootId = _baseplate.RootBlockId;
-			bool x =_baseplate.TryAddDetail(
-				_baseplate.FormPlateAddress(new Vector2Byte(2,2)),
-				new PlacingBlockInfo(
-					BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_1x1, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
-                ));
-            
-            _baseplate.TryAddDetail(
-                _baseplate.FormPlateAddress(new Vector2Byte(4, 8)),
-                new PlacingBlockInfo(
-                    BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
-                ));
-            _baseplate.TryAddDetail(
-                _baseplate.FormPlateAddress(new Vector2Byte(8, 4)),
-                new PlacingBlockInfo(
-                    BlockPresetsDepot.GetProperty(BlockPreset.StandartBrick_2x4, new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender))
-                ));
+
+            var material = new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender);
+
+            AddDetail(new Vector2Byte(1, 1), BlockPreset.StandartBrick_1x1);
+            AddDetail(new Vector2Byte(4, 8), BlockPreset.StandartBrick_2x4);
+            AddDetail(new Vector2Byte(8, 4), BlockPreset.StandartBrick_2x4);
+
+            void AddDetail(Vector2Byte index, BlockPreset preset)
+            {
+                if (_baseplate.TryFormPlateAddress(index, out var structureAddress))
+                {
+                    _baseplate.TryAddDetail(structureAddress, new PlacingBlockInfo(
+                        BlockPresetsDepot.GetProperty(preset, material)
+                    ));
+                }
+            }
         }
 	}
 }

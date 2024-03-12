@@ -25,7 +25,7 @@ namespace ZE.Purastic {
 					}
 				}
 			}
-			Debug.Log(pinsContainer.PairsCount);
+			//Debug.Log(pinsContainer.PairsCount);
             return pinsContainer.PairsCount > 0;
 		}
 	}

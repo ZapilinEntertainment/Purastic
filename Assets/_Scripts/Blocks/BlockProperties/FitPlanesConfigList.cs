@@ -24,7 +24,7 @@ namespace ZE.Purastic {
         public FitElementFacePosition GetFaceSpacePosition(Vector2Byte index, BlockFaceDirection face)
         {
             //return the pin on first suitable plane
-            for (int i = 0; i < _planes.Length; i++)
+            for (byte i = 0; i < _planes.Length; i++)
             {
                 var plane = _planes[i];
                 if (plane.Face == face && plane.TryGetFaceSpacePosition(index, out var pos))
@@ -34,15 +34,16 @@ namespace ZE.Purastic {
             }
             return default;
         }
-        public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
+        public FitsConnectionZone CreateLandingPinsList(VirtualBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
         {
             // planes always contain pins
             var elements = new List<ConnectingPin>();
-            for (int i = 0; i < _planes.Length; i++) { 
-                var plane = _planes[i]; 
+            for (byte i = 0; i < _planes.Length; i++) { 
+                var plane = _planes[i];
+
                 if (plane.Face == face)
                 {
-                    var pinPositions = plane.CreateDataProvider(block, cuttingPlane.Face).GetPinsInZone(zone);
+                    var pinPositions = plane.CreateDataProvider(i, block, cuttingPlane.Face).GetPinsInZone(zone);
                     foreach (var pinPos in pinPositions)
                     {
                         elements.Add(pinPos);

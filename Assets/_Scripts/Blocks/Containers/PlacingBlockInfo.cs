@@ -32,7 +32,6 @@ namespace ZE.Purastic {
 			Vector3 bounds = 0.5f * Properties.ModelSize, zeroPosNormalized = ConnectFace.GetNormalizedZeroPoint();
 			Vector3 faceCornerPosition = new Vector3(zeroPosNormalized.x * bounds.x, zeroPosNormalized.y * bounds.y, zeroPosNormalized.z * bounds.z);
 			Vector3 pinPositionInModelSpace = ConnectFace.TransformPoint(pos) + faceCornerPosition;
-			Debug.Log(pinPositionInModelSpace);
 			return initialPinAddressLocalPosition - pinPositionInModelSpace;
 		}
     }

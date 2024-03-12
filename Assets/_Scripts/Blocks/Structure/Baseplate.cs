@@ -65,8 +65,6 @@ namespace ZE.Purastic {
             //OnBlockPlacedEvent?.Invoke(new PlacedBlock(-1,virtualBlock));   
         }
 
-
-
         public bool TryAddDetail(FitElementStructureAddress pinStructureAddress, PlacingBlockInfo placingBlockInfo)
         {
             if (  _placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var baseBlock) && _cuttingPlanesManager.TryGetCuttingPlane(pinStructureAddress, out var plane)) 
@@ -103,19 +101,30 @@ namespace ZE.Purastic {
             return BlocksHost.TransformPosition( modelPos);
         }
         public IReadOnlyCollection<BlockProperties> GetBlocks() => _placedBlocksList.GetBlocksProperties();
-        public FitElementStructureAddress FormPlateAddress(Vector2Byte index)
+        public bool TryFormPlateAddress(Vector2Byte index, out FitElementStructureAddress address)
         {
-            return new FitElementStructureAddress(
+            var face = BlockFaceDirection.Up;
+            if (_cuttingPlanesManager.TryGetCuttingPlane(_placedBlocksList.RootBlock, face, out var plane))
+            {
+                address = new FitElementStructureAddress(
                 RootBlockId,
-                _cuttingPlanesManager.GetUpLookingPlane().ID,
-                new BlockFaceDirection(FaceDirection.Up),
+                plane.ID,
+                face,
                 new FitElementPlaneAddress(index)
                 );
+                return true;
+            }
+            else
+            {
+                address = default;
+                return false;
+            }
         }
 
         private void OnDestroy()
         {
             ServiceLocatorObject.s_ReleaseContainer(_modulesContainer.ID);
+            if (ServiceLocatorObject.TryGet<ColliderListSystem>(out var link)) link.RemoveBlockhost(this);
         }
 
         public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);

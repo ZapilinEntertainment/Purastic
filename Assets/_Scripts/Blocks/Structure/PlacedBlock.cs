@@ -15,6 +15,5 @@ namespace ZE.Purastic {
         {
             this.ID = id;
         }
-
     }
 }

@@ -47,18 +47,17 @@ namespace ZE.Purastic {
         
         public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
         public Vector2 GetFaceSpacePosition(Vector2Byte index) => PlanePositionToFacePosition( PinsConfiguration.GetLocalPoint(index));
-        public IFitPlaneDataProvider CreateDataProvider(Vector2 cutPlaneZeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(cutPlaneZeroPoint, rotation);
-        public IFitPlaneDataProvider CreateDataProvider(VirtualBlock block, BlockFaceDirection face)
+        public IFitPlaneDataProvider CreateDataProvider(byte subplaneID,Vector2 cutPlaneZeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(subplaneID, cutPlaneZeroPoint, rotation);
+        public IFitPlaneDataProvider CreateDataProvider(byte subplaneID, VirtualBlock block, BlockFaceDirection face)
         {  
             var rect = Utilities.ProjectBlock(face, block);
-            return CreateDataProvider(rect.Rect.position, rect.Rotation);
+            return CreateDataProvider(subplaneID, rect.Rect.position, rect.Rotation);
         }
         public override int GetHashCode()
         {
             return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), FaceZeroPos.GetHashCode());
         }
     }
-
 	public interface IFitPlaneConfiguration 
 	{
         // contains detail-space planes data
@@ -68,7 +67,7 @@ namespace ZE.Purastic {
         public Rect ToRect(Vector2 zeroPos);
         public Vector2 GetLocalPoint(Vector2Byte index);
         public Vector2Byte GetFitIndex(Vector2 planedPos);
-        public IFitPlaneDataProvider ToDataProvider(Vector2 cutPlaneZeroPoint, Rotation2D rotation);
+        public IFitPlaneDataProvider ToDataProvider(byte subplaneId, Vector2 cutPlaneZeroPoint, Rotation2D rotation);
         public FitElementPlanePosition[] GetAllPinsInPlaneSpace(); // not read-only for further transformations
     }
 }

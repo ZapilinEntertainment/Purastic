@@ -45,16 +45,17 @@ namespace ZE.Purastic {
 			GetFitPosition(index)
 			);
 
-		virtual public IFitPlaneDataProvider ToDataProvider(Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(this, zeroPoint, rotation);
-        public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect)
+		virtual public IFitPlaneDataProvider ToDataProvider(byte subPlaneId, Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(subPlaneId, this, zeroPoint, rotation);
+        public IReadOnlyList<FitElementPlanePosition> GetPinsInZone(AngledRectangle rect)
         {
-            var list = new List<ConnectingPin>();
+            //Debug.Log(rect);
+            var list = new List<FitElementPlanePosition>();
             for (byte i = 0; i < Width; i++)
             {
                 for (byte j = 0; j < Length; j++)
                 {
                     Vector2 pos = IndexToPosition(i, j);
-                    if (rect.Contains(pos)) list.Add(new ConnectingPin(new FitElement(FitType, FitElementSpace.Plane, pos), new FitElementPlaneAddress(0, new Vector2Byte(i, j))));
+                    if (rect.Contains(pos)) list.Add(new(i,j,pos));
                 }
             }
             return list;

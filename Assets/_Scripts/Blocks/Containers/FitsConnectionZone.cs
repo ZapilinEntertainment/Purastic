@@ -26,7 +26,7 @@ namespace ZE.Purastic {
 					if (result == PinConnectionResult.NoResult) continue;
 					else return result;
 				}
-				else Debug.Log($"{pin.CutPlanePosition} : {element.Position}");
+				//else Debug.Log($"{pin.CutPlanePosition} : {element.Position}");
 			}
 			usedPin = default;
 			return PinConnectionResult.NoResult;

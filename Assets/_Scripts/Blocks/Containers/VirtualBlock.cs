@@ -34,18 +34,18 @@ namespace ZE.Purastic {
             return faceZeroPosInModelSpace + face.ToRotation() * (facePoint.x * Vector3.right + facePoint.y * Vector3.up);
         }
         public Vector3 TransformPoint(Vector3 inBlockPosition) => LocalPosition + Rotation.Quaternion * inBlockPosition;
-
         public Vector3 TransformNormalizedPoint(Vector3 pos) => TransformNormalizedPoint(pos.x, pos.y, pos.z);
         public Vector3 TransformNormalizedPoint(float x, float y, float z)
         {
             var size = Properties.ModelSize;
             return LocalPosition + Rotation.Quaternion * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
+        public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
         public IReadOnlyCollection<ConnectingPin> GetAllConnectionPins(BlockFaceDirection face)
         {
             List<ConnectingPin> list = new();
             var planes = Properties.GetPlanesList().Planes;
-            for (int planeID = 0; planeID < planes.Count; planeID++)
+            for (byte planeID = 0; planeID < planes.Count; planeID++)
             {
                 var plane = planes[planeID];
                 if (plane.Face == face)

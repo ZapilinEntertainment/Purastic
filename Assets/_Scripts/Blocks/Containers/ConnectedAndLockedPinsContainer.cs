@@ -17,7 +17,7 @@ namespace ZE.Purastic {
 		{
 			NewBlockConnectedPins.Add(newPin.PlaneAddress);
 			BasementConnectedPins.Add(landingPin.PlaneAddress);
-			Debug.Log($"{newPin.PlaneAddress} x {landingPin.PlaneAddress}");
+			//Debug.Log($"{newPin.PlaneAddress} x {landingPin.PlaneAddress}");
 			PairsCount++;			
 		}
 		

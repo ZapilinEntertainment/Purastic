@@ -36,29 +36,16 @@ namespace ZE.Purastic {
 
 		public PinConnectionResult GetConnectionResult(FitElement other) => FitType.GetConnectResult(other.FitType);
     }
-
-
-    public readonly struct FitElementPlanePosition
-    {
-        public readonly Vector2 PlanePosition;
-        public readonly Vector2Byte Index;
-
-        public FitElementPlanePosition(Vector2Byte index, Vector2 planePosition)
-        {
-            PlanePosition = planePosition;
-            Index = index;
-        }
-        public FitElementPlanePosition(byte x, byte y, Vector2 planePosition) : this(new Vector2Byte(x, y), planePosition) { }
-    }
+    
     // address of pin on the plane. A block face can contain multiple planes, so we need to store plane id.
     public readonly struct FitElementPlaneAddress
     {
-        public readonly int SubPlaneId; // not a cutplaneID, but an inner planes-container id
+        public readonly byte SubPlaneId; // not a cutplaneID, but an inner planes-container id
         public readonly Vector2Byte PinIndex;
 
-        public FitElementPlaneAddress(int containerID, Vector2Byte index)
+        public FitElementPlaneAddress(byte planeId, Vector2Byte index)
         {
-            SubPlaneId = containerID;
+            SubPlaneId = planeId;
             PinIndex = index;
         }
         public FitElementPlaneAddress(Vector2Byte index)
@@ -72,15 +59,27 @@ namespace ZE.Purastic {
     }
     public readonly struct FitElementFacePosition
     {
-        public readonly int SubPlaneId;
+        public readonly byte SubPlaneId;
         public readonly Vector2 PlanePos;
 
-        public FitElementFacePosition(int SubPlaneID, Vector2 planePos)
+        public FitElementFacePosition(byte SubPlaneID, Vector2 planePos)
         {
             SubPlaneId = SubPlaneID;
             PlanePos= planePos;
         }
-    }    
+    }
+    public readonly struct FitElementPlanePosition
+    {
+        public readonly Vector2 PlanePosition;
+        public readonly Vector2Byte Index;
+
+        public FitElementPlanePosition(Vector2Byte index, Vector2 planePosition)
+        {
+            PlanePosition = planePosition;
+            Index = index;
+        }
+        public FitElementPlanePosition(byte x, byte y, Vector2 planePosition) : this(new Vector2Byte(x, y), planePosition) { }
+    }
     public readonly struct ConnectingPin // for placing block
     {
         public readonly FitElement FitElement;
@@ -98,10 +97,10 @@ namespace ZE.Purastic {
     public readonly struct FitElementCutPlanePosition
     {
         public readonly int CutPlaneID;
-        public readonly int SubPlaneDataProviderID;
+        public readonly byte SubPlaneDataProviderID;
         public readonly Vector2 CutPlanePosition;
         
-        public FitElementCutPlanePosition(int cutPlaneId, int subPlaneId, Vector2 cutPlanePos)
+        public FitElementCutPlanePosition(int cutPlaneId, byte subPlaneId, Vector2 cutPlanePos)
         {
             CutPlaneID = cutPlaneId;
             SubPlaneDataProviderID = subPlaneId;

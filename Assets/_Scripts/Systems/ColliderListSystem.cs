@@ -123,6 +123,7 @@ namespace ZE.Purastic {
                         _host._hostsList.TryAdd(id, this);
                     }
                     CollidersIDs = newIdsList;
+                    //Debug.Log(CollidersIDs.Count);  
                 }
                 public void Clear()
                 {

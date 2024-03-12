@@ -77,7 +77,15 @@ namespace ZE.ServiceLocator
         public static void s_ReleaseContainer(int id) => _instance?.ReleaseContainer(id);
         public static void GetWhenLinkReady<T>(Action<T> resolveAction, int containerID = 0) => Instance._containers[containerID].GetWhenLinkReady(resolveAction);
         public static Awaitable<T> GetWhenLinkReady<T>(int containerID = 0) => Instance._containers[containerID].GetWhenLinkReady<T>();
-        public static bool TryGet<T>(out T link, int containerID = 0) => Instance._containers[containerID].TryGet<T>(out link);
+        public static bool TryGet<T>(out T link, int containerID = 0)
+        {
+           if (_instance != null) return _instance._containers[containerID].TryGet<T>(out link);
+           else
+            {
+                link = default;
+                return false;
+            }
+        }
         public static T Get<T>(int containerID = 0) => Instance._containers[containerID].GetLink<T>();       
         public static T GetFactory<T>(int containerID) where T : IFactory
         {

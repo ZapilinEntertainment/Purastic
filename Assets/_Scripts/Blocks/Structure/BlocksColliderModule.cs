@@ -13,6 +13,7 @@ namespace ZE.Purastic {
         private Dictionary<int, Collider> _collidersList = new();
         private Dictionary<int, int> _collidersHostIdentifierList = new(); // one block can have many colliders, but a collider have only one owner
         private readonly ComplexResolver<IBlocksHost, PlacedBlocksListHandler> _localResolver;
+
         public bool HaveMultipleColliders => _collidersIDs.Count > 1;
         public int GetColliderID() => _collidersIDs[0];
         public IReadOnlyCollection<int> GetColliderIDs() => _collidersIDs;
@@ -21,6 +22,7 @@ namespace ZE.Purastic {
         {
             _localResolver = new(OnLocalDependenciesResolved, container);
             _localResolver.CheckDependencies();
+
         }
         private void OnLocalDependenciesResolved()
         {
