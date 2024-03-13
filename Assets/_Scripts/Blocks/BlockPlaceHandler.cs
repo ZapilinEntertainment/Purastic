@@ -4,34 +4,37 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public class BlockPlaceHandler
-	{
-        private struct CastResult
+
+    public struct BlocksCastResult
+    {
+        public readonly bool CanBePlaced;
+        public readonly int BlockID;
+        public readonly int BlockColliderID;
+        public readonly VirtualPoint Point;
+        public readonly FitElementStructureAddress StructureAddress;
+
+        public BlocksCastResult(RaycastHit hit)
         {
-            public readonly bool CanBePlaced;
-            public readonly int BlockColliderID;
-            public readonly VirtualPoint Point;
-            public readonly FitElementStructureAddress StructureAddress;
-
-            public CastResult(RaycastHit hit)
-            {
-                BlockColliderID = hit.colliderInstanceID;
-                Point = new( hit.point, Quaternion.identity);
-                CanBePlaced = false;
-                StructureAddress = new();
-            }
-            public CastResult(FoundedFitElementPosition position)
-            {
-                StructureAddress= position.StructureAddress;
-                CanBePlaced = true;
-                BlockColliderID = StructureAddress.BlockID;
-                Point = position.WorldPoint;
-            }
+            BlockID = -1;
+            BlockColliderID = hit.colliderInstanceID;
+            Point = new(hit.point, Quaternion.identity);
+            CanBePlaced = false;
+            StructureAddress = new();
         }
-
+        public BlocksCastResult(FoundedFitElementPosition position)
+        {
+            StructureAddress = position.StructureAddress;
+            CanBePlaced = true;
+            BlockID = StructureAddress.BlockID;
+            BlockColliderID = StructureAddress.BlockID;
+            Point = position.WorldPoint;
+        }
+    }
+    public class BlockPlaceHandler
+	{        
         public bool IsPlacingAllowed { get; private set; } = false;
-        private int _lastBlocksHostId = -1;
-        private CastResult _selectedPoint;
+        private int? _lastBlocksHostId = null;
+        private BlocksCastResult _selectedPoint;
         private IBlocksHost _selectedBlocksHost = null;
         private readonly ColliderListSystem _collidersList;
         public VirtualPoint ModelPoint => _selectedPoint.Point;
@@ -42,18 +45,14 @@ namespace ZE.Purastic {
             _collidersList = colliderListSystem;
         }
 
-        public void OnPinplaneHit(RaycastHit hit)
-        {
-            int hostID = hit.colliderInstanceID;
-            _selectedPoint = new CastResult(hit);
+        public void OnPinplaneHit(BlocksCastResult result)
+        {            
+            _selectedPoint = result;
+            int hostID = result.BlockID;
             if (hostID != _lastBlocksHostId)
             {
                 _lastBlocksHostId = hostID;
-                 _collidersList.TryDefineBlockhost(_lastBlocksHostId, out _selectedBlocksHost);
-            }
-            if (_selectedBlocksHost != null && _selectedBlocksHost.TryGetFitElementPosition(hit, out var fitPosition))
-            {
-                _selectedPoint = new(fitPosition);
+                 _collidersList.TryDefineBlockhost(_lastBlocksHostId.Value, out _selectedBlocksHost);
             }
             if (_selectedPoint.CanBePlaced != IsPlacingAllowed)
             {

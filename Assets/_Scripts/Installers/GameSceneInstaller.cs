@@ -29,6 +29,8 @@ namespace ZE.Purastic {
             RegisterMonoComponentInstruction<BlockPlaceSystem>(true);
             RegisterMonoComponentInstruction<UpdateSystem>();
 
+            RegisterInstruction<BlockHostsManager>();
+
             RegisterInstruction<MaterialsDepot>();
         }
     }

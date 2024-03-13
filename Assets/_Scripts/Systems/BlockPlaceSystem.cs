@@ -11,13 +11,15 @@ namespace ZE.Purastic {
         private int _castMask;
         private PlaceableModelStatus _placementStatus = PlaceableModelStatus.NotSelected;
         private BlockPlaceHandler _placeHandler;
+		private BlockCastModule _castModule;
 		private PlacingBlockModelController _modelController;
 		
-		private InputController InputController => _resolver.Item2;
-		private CameraController CameraController => _resolver.Item1;
-		private BlockCreateService BlockCreateService => _resolver.Item3;
+		private BlockCreateService BlockCreateService => _resolver.Item2;
+		public InputController InputController => _resolver.Item1;
+		public BlockFaceDirection ConnectFace => GameConstants.DefaultPlacingFace;
+		public PlacedBlockRotation Rotation => PlacedBlockRotation.NoRotation;
 		private IBlockPlacer _blockPlacer;
-		private ComplexResolver<CameraController, InputController,  BlockCreateService> _resolver;
+		private ComplexResolver<InputController,  BlockCreateService> _resolver;
 
 		public System.Action<PlaceableModelStatus> OnPlacementStatusChangedEvent;
 
@@ -26,6 +28,8 @@ namespace ZE.Purastic {
 			_castMask = LayerConstants.GetCustomLayermask(CustomLayermask.BlockPlaceCast);
         }
         public void Start() {
+
+			_castModule = new();
 			ChangePlacingStatus(PlaceableModelStatus.NotSelected);
 			_resolver = new (OnDependenciesResolved);
 			_resolver.CheckDependencies();			
@@ -82,14 +86,14 @@ namespace ZE.Purastic {
 
         private void FixedUpdate()
         {
-            if (_resolver.AllDependenciesCompleted)
+            if (_resolver.AllDependenciesCompleted && _castModule.IsReady)
 			{
-				if (CameraController.TryRaycast(InputController.CursorPosition, out RaycastHit raycastHit, _castMask))
+				if (_castModule.Cast(out FoundedFitElementPosition position, out RaycastHit hit))
 				{
-					_placeHandler.OnPinplaneHit(raycastHit);
-					ChangePlacingStatus(PlaceableModelStatus.CanBePlaced);
-					// todo: check for placement here
-				}
+                    _placeHandler.OnPinplaneHit(new BlocksCastResult(position));
+                    ChangePlacingStatus(_placeHandler.IsPlacingAllowed ? PlaceableModelStatus.CanBePlaced : PlaceableModelStatus.CannotBePlaced);
+                    // todo: check for placement here
+                }
 				else
 				{
                     ChangePlacingStatus(PlaceableModelStatus.Hidden);

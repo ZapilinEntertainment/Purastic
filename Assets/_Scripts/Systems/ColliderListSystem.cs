@@ -96,18 +96,19 @@ namespace ZE.Purastic {
         
         private class BlockpartsList
         {
-            private class BlockpartsCollider
+            private class BlockpartsColliderHandler
             {
                 private readonly BlockpartsList _host;
                 public IReadOnlyCollection<int> CollidersIDs;
                 public readonly IBlocksHost BlocksHost;
+                private Dictionary<int, BlockpartsColliderHandler> CollidersList => _host._collidersList;
 
-                public BlockpartsCollider(BlockpartsList list, IBlocksHost host)
+                public BlockpartsColliderHandler(BlockpartsList list, IBlocksHost host)
                 {
                     _host = list;
                     BlocksHost = host;
                     CollidersIDs = BlocksHost.GetColliderIDs();
-                    foreach (int id in CollidersIDs) _host._blocksColliders.Add(id, this);
+                    foreach (int id in CollidersIDs) CollidersList.Add(id, this);
                     BlocksHost.OnBlockPlacedEvent +=OnBlockAdded;
                 }
                 private void OnBlockAdded(PlacedBlock block) => Update();
@@ -116,36 +117,36 @@ namespace ZE.Purastic {
                     var newIdsList = new List<int> (BlocksHost.GetColliderIDs());
                     foreach (int id in CollidersIDs)
                     {
-                        if (!newIdsList.Contains(id)) _host._hostsList.Remove(id);
+                        if (!newIdsList.Contains(id)) CollidersList.Remove(id);
                     }
                     foreach (int id in newIdsList)
                     {
-                        _host._hostsList.TryAdd(id, this);
+                        CollidersList.TryAdd(id, this);
                     }
                     CollidersIDs = newIdsList;
-                    //Debug.Log(CollidersIDs.Count);  
+                    //Debug.Log(CollidersIDs.Count);
                 }
                 public void Clear()
                 {
                     foreach (int id in CollidersIDs)
                     {
-                       _host._hostsList.Remove(id);
+                        CollidersList.Remove(id);
                     }
                     if (BlocksHost != null) BlocksHost.OnBlockPlacedEvent -= OnBlockAdded;
                 }
             }
-            private Dictionary<int, BlockpartsCollider> _blocksColliders = new(), _hostsList = new();
+            private Dictionary<int, BlockpartsColliderHandler> _collidersList = new(), _hostsList = new();
 
             public void AddBlockpartsCollider(IBlocksHost host)
             {
-                var blockpartsCollider = new BlockpartsCollider(this, host);
-                _hostsList.Add(host.ID, blockpartsCollider);
+                var handler = new BlockpartsColliderHandler(this, host);
+                _hostsList.Add(host.ID, handler);
             }
             public void UpdateCollider(IBlocksHost host)
             {
-                if (_blocksColliders.TryGetValue(host.ID, out var collider))
+                if (_hostsList.TryGetValue(host.ID, out var handler))
                 {
-                    collider.Update();
+                    handler.Update();
                 }
                 else
                 {
@@ -160,7 +161,7 @@ namespace ZE.Purastic {
                 }
             }
             public bool TryDefineBlockhost(int id, out IBlocksHost host) {
-                if (_blocksColliders.TryGetValue(id, out var collider))
+                if (_collidersList.TryGetValue(id, out var collider))
                 {
                     host = collider.BlocksHost; return true;
                 }

@@ -45,6 +45,9 @@ namespace ZE.Purastic {
 
                 CheckControl(ControlButtonID.PlaceBlockButton, Input.GetMouseButtonDown(0));
                 CheckControl(ControlButtonID.RightClick, Input.GetMouseButtonDown(1));
+
+                CheckControl(ControlButtonID.RotateCameraLeft, Input.GetKey(KeyCode.Q));
+                CheckControl(ControlButtonID.RotateCameraRight, Input.GetKey(KeyCode.E));
             }
 
             void CheckControl(ControlButtonID id, bool value)

@@ -34,7 +34,9 @@ namespace ZE.Purastic {
 		private Quaternion HorizontalQuaternion => Quaternion.AngleAxis(HorizontalRotation.ToEulerAngle(), Vector3.up);
         private Quaternion GetVerticalQuaternion(Vector3 right) => Quaternion.AngleAxis(HorizontalRotation.ToEulerAngle(), right);
 
-		public PlacedBlockRotation(Rotation2D horizontalRotation, Rotation2D verticalRotation)
+        public override string ToString() => $"h:{HorizontalRotation}, v:{VerticalRotation}";
+
+        public PlacedBlockRotation(Rotation2D horizontalRotation, Rotation2D verticalRotation)
 		{
 			this.HorizontalRotation = horizontalRotation;
 			this.VerticalRotation = verticalRotation;
@@ -63,5 +65,8 @@ namespace ZE.Purastic {
 			var directionInModel = TransformDirection(face);
 			return directionInModel.GetHorizontalRotation();
 		}
+
+		public PlacedBlockRotation RotateRight() => new (HorizontalRotation.RotateRight(), VerticalRotation);
+        public PlacedBlockRotation RotateLeft() => new(HorizontalRotation.RotateLeft(), VerticalRotation);
     }
 }

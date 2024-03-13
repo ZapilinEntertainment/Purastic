@@ -7,7 +7,7 @@ namespace ZE.Purastic {
 	public static class FitsConnectSystem
 	{
 		public static bool TryConnect(ICuttingPlane plane, FitsConnectionZone landingZone, FitsConnectionZone blockZone, out ConnectedAndLockedPinsContainer pinsContainer)
-		{
+		{			
 			pinsContainer = new ConnectedAndLockedPinsContainer(plane);
 			foreach (var blockPin in blockZone.Pins)
 			{

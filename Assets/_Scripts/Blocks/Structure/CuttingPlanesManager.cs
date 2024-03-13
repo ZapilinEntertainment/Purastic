@@ -121,7 +121,7 @@ namespace ZE.Purastic {
 					var facePoint = fitPlane.GetFitElementFaceVirtualPoint(address.PlaneAddress.PinIndex);
 					var localPoint = new VirtualPoint(cuttingPlane.CutPlaneToLocalPos(facePoint.Position), cuttingPlane.Face.ToRotation() * facePoint.Rotation);
 					var worldPoint = new VirtualPoint(BlocksHost.TransformPosition(localPoint.Position), BlocksHost.ModelsHost.rotation * localPoint.Rotation);
-                    fitPosition = new FoundedFitElementPosition(address, worldPoint, normal);
+                    fitPosition = new FoundedFitElementPosition(BlocksHost.ID, address, worldPoint, normal);
                     return true;
 				}
 			}
@@ -135,18 +135,18 @@ namespace ZE.Purastic {
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
 				var landingRectangle = Utilities.ProjectBlock(cuttingPlane.Face, planningBlock);
+				//Debug.Log(landingRectangle);
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
 				var connectFace = planningBlock.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
 				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(planningBlock, connectFace, landingRectangle, cuttingPlane);
-
 				/*
 				foreach (var pin in newBlockPins.Pins)
 				{
 					Debug.Log(pin.CutPlanePosition);
 				}
 				*/
-				//Debug.Log(cuttingPlane.PlanesCount);
+				//Debug.Log(cuttingPlane.PlanesCount);				
 				if (landingPins != null && newBlockPins != null) 
 				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		
             }

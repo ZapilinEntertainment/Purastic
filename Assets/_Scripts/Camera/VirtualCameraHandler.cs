@@ -11,25 +11,34 @@ namespace ZE.Purastic {
         [SerializeField] private CameraSettings _cameraSettings;
 
         private bool _isActive = false;
-        private float _modifiedCameraValue = 0f, _defaultFov = 60f, _modifiedOffsetValue;        
-        private Vector3 _prevPoint, _defaultOffset;
+        private float _modifiedFovValue = 0f, _defaultFov = 60f, _modifiedOffsetValue;        
+        private Vector3 _prevPoint;
         private PointViewSettings _viewSettings;
         private Transform _cameraTransform;
-        private Transform _targetPoint;
+        private Transform _targetPoint, _viewPoint;
         private Camera _camera;
-        private Cinemachine.CinemachineTransposer _transposer;
+        protected bool _modifyOffsetFlag = false;
+        protected Transform ViewPoint => _viewPoint;
+        virtual protected Vector3 DefaultOffset => Vector3.zero;
 
 
         private async void Awake()
-        {  
+        {
+            _viewPoint = new GameObject(gameObject.name + "_viewPoint").transform;
+            _viewPoint.localPosition = Vector3.zero;
+            //_defaultOffset = _followCamera.GetCinemachineComponent<Cinemachine.CinemachineTransposer>().m_FollowOffset;
             _defaultFov = _followCamera.m_Lens.FieldOfView;
-            _transposer = _followCamera.GetCinemachineComponent<Cinemachine.CinemachineTransposer>();
-            _defaultOffset = _transposer.m_FollowOffset;
+            //_transposer = _followCamera.GetCinemachineComponent<Cinemachine.CinemachineTransposer>();
+
+            _followCamera.Follow = _viewPoint;
+            _followCamera.LookAt = _viewPoint;
 
             var cameraController = await ServiceLocatorObject.GetWhenLinkReady<CameraController>();
             _camera = cameraController.GetCamera();
             _cameraTransform = _camera.transform;
             _prevPoint = _cameraTransform.position;
+
+
             _isActive = true;
         }
 
@@ -37,13 +46,16 @@ namespace ZE.Purastic {
         {
             _targetPoint = args.ViewPoint;
             _viewSettings = args.PointViewSettings;
-            _followCamera.m_LookAt = _targetPoint;
-            _followCamera.m_Follow = _targetPoint;
+            _viewPoint.position = _targetPoint.position;
         }
 
         private void Update()
         {
-            if (_targetPoint == null || _isActive) return;
+            if (_targetPoint == null || !_isActive) return;
+
+            _viewPoint.position = _targetPoint.position;
+            OnUpdateStart();
+
             Vector3 currentPosition = _targetPoint.position;
             float speed = Vector3.Distance(_prevPoint, currentPosition), t = Time.deltaTime;
             float modifyTarget = 0f;
@@ -51,22 +63,27 @@ namespace ZE.Purastic {
             {
                 modifyTarget = Mathf.Clamp01((speed / t) / _cameraSettings.MaxCameraSpeed);
             }
-            if (modifyTarget != _modifiedCameraValue)
+            if (modifyTarget != _modifiedFovValue)
             {
-                _modifiedCameraValue = Mathf.MoveTowards(_modifiedCameraValue, modifyTarget, _cameraSettings.FovChangeSpeed * t);
-                _followCamera.m_Lens.FieldOfView = Mathf.Lerp(_defaultFov, _cameraSettings.MaxFov, _modifiedCameraValue);
+                _modifiedFovValue = Mathf.MoveTowards(_modifiedFovValue, modifyTarget, _cameraSettings.FovChangeSpeed * t);
+                _followCamera.m_Lens.FieldOfView = Mathf.Lerp(_defaultFov, _cameraSettings.MaxFov, _modifiedFovValue);
 
             }
             if (modifyTarget != _modifiedOffsetValue)
             {
                 _modifiedOffsetValue = Mathf.MoveTowards(_modifiedOffsetValue, modifyTarget, _cameraSettings.OffsetChangeSpeed * t);
-                if (_modifyOffset) _transposer.m_FollowOffset = (_defaultOffset * _viewSettings.HeightViewCf + _modifiedOffsetValue * _cameraSettings.MaxOffsetY * Vector3.up * _viewSettings.HeightSpeedOffsetCf);
+                if (_modifyOffset) _modifyOffsetFlag = true;
                 //+ _modifiedOffsetValue * _cameraSettings.MaxOffsetZ * Vector3.ProjectOnPlane(_targetPoint.forward, Vector3.up).normalized
             }
+            if (_modifyOffsetFlag)
+            {
+                _viewPoint.localPosition = (DefaultOffset * _viewSettings.HeightViewCf + _modifiedOffsetValue * _cameraSettings.MaxOffsetY * _viewSettings.HeightSpeedOffsetCf * Vector3.up );
+                _modifyOffsetFlag = false;
+            }
 
-
-            _prevPoint = currentPosition;
+            _prevPoint = currentPosition;            
         }
+        virtual protected void OnUpdateStart() { }
 
         public Vector3 WorldToScreenPoint(Vector3 worldPoint) => _camera.WorldToScreenPoint(worldPoint);
         public Vector3 CameraToWorldDirection(Vector2 dir) => _cameraTransform.rotation * dir;

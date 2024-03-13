@@ -27,10 +27,8 @@ namespace ZE.Purastic {
 
 		public void AddBlock(PlacedBlock baseBlock, FitElementStructureAddress fitInfo, VirtualBlock virtualBlock, ConnectedAndLockedPinsContainer pinsContainer, out PlacedBlock placedBlock)
 		{
-
 			var cutPlane = pinsContainer.BasementCutPlane;
 			Vector2 cutPlanePoint = cutPlane.PlaneAddressToCutPlanePos(pinsContainer.BasementConnectedPins[0]);
-			Vector3 contactPoint = baseBlock.FacePositionToModelPosition(cutPlanePoint, cutPlane.Face);
 
 			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace.Inverse());
 

@@ -8,16 +8,18 @@ namespace ZE.Purastic {
     {
         private bool _isActive = false;
         private bool? _drawPlaceAllowedMaterial = null;
-        private BlockFaceDirection ConnectFace = GameConstants.DefaultPlacingFace;
         private IPlaceable _placeableModel;
         private Material _placingAvailableMaterial, _placingBlockedMaterial;
         private BlockPlaceHandler _placeHandler;
         private LocatorLinkWrapper<BlockModelPoolService> _modelCacheServiceWrapper;
+        private readonly BlockPlaceSystem _placeSystem;
 
-        public PlacingBlockInfo PlacingBlockInfo => new PlacingBlockInfo(Vector2Byte.one, _placeableModel.GetBlockProperty(), ConnectFace);
+        public PlacingBlockInfo PlacingBlockInfo => new PlacingBlockInfo(Vector2Byte.one, _placeableModel.GetBlockProperty(), _placeSystem.ConnectFace, _placeSystem.Rotation);
 
         public PlacingBlockModelController(BlockPlaceSystem blockPlaceSystem, BlockPlaceHandler placeHandler)
         {
+            _placeSystem = blockPlaceSystem;
+
             var materialsDepot = ServiceLocatorObject.Get<MaterialsDepot>();
             _placingAvailableMaterial = materialsDepot.GetPlacingBlockMaterial(true);
             _placingBlockedMaterial = materialsDepot.GetPlacingBlockMaterial(false);

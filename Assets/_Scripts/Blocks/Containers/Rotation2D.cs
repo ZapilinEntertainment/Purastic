@@ -24,7 +24,7 @@ namespace ZE.Purastic {
         public static Vector2 operator *(Rotation2D rotation, Vector2 pos) => rotation.ToQuaternion() * pos;
         public static Rotation2D operator *(Rotation2D A, Rotation2D B)
         {
-            return new Rotation2D(RotationStep.Degree90, (sbyte)Mathf.Clamp(A.StepsCount + B.StepsCount, -2, 2));
+            return new Rotation2D(RotationStep.Degree90, A.StepsCount + B.StepsCount);
         }
         public override string ToString() => $"{RotationStep}:{StepsCount}";
         #region equality
@@ -36,6 +36,11 @@ namespace ZE.Purastic {
         #endregion
 
 
+        public Rotation2D(RotationStep step, int stepsCount)
+        {
+            RotationStep = step;
+            StepsCount = (sbyte)(stepsCount % 4);
+        }
         public Rotation2D(RotationStep step, sbyte stepsCount)
         {
             RotationStep = step;
@@ -44,10 +49,7 @@ namespace ZE.Purastic {
         public Rotation2D Inverse()
         {
             //90 deg
-            sbyte val;
-            if (StepsCount == 0) val = (sbyte)(StepsCount + 2);
-            else val = (sbyte)(StepsCount * -1);
-            return new Rotation2D(RotationStep, val);
+            return new Rotation2D(RotationStep, StepsCount + 2);
         }
         public Rotation2D FaceToPlane(Rotation2D faceRotation)
         {
@@ -58,11 +60,13 @@ namespace ZE.Purastic {
             }
         }
 
-        public float ToEulerAngle() => StepsCount* 90f;
-        public Vector2 Rotate(Vector2 dir) => ToQuaternion() * dir;
-        public Quaternion ToQuaternion() => Quaternion.AngleAxis(ToEulerAngle(), Vector3.back);       
-       
+        public Rotation2D RotateRight() => new (RotationStep, StepsCount + 1);
+        public Rotation2D RotateLeft() => new(RotationStep, StepsCount - 1);
 
+        public float ToEulerAngle() => StepsCount* 90f;
+        public Vector2 TransformVector(Vector2 dir) => ToQuaternion() * dir;
+        public Quaternion ToQuaternion() => Quaternion.AngleAxis(ToEulerAngle(), Vector3.back);      
+       
         public BlockFaceDirection TransformFace(BlockFaceDirection face)
         {
             //horizontal rotation
@@ -87,7 +91,6 @@ namespace ZE.Purastic {
             var orths = CreateOrths();
             return new Vector2(Vector2.Dot(dir, orths.right), Vector2.Dot(dir, orths.up));
         }
-
         public (Vector2 up, Vector2 right) CreateOrths()
         {
             var rotation = ToQuaternion();

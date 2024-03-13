@@ -43,6 +43,7 @@ namespace ZE.Purastic {
         }
         private void Start()
         {
+            ID = ServiceLocatorObject.Get<BlockHostsManager>().Register(this);
 
             _modulesContainer = ServiceLocatorObject.Instance.ReserveAndGetContainer();
             _modulesContainer.RegisterInstance(this as IBlocksHost);
@@ -125,6 +126,7 @@ namespace ZE.Purastic {
         {
             ServiceLocatorObject.s_ReleaseContainer(_modulesContainer.ID);
             if (ServiceLocatorObject.TryGet<ColliderListSystem>(out var link)) link.RemoveBlockhost(this);
+            if (ServiceLocatorObject.TryGet<BlockHostsManager>(out var manager)) manager.Unregister(this);
         }
 
         public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);

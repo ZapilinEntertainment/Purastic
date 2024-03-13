@@ -35,7 +35,7 @@ namespace ZE.Purastic {
             _rotation= rotation;
         }
 
-        private Vector2 PlanePositionToCutPlanePosition(Vector2 planePos) => _cutPlaneZeroPos + _rotation.Rotate(planePos);
+        private Vector2 PlanePositionToCutPlanePosition(Vector2 planePos) => _cutPlaneZeroPos + _rotation.TransformVector(planePos);
         private Vector2 CutPlanePositionToPlanePosition(Vector2 cutPlanePos)
         {
             Vector2 dir = cutPlanePos - _cutPlaneZeroPos;

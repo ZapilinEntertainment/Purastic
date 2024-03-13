@@ -6,15 +6,15 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
     public class VirtualBlock // must be class, not struct
     {
-        public readonly Vector3 LocalPosition;
-        public readonly PlacedBlockRotation Rotation;
+        public Vector3 LocalPosition { get; private set; }
+        public PlacedBlockRotation Rotation { get; private set; }
         public readonly BlockProperties Properties;
 
         public VirtualBlock(Vector3 localPos, PlacingBlockInfo info)
         {
             this.LocalPosition = localPos;
             this.Properties = info.Properties;
-            this.Rotation = info.ConnectFace.ToBlockRotation();
+            this.Rotation = info.Rotation;
         }
         public VirtualBlock (Vector3 localPos, PlacedBlockRotation rotation, BlockProperties properties)
         {
@@ -28,6 +28,7 @@ namespace ZE.Purastic {
             this.Properties = block.Properties;
             this.Rotation = block.Rotation;
         }
+        public void Reposition(Vector3 newPos) => LocalPosition = newPos; 
         public Vector3 FacePositionToModelPosition(Vector2 facePoint, BlockFaceDirection face)
         {
             Vector3 faceZeroPosInModelSpace = TransformNormalizedPoint(face.GetNormalizedZeroPoint());

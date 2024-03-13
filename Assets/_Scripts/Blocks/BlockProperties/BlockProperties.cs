@@ -19,7 +19,13 @@ namespace ZE.Purastic {
 			Thick= thick;
 		}
 
-
+		private BlockProperties(BlockMaterial material, Vector3 modelSize, int planesHash, int thick)
+		{
+			Material = material;
+			ModelSize = modelSize;
+			FitPlanesHash = planesHash;
+			Thick= thick;
+		}
 		//platform :
 		public  BlockProperties(FitsGridConfig config, BlockMaterial material, int thick)
 		{
@@ -40,10 +46,12 @@ namespace ZE.Purastic {
                 new FitPlanesConfigList(configs));
             Thick = size.y;
         }
+
         public override int GetHashCode()
         {
 			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash, Thick);
         }
+		public BlockProperties ChangeMaterial(BlockMaterial material) => new (material, ModelSize, FitPlanesHash, Thick);
 	
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }

@@ -50,7 +50,7 @@ namespace ZE.Purastic {
 
         private void DrawBlock(Vector3 pinPosition)
         {
-            var placingInfo = new PlacingBlockInfo(new Vector2Byte(_initialPin), _properties, BlockFaceDirection.Down);
+            var placingInfo = new PlacingBlockInfo(new Vector2Byte(_initialPin), _properties, BlockFaceDirection.Down, PlacedBlockRotation.NoRotation);
             var blockPos =  _basePlate.TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
 
             var rotation = new PlacedBlockRotation(new Rotation2D(_horizontalRotation.Rotation, _horizontalRotation.Step), new Rotation2D(_verticalRotation.Rotation, _verticalRotation.Step));
