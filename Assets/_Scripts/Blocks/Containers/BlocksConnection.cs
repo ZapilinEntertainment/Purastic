@@ -8,8 +8,8 @@ namespace ZE.Purastic {
     {
         public int CutPlaneA_id { get; }
         public int CutPlaneB_id { get; }
-        public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsA();
-        public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsB();
+        public IReadOnlyCollection<ConnectingPin> GetLockedPinsA();
+        public IReadOnlyCollection<ConnectingPin> GetLockedPinsB();
     }
     public class BlocksConnection // must be class - argument in events
     {
@@ -41,9 +41,9 @@ namespace ZE.Purastic {
         private struct TwoPinsContainer : ILockedPinsContainer
         {
             private readonly int _idA, _idB;
-            private readonly FitElementPlaneAddress _pinA, _pinB;
+            private readonly ConnectingPin _pinA, _pinB;
 
-            public TwoPinsContainer(int idA, FitElementPlaneAddress pinA, int idB, FitElementPlaneAddress pinB)
+            public TwoPinsContainer(int idA, ConnectingPin pinA, int idB, ConnectingPin pinB)
             {
                 _idA = idA;
                 _idB = idB;
@@ -52,15 +52,15 @@ namespace ZE.Purastic {
             }
             public int CutPlaneA_id => _idA;
             public int CutPlaneB_id => _idB;
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsA() => new FitElementPlaneAddress[1] { _pinA };
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsB() => new FitElementPlaneAddress[1] { _pinB };
+            public IReadOnlyCollection<ConnectingPin> GetLockedPinsA() => new ConnectingPin[1] { _pinA };
+            public IReadOnlyCollection<ConnectingPin> GetLockedPinsB() => new ConnectingPin[1] { _pinB };
         }
         private struct TwoListsContainer : ILockedPinsContainer
         {
             private readonly int _idA, _idB;
-            private readonly FitElementPlaneAddress[] _pinsA, _pinsB;
+            private readonly ConnectingPin[] _pinsA, _pinsB;
 
-            public TwoListsContainer(int idA, List<FitElementPlaneAddress> pinsA, int idB, List<FitElementPlaneAddress> pinsB)
+            public TwoListsContainer(int idA, List<ConnectingPin> pinsA, int idB, List<ConnectingPin> pinsB)
             {
                 _idA = idA;
                 _idB = idB;
@@ -70,8 +70,8 @@ namespace ZE.Purastic {
 
             public int CutPlaneA_id => _idA;
             public int CutPlaneB_id => _idB;
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsA() => _pinsA;
-            public IReadOnlyCollection<FitElementPlaneAddress> GetLockedPinsB() => _pinsB;
+            public IReadOnlyCollection<ConnectingPin> GetLockedPinsA() => _pinsA;
+            public IReadOnlyCollection<ConnectingPin> GetLockedPinsB() => _pinsB;
         }
     }
 }

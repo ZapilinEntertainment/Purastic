@@ -4,11 +4,11 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-	public sealed class ConstructionVisualizer : MonoBehaviour
+	public sealed class ConstructionVisualizerModule : MonoBehaviour
 	{
 		private bool _needRedraw = false;
 		private MultiFlagsCondition _dependencyFlags;
-		private ComplexResolver<IBlocksHost, PlacedBlocksListHandler> _localResolver;
+		private ComplexResolver<IBlocksHost, PlacedBlocksListHandler, CuttingPlanesManager> _localResolver;
 		private BlockCreateService BlockCreateService => _outerResolver.Item1;
 		private BlockModelPoolService CacheService => _outerResolver.Item3;
 		private IBlocksHost BlocksHost => _localResolver.Item1;
@@ -36,6 +36,7 @@ namespace ZE.Purastic {
 			{
 				BlocksHost.InitStatusModule.OnInitializedEvent += () => _dependencyFlags.CompleteFlag(2);
 			}
+			_localResolver.Item3.OnLockedZonesChangedEvent += OnLockPointsChanged;
         }
 		private void OnAllDependenciesResolved()
 		{
@@ -59,8 +60,16 @@ namespace ZE.Purastic {
 			var modelTransform = model.transform;
             modelTransform.SetParent(BlocksHost.ModelsHost, false);
 			modelTransform.SetLocalPositionAndRotation(block.LocalPosition, block.Rotation.Quaternion);
+			model.AssignHost(BlocksHost, block);
             _models.Add(model);
         }
+		private void OnLockPointsChanged(CuttingPlanePosition coordinate, CuttingPlaneLockZone lockZone)
+		{
+			foreach (var model in _models)
+			{
+				model.OnPinsLocked(coordinate, lockZone);
+			}
+		}
 		public async void FullRedrawAsync()
 		{
 			int count = _models.Count;

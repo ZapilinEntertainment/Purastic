@@ -6,10 +6,11 @@ namespace ZE.Purastic
 {
     public static class GameConstants
     {
-        public const float BLOCK_SIZE = 1f, KNOB_SCALE = 1f, PLATE_THICK = 1f / PLATES_IN_BLOCK;
+        public const float BLOCK_SIZE = PLATE_THICK * PLATES_IN_BLOCK, KNOB_SCALE = 1f, PLATE_THICK = 0.3f;
         public const int PLATES_IN_BLOCK = 3;
 
         public const float MAX_POINT_CAST_DISTANCE = 100f;
+        public static Vector3 NormalizedDefaultPlaneZeroPos => new Vector3(-1f,-1f, 1f );
 
         public static BlockFaceDirection DefaultPlacingFace=> new BlockFaceDirection(DefaultPlacingDirection);
         private const FaceDirection DefaultPlacingDirection = FaceDirection.Down;

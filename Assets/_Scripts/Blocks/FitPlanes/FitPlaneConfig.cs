@@ -6,35 +6,41 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 
 	// contains info about pins plane
-    // just a config. For receiving actual data, create IFitPlanesDataProvider with CreateDataProvider
+    // just a config. For receiving instance-related data, create IFitPlanesDataProvider with CreateDataProvider
 	public class FitPlaneConfig
 	{
+        
 		public readonly IFitPlaneConfiguration PinsConfiguration;
 		public readonly FitType FitType;
         public BlockFaceDirection Face { get; }
-		public Vector2 FaceZeroPos { get; }
+		public Vector3 ZeroPos { get; }
+
         // local rotation of plane not needed - there is no such details with rotated pins
         // for vertical rotation, place plane on a suitable face
 
-		public FitPlaneConfig(IFitPlaneConfiguration pinsConfiguration, FitType fitType, BlockFaceDirection face, Vector2 planeZeroPos)
+        public FitPlaneConfig(IFitPlaneConfiguration pinsConfiguration, FitType fitType, BlockFaceDirection face, Vector3 zeroPos)
         {
             PinsConfiguration = pinsConfiguration;
             FitType = fitType;
             Face = face;
-            FaceZeroPos = planeZeroPos;
+            ZeroPos = zeroPos;
         }
 
         // plate with knobs
-        public FitPlaneConfig(FitType fitType, Vector3Int dimensions, FaceDirection direction) : 
-            this (new FitsGridConfig(fitType, dimensions.x, dimensions.z), fitType, new BlockFaceDirection(direction), Vector2.zero)
-        { }
-
+        public FitPlaneConfig(FitType fitType, Vector3Int dimensions, FaceDirection direction)
+        {
+            PinsConfiguration = new FitsGridConfig(fitType, dimensions.x, dimensions.z);
+            FitType = fitType;
+            Face = new BlockFaceDirection(direction);
+            var normalizedZeroPos = direction.ToPlaneRotation() * GameConstants.NormalizedDefaultPlaneZeroPos;
+            ZeroPos = PinsConfiguration.GetZeroPos(GameConstants.GetHeight(dimensions.y) * 0.5f * Mathf.Sign(normalizedZeroPos.y));
+        }
 
         public bool TryGetFaceSpacePosition(Vector2Byte index, out Vector2 pos)
         {
-            if (PinsConfiguration.TryGetLocalPoint(index, out var planePos))
+            if (PinsConfiguration.TryGetPlanePoint(index, out var planePos))
             {
-                pos = PlanePositionToFacePosition(planePos);
+                pos = planePos;
                 return true;
             }
             else
@@ -43,19 +49,18 @@ namespace ZE.Purastic {
                 return false;
             }
         }
-        public Vector2 PlanePositionToFacePosition(Vector2 planeSpace) => FaceZeroPos + planeSpace;
         
         public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
-        public Vector2 GetFaceSpacePosition(Vector2Byte index) => PlanePositionToFacePosition( PinsConfiguration.GetLocalPoint(index));
-        public IFitPlaneDataProvider CreateDataProvider(byte subplaneID,Vector2 cutPlaneZeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(subplaneID, cutPlaneZeroPoint, rotation);
-        public IFitPlaneDataProvider CreateDataProvider(byte subplaneID, VirtualBlock block, BlockFaceDirection face)
+        public Vector2 GetFaceSpacePosition(Vector2Byte index) =>  PinsConfiguration.GetPlanePoint(index);
+        public IFitPlaneDataProvider CreateDataProvider(int blockID, byte subplaneID,Vector2 cutPlaneZeroPoint, Rotation2D rotation) => PinsConfiguration.ToDataProvider(blockID, subplaneID, cutPlaneZeroPoint, rotation);
+        public IFitPlaneDataProvider CreateDataProvider(int blockID, byte subplaneID, VirtualBlock block, BlockFaceDirection face)
         {  
             var rect = Utilities.ProjectBlock(face, block);
-            return CreateDataProvider(subplaneID, rect.Rect.position, rect.Rotation);
+            return CreateDataProvider(blockID, subplaneID, rect.Rect.position, rect.Rotation);
         }
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), FaceZeroPos.GetHashCode());
+            return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), ZeroPos.GetHashCode());
         }
     }
 	public interface IFitPlaneConfiguration 
@@ -63,11 +68,12 @@ namespace ZE.Purastic {
         // contains detail-space planes data
         // no instance data contained
         public int GetHashCode();
-        public bool TryGetLocalPoint(Vector2Byte index, out Vector2 pos);
+        public bool TryGetPlanePoint(Vector2Byte index, out Vector2 pos);
         public Rect ToRect(Vector2 zeroPos);
-        public Vector2 GetLocalPoint(Vector2Byte index);
+        public Vector2 GetPlanePoint(Vector2Byte index);
         public Vector2Byte GetFitIndex(Vector2 planedPos);
-        public IFitPlaneDataProvider ToDataProvider(byte subplaneId, Vector2 cutPlaneZeroPoint, Rotation2D rotation);
+        public Vector3 GetZeroPos(float height);
+        public IFitPlaneDataProvider ToDataProvider(int blockID,byte subplaneId, Vector2 cutPlaneZeroPoint, Rotation2D rotation);
         public FitElementPlanePosition[] GetAllPinsInPlaneSpace(); // not read-only for further transformations
     }
 }

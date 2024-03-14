@@ -6,7 +6,6 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
     public sealed class BlocksColliderModule : SubcontainerModule, IColliderOwner
     {
-       
         private IBlocksHost BlocksHost => _localResolver.Item1;
         private PlacedBlocksListHandler BlocksList => _localResolver.Item2;
         private List<int> _collidersIDs = new();

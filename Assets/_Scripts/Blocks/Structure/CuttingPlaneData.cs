@@ -4,7 +4,7 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
-    public interface ICuttingPlane
+    public interface ICuttingPlane // must be class
     {
         public int ID { get; }
         public BlockFaceDirection Face { get; }
@@ -18,49 +18,10 @@ namespace ZE.Purastic {
         public Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address);
         public Vector3 PlaneAddressToLocalPos(FitElementStructureAddress structureAddress);
         public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
+
+        public CuttingPlanePosition ToCoordinate() => new (Face, Coordinate);
     }
 
-    // contains one or more fitplanes on one face of a block
-
-    public readonly struct CuttingPlaneCoordinate
-    {
-        public readonly BlockFaceDirection Direction;
-        public readonly float Coordinate;
-
-        public CuttingPlaneCoordinate(BlockFaceDirection direction, float coordinate)
-        {
-            Direction = direction;
-            Coordinate = coordinate;
-        }
-        public override string ToString() => $"{Direction} :{Coordinate}";
-    }
-
-    // make a lock zone on a cutting plane, to prevent connections in it
-    public class CuttingPlaneLockZone
-    {
-        public readonly int CuttingPlaneID;
-        public readonly List<FitElementPlaneAddress> LockedElements;
-
-        public CuttingPlaneLockZone(int planeID)
-        {
-            CuttingPlaneID = planeID;
-            LockedElements = new ();
-        }
-        public CuttingPlaneLockZone(int id,IReadOnlyCollection<FitElementPlaneAddress> pinsList)
-        {
-            CuttingPlaneID = id;
-            LockedElements = new(pinsList);
-        }
-
-        public void AddLockedPin(FitElementPlaneAddress address)
-        {
-            LockedElements.Add(address);
-        }
-        public void AddLockedPins(IReadOnlyCollection<FitElementPlaneAddress> addresses)
-        {
-            LockedElements.AddRange(addresses);
-        }
-    }
     public abstract class CuttingPlaneBase : ICuttingPlane
     {
         protected readonly int _id;
@@ -95,7 +56,7 @@ namespace ZE.Purastic {
     public class CuttingPlanePlaceholder : CuttingPlaneBase
     {
         public override int PlanesCount => 0;
-        public CuttingPlanePlaceholder(int id, CuttingPlaneCoordinate coordinate) : base(id, coordinate.Direction, coordinate.Coordinate)
+        public CuttingPlanePlaceholder(int id, CuttingPlanePosition coordinate) : base(id, coordinate.Face, coordinate.Coordinate)
         {
            
         }

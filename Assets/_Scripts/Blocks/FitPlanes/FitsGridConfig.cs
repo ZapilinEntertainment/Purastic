@@ -38,14 +38,14 @@ namespace ZE.Purastic {
         }
 		public Vector2 GetFitPosition(Vector2Byte index) => IndexToPosition(index);
 		public Vector2 ToSize() => new (Width * GameConstants.BLOCK_SIZE, Length * GameConstants.BLOCK_SIZE);
+        public Vector3 GetZeroPos(float height) => new (-Width * 0.5f * GameConstants.BLOCK_SIZE, height, -Length * 0.5f * GameConstants.BLOCK_SIZE);
 
         public FitElement GetFitElement(Vector2Byte index) => new FitElement(
 			FitType,
-            FitElementSpace.Plane,
 			GetFitPosition(index)
 			);
 
-		virtual public IFitPlaneDataProvider ToDataProvider(byte subPlaneId, Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(subPlaneId, this, zeroPoint, rotation);
+		virtual public IFitPlaneDataProvider ToDataProvider(int blockId,byte subPlaneId, Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(blockId, subPlaneId, this, zeroPoint, rotation);
         public IReadOnlyList<FitElementPlanePosition> GetPinsInZone(AngledRectangle rect)
         {
             //Debug.Log(rect);
@@ -68,15 +68,15 @@ namespace ZE.Purastic {
             {
                 for (byte j = 0; j < length; j++)
                 {
-                    list[i * length + j] = new FitElement(FitType, FitElementSpace.Plane, IndexToPosition(i, j));                    
+                    list[i * length + j] = new FitElement(FitType,  IndexToPosition(i, j));                    
                 }
             }
             return list;
         }
 
-        public Vector2 GetLocalPoint(Vector2Byte index) => IndexToPosition(index);
+        public Vector2 GetPlanePoint(Vector2Byte index) => IndexToPosition(index);
 
-        public bool TryGetLocalPoint(Vector2Byte index, out Vector2 pos)
+        public bool TryGetPlanePoint(Vector2Byte index, out Vector2 pos)
         {
             if (index.x < Width && index.y < Length)
             {

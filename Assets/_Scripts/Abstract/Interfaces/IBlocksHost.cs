@@ -9,12 +9,14 @@ namespace ZE.Purastic {
 	{
 		public int ID { get; }
         public int RootBlockId { get; }
+        public ICutPlanesDataProvider CutPlanesDataProvider { get; }
 		public Transform ModelsHost { get; }
         public GameObject CollidersHost { get; }
         public Action<PlacedBlock> OnBlockPlacedEvent { get; set; }
         public IReadOnlyCollection<BlockProperties> GetBlocks();
 
-		public bool TryAddDetail(FitElementStructureAddress position, PlacingBlockInfo placingBlockInfo);
+        public bool CheckZoneForObstruction(int cutPlaneID, AngledRectangle rect);
+        public bool TryAddDetail(FitElementStructureAddress position, PlacingBlockInfo placingBlockInfo);
         public bool TryGetFitElementPosition(RaycastHit hit, out FoundedFitElementPosition position);
 
         public Vector3 InverseTransformPosition(Vector3 position);

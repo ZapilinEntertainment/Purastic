@@ -34,16 +34,18 @@ namespace ZE.Purastic {
             }
             return default;
         }
-        public FitsConnectionZone CreateLandingPinsList(VirtualBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
+        public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane) => CreateLandingPinsList(block.ID, block, face, zone, cuttingPlane);
+        public FitsConnectionZone CreateLandingPinsList(int blockID, VirtualBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
         {
             // planes always contain pins
             var elements = new List<ConnectingPin>();
-            for (byte i = 0; i < _planes.Length; i++) { 
+            for (byte i = 0; i < _planes.Length; i++)
+            {
                 var plane = _planes[i];
 
                 if (plane.Face == face)
                 {
-                    var pinPositions = plane.CreateDataProvider(i, block, cuttingPlane.Face).GetPinsInZone(zone);
+                    var pinPositions = plane.CreateDataProvider(blockID, i, block, cuttingPlane.Face).GetPinsInZone(zone);
                     foreach (var pinPos in pinPositions)
                     {
                         elements.Add(pinPos);

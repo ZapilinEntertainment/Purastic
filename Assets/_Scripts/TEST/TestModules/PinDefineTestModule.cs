@@ -14,24 +14,19 @@ namespace ZE.Purastic {
 		protected BlockProperties _properties;
 		protected FoundedFitElementPosition FitPosition => _fitPosition;
 
-        protected BlockModel Marker { get; private set; }
-		private BlockCastModule _castModule;
-		private Material _availableMaterial, _blockedMaterial;		
+        protected PlacingBlockModelHandler Marker { get; private set; }
+		private BlockCastModule _castModule;			
 
 		private async void Start()
 		{			
 			_properties = BlockPresetsDepot.GetProperty(BlockPreset, new BlockMaterial(VisualMaterialType.Hologramm, BlockColor.DefaultWhite)); 
 
             _castModule = new BlockCastModule();
-			var resolver = new ComplexResolver<BlockCreateService, MaterialsDepot>(null);
-			resolver.CheckDependencies();
-
-			while (!(_castModule.IsReady && resolver.AllDependenciesCompleted )) await Awaitable.FixedUpdateAsync();
-			Marker = await resolver.Item1.CreateBlockModel(_properties);
-			_availableMaterial = resolver.Item2.GetPlacingBlockMaterial(true);
-			_blockedMaterial = resolver.Item2.GetPlacingBlockMaterial(false);
-			Marker.SetDrawMaterial(_blockedMaterial);
-			PositionMarker(Vector3.zero);
+			Marker = new();
+			while (!(_castModule.IsReady && Marker.IsReady )) await Awaitable.FixedUpdateAsync();
+            var modelCreateService = await ServiceLocatorObject.GetWhenLinkReady<BlockCreateService>();
+            Marker.ReplaceModel( await modelCreateService.CreateBlockModel(_properties));
+            PositionMarker(Vector3.zero);
 			_isReady = true;
 
 			AfterStart();
@@ -48,7 +43,7 @@ namespace ZE.Purastic {
 					PositionMarker(_fitPosition.WorldPoint.Position);
 					if (!_pinFound)
 					{
-						Marker.SetDrawMaterial(_availableMaterial);
+						Marker.SetModelStatus(_fitPosition.PositionIsObstructed ? BlockPositionStatus.Obstructed : BlockPositionStatus.CanBePlaced);
 						_pinFound = true;
 					}
 				}
@@ -57,7 +52,7 @@ namespace ZE.Purastic {
 					PositionMarker(hit.point);
                     if (_pinFound)
                     {
-                        Marker.SetDrawMaterial(_blockedMaterial);
+						Marker.SetModelStatus(BlockPositionStatus.CannotBePlaced);
                         _pinFound = false;
                     }
                 }
@@ -66,10 +61,10 @@ namespace ZE.Purastic {
 		virtual protected void PositionMarker(Vector3 groundPos)
         {
             Vector3 pos = groundPos + 0.5f * _properties.ModelSize.y * Vector3.up;
-            Marker.transform.position = pos;
+            Marker.Model.SetPoint(pos, _fitPosition.WorldPoint.Rotation);
         }
 
-        private void OnDrawGizmos()
+        virtual protected void OnDrawGizmos()
         {
             if (PinFound) Gizmos.DrawSphere(FitPosition.WorldPoint.Position, 0.5f);
         }

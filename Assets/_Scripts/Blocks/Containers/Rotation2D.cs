@@ -11,7 +11,7 @@ namespace ZE.Purastic {
     }
 
     [System.Serializable]
-    public readonly struct Rotation2D
+    public readonly struct Rotation2D : System.IEquatable<Rotation2D>
     {
         public readonly RotationStep RotationStep;
         public readonly sbyte StepsCount;
@@ -66,7 +66,8 @@ namespace ZE.Purastic {
         public float ToEulerAngle() => StepsCount* 90f;
         public Vector2 TransformVector(Vector2 dir) => ToQuaternion() * dir;
         public Quaternion ToQuaternion() => Quaternion.AngleAxis(ToEulerAngle(), Vector3.back);      
-       
+        public Quaternion ToQuaternion(BlockFaceDirection face) => Quaternion.AngleAxis(ToEulerAngle(), -face.Normal);
+
         public BlockFaceDirection TransformFace(BlockFaceDirection face)
         {
             //horizontal rotation

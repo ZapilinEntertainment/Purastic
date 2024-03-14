@@ -29,6 +29,11 @@ namespace ZE.Purastic {
 		public PlacingBlockInfo Rotate(PlacedBlockRotation rotation) => new (InitialPinIndex, Properties, ConnectFace, rotation);
 		public PlacingBlockInfo ChangeProperties(BlockProperties properties) => new(InitialPinIndex, properties, ConnectFace, Rotation);
 
+		public AngledRectangle ToRect(Vector2 zeroPos) {
+			var size = Properties.GetProjectionSize(ConnectFace);
+			return new AngledRectangle(new Rect(zeroPos, size), Rotation.DefinePlaneRotation(ConnectFace));
+		}
+
         public Vector3 GetBlockCenterPosition(Vector3 initialPinAddressLocalPosition)
 		{
 			var planes = Properties.GetPlanesList();

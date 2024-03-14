@@ -14,7 +14,6 @@ namespace ZE.Purastic {
 		private BrickModelsPack _brickModelsPack;
 
 		private BlockModelPoolService _blockModelCacheService;
-		private Dictionary<int, GameObject> _modelsDepot = new();
 
 		public BlockCreateService()
 		{
@@ -32,23 +31,10 @@ namespace ZE.Purastic {
 
 		public async Awaitable<BlockModel> CreateBlockModel(BlockProperties block)
 		{
-			
-			int hashcode = block.GetHashCode();
-
 			BlockModel blockModel;
 			if (_blockModelCacheService == null || !_blockModelCacheService.TryGetCachedPart(block, out blockModel))
 			{
-				GameObject modelLink;
-				if (!_modelsDepot.TryGetValue(hashcode, out modelLink))
-				{
-					modelLink = await CreateModel(block);
-					modelLink.SetActive(false);
-					_modelsDepot.Add(hashcode, modelLink);
-				}
-				var model = Object.Instantiate(modelLink);
-				blockModel = new GameObject("block" + hashcode.ToString()).AddComponent<BlockModel>();
-                model.transform.SetParent(blockModel.transform, false);
-                model.SetActive(true);
+                blockModel = await CreateModel(block);
             }
 
             if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
@@ -56,10 +42,11 @@ namespace ZE.Purastic {
             return blockModel;
         }
 
-		private async Awaitable<GameObject> CreateModel(BlockProperties properties)
+		private async Awaitable<BlockModel> CreateModel(BlockProperties properties)
 		{
             if (!_resolver.AllDependenciesCompleted) await _resolverCheck.Awaitable;
-            Transform host = new GameObject("modelHost").transform;
+			GameObject gameObject = new ("block" + properties.GetHashCode());
+            Transform host = gameObject.transform;
 			var model = GameObject.Instantiate(_brickModelsPack.CubePrefab);		
 			model.transform.SetParent(host,false);
 			model.gameObject.layer = _pinplanesLayer;
@@ -70,21 +57,25 @@ namespace ZE.Purastic {
 
 			VirtualBlock virtualBlock = new VirtualBlock(model.transform.position, new PlacingBlockInfo(properties));
 			var fitPlanes = FitPlanesConfigsDepot.LoadConfig(properties.FitPlanesHash).Planes;
-			if (fitPlanes.Count > 0)
-			{
-				foreach (var plane in fitPlanes)
-				{
-					var pinsPositions = plane.PinsConfiguration.GetAllPinsInPlaneSpace();
-					var prefab = _brickModelsPack.GetFitElementPrefab(plane.FitType);
-					var rotation = plane.Face.ToRotation();
+            // block always have at least 1 plane
+            var registrationList = new Dictionary<FitElementPlaneAddress, GameObject>();
+            for (byte i = 0; i < fitPlanes.Count; i++)
+            {
+                var plane = fitPlanes[i];
+                var pinsPositions = plane.PinsConfiguration.GetAllPinsInPlaneSpace();
+                var prefab = _brickModelsPack.GetFitElementPrefab(plane.FitType);
+                var rotation = plane.Face.ToRotation();
 
-					foreach (var pin in pinsPositions)
-					{
-						Object.Instantiate(prefab, position: virtualBlock.FacePositionToModelPosition(pin.PlanePosition, plane.Face), rotation: rotation, parent: host);
-					}
-				}
-			}
-			return host.gameObject;
+                foreach (var pin in pinsPositions)
+                {
+                    var pinModel = Object.Instantiate(prefab, position: virtualBlock.FacePositionToModelPosition(pin.PlanePosition, plane.Face), rotation: rotation, parent: host);
+                    registrationList.Add(new FitElementPlaneAddress(i, pin.Index), pinModel);
+                }
+            }
+
+			var blockModel = gameObject.AddComponent<BlockModel>();
+			blockModel.InitializeModel(registrationList);
+			return blockModel;
 		}
 	}
 }

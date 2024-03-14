@@ -7,40 +7,35 @@ namespace ZE.Purastic {
     public class PlacingBlockModelController
     {
         private bool _isActive = false;
-        private bool? _drawPlaceAllowedMaterial = null;
-        private IPlaceable _placeableModel;
-        private Material _placingAvailableMaterial, _placingBlockedMaterial;
+        private BlockPositionStatus _positionStatus = BlockPositionStatus.Undefined;
+        private PlacingBlockModelHandler _model;
         private BlockPlaceHandler _placeHandler;
-        private LocatorLinkWrapper<BlockModelPoolService> _modelCacheServiceWrapper;
+       
         private readonly BlockPlaceSystem _placeSystem;
 
-        public PlacingBlockInfo PlacingBlockInfo => new PlacingBlockInfo(Vector2Byte.one, _placeableModel.GetBlockProperty(), _placeSystem.ConnectFace, _placeSystem.Rotation);
+        public PlacingBlockInfo PlacingBlockInfo => new (Vector2Byte.one, _model.Model.GetBlockProperty(), _placeSystem.ConnectFace, _placeSystem.Rotation);
 
         public PlacingBlockModelController(BlockPlaceSystem blockPlaceSystem, BlockPlaceHandler placeHandler)
         {
-            _placeSystem = blockPlaceSystem;
-
-            var materialsDepot = ServiceLocatorObject.Get<MaterialsDepot>();
-            _placingAvailableMaterial = materialsDepot.GetPlacingBlockMaterial(true);
-            _placingBlockedMaterial = materialsDepot.GetPlacingBlockMaterial(false);
-            _modelCacheServiceWrapper = ServiceLocatorObject.GetLinkWrapper<BlockModelPoolService>();
+            _model = new();
+            _placeSystem = blockPlaceSystem;            
             _placeHandler = placeHandler;
 
             blockPlaceSystem.OnPlacementStatusChangedEvent += OnPlacementStatusChanged;
-            _placeHandler.OnPlacingPermitChangedEvent += UpdateMaterial;
+            _placeHandler.OnPlacingPermitChangedEvent += OnPlaceStatusChanged;
         }
         private void OnPlacementStatusChanged(PlaceableModelStatus status)
         {
             switch (status)
             {
                 case PlaceableModelStatus.NotSelected: Stop(); break;
-                case PlaceableModelStatus.Hidden: 
-                    if (_placeableModel != null) _placeableModel.IsVisible = false;
+                case PlaceableModelStatus.Hidden:
+                    _model?.SetVisibility(false);
                     _isActive = false;
                     break;
                 case PlaceableModelStatus.CannotBePlaced:
                 case PlaceableModelStatus.CanBePlaced:
-                    if (_placeableModel != null) _placeableModel.IsVisible = true;
+                    _model?.SetVisibility(true);
                     _isActive = true;
                     break;
             }
@@ -48,35 +43,23 @@ namespace ZE.Purastic {
 
         public void SetModel(IPlaceable model)
         {
-            _placeableModel = model;
-            _placeableModel.IsVisible = false;
-            UpdateMaterial(_placeHandler.IsPlacingAllowed);
+            _model.ReplaceModel(model);
+            _model.SetVisibility(false);
         }
-        private void UpdateMaterial(bool placingAllowed)
+        private void OnPlaceStatusChanged(BlockPositionStatus status)
         {
-            if (placingAllowed != _drawPlaceAllowedMaterial)
-            {
-                _drawPlaceAllowedMaterial = placingAllowed;
-                _placeableModel?.SetDrawMaterial(placingAllowed ? _placingAvailableMaterial : _placingBlockedMaterial);
-            }
+            _positionStatus= status;
+            _model.SetModelStatus(_positionStatus);
         }
         public void Stop()
         {
-            if (_placeableModel != null)
-            {
-                if (_placeableModel is IPoolableModel) _modelCacheServiceWrapper.Value.CacheModel(_placeableModel as IPoolableModel);
-                else
-                {
-                    _placeableModel.Dispose();
-                }
-                _placeableModel = null;
-            }
+            _model?.Dispose();
             _isActive = false;
         }
 
         public void UpdatePosition()
         {
-            if (_isActive && _placeableModel != null) _placeableModel.SetPoint(_placeHandler.ModelPoint.Position, _placeHandler.ModelPoint.Rotation);
+            if (_isActive) _model.Model.SetPoint(_placeHandler.ModelPoint.Position, _placeHandler.ModelPoint.Rotation);
         }
     }
 }

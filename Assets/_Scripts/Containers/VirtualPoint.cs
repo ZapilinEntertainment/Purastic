@@ -11,6 +11,7 @@ namespace ZE.Purastic {
         public Quaternion Rotation;
         public Vector3 Forward => Rotation * Vector3.forward;
         public Vector3 Up => Rotation * Vector3.up;
+        public override string ToString() => $"[p:{Position}, r:{Rotation.eulerAngles}]";
 
         public VirtualPoint(Transform point)
         {

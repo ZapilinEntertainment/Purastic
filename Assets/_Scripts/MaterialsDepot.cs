@@ -8,8 +8,8 @@ namespace ZE.Purastic {
 	{
         private VisualMaterialsPack _materialsPack;
 		private ColorSettings _colorSettings;
-		private Material _placingAvailableMaterial, _placingUnavailableMaterial;
         private Dictionary<BlockMaterial, Material> _materials = new();
+		private Dictionary<BlockPositionStatus, Material> _positionStatusMaterials = new();
 		
 
 		public MaterialsDepot() { 
@@ -32,26 +32,16 @@ namespace ZE.Purastic {
 			}
 			return graphicMaterial;
 		}
-		public Material GetPlacingBlockMaterial(bool placingAvailable)
+		public Material GetPlacingBlockMaterial(BlockPositionStatus status)
 		{
-			if (placingAvailable)
+			Material material;
+			if (!_positionStatusMaterials.TryGetValue(status, out material))
 			{
-				if (_placingAvailableMaterial == null)
-				{
-					_placingAvailableMaterial = Object.Instantiate(_materialsPack.GetMaterial(VisualMaterialType.Hologramm));
-					_placingAvailableMaterial.color = _colorSettings.PlaceBlockColor_Available;
-				}
-				return _placingAvailableMaterial;
-			}
-			else
-			{
-                if (_placingUnavailableMaterial == null)
-                {
-                    _placingUnavailableMaterial = Object.Instantiate(_materialsPack.GetMaterial(VisualMaterialType.Hologramm));
-                    _placingUnavailableMaterial.color = _colorSettings.PlaceBlockColor_Unavailable;
-                }
-                return _placingUnavailableMaterial;
+				material = Object.Instantiate(_materialsPack.GetMaterial(VisualMaterialType.Hologramm));
+                material.color = _colorSettings.GetPlaceColor(status);
+				_positionStatusMaterials.Add(status, material);
             }
+			return material;
 		}
 	}
 }

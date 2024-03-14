@@ -8,7 +8,6 @@ namespace ZE.Purastic {
 
     public sealed class BlockPlaceSystem : MonoBehaviour
 	{
-        private int _castMask;
         private PlaceableModelStatus _placementStatus = PlaceableModelStatus.NotSelected;
         private BlockPlaceHandler _placeHandler;
 		private BlockCastModule _castModule;
@@ -23,10 +22,6 @@ namespace ZE.Purastic {
 
 		public System.Action<PlaceableModelStatus> OnPlacementStatusChangedEvent;
 
-        private void Awake()
-        {
-			_castMask = LayerConstants.GetCustomLayermask(CustomLayermask.BlockPlaceCast);
-        }
         public void Start() {
 
 			_castModule = new();
@@ -91,7 +86,7 @@ namespace ZE.Purastic {
 				if (_castModule.Cast(out FoundedFitElementPosition position, out RaycastHit hit))
 				{
                     _placeHandler.OnPinplaneHit(new BlocksCastResult(position));
-                    ChangePlacingStatus(_placeHandler.IsPlacingAllowed ? PlaceableModelStatus.CanBePlaced : PlaceableModelStatus.CannotBePlaced);
+                    ChangePlacingStatus(_placeHandler.PositionStatus != BlockPositionStatus.CannotBePlaced ? PlaceableModelStatus.CanBePlaced : PlaceableModelStatus.CannotBePlaced);
                     // todo: check for placement here
                 }
 				else

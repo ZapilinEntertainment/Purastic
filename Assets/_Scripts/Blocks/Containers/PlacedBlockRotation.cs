@@ -60,7 +60,7 @@ namespace ZE.Purastic {
             }
             else return face;
         }
-        public Rotation2D TransformPlaneRotation(BlockFaceDirection face)
+        public Rotation2D DefinePlaneRotation(BlockFaceDirection face)
 		{
 			var directionInModel = TransformDirection(face);
 			return directionInModel.GetHorizontalRotation();
@@ -68,5 +68,10 @@ namespace ZE.Purastic {
 
 		public PlacedBlockRotation RotateRight() => new (HorizontalRotation.RotateRight(), VerticalRotation);
         public PlacedBlockRotation RotateLeft() => new(HorizontalRotation.RotateLeft(), VerticalRotation);
+		public (Vector3 right,Vector3 up) CreateFaceOrths()
+		{
+			var quaternion = Quaternion;
+			return (quaternion * Vector3.right, quaternion * Vector3.up);
+		}
     }
 }

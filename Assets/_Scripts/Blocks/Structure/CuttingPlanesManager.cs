@@ -5,17 +5,22 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
 	
-	public class CuttingPlanesManager : SubcontainerModule
+	public class CuttingPlanesManager : SubcontainerModule, ICutPlanesDataProvider
 	{
-		// Imagine you cut the building at specific point (coordinate) and direction(face direction)
-		private int _nextCuttingPlaneId = 1;
-        private Dictionary<CuttingPlaneCoordinate, ICuttingPlane> _cuttingPlanes = new();
+        // Creating a imaginary planes using axle(CuttingPlanePosition.Face) and a point on it(CuttingPlanePosition.Coordinate)
+        // resulting plane will contain pins of different details, so when you placing a new brick,
+        // it will be connected to all details it cover.
+        // so we can just set the initial point and the system connect new detail to all blocks automatically
+
+        private int _nextCuttingPlaneId = 1;
+        private Dictionary<CuttingPlanePosition, ICuttingPlane> _cuttingPlanes = new();
 		private Dictionary<int, CuttingPlaneLockZone> _lockZones = new();
 		private Dictionary<int, ICuttingPlane> _cuttingPlanesById = new();
 		private readonly ComplexResolver<IBlocksHost, PlacedBlocksListHandler, BlockStructureModule> _localResolver;
 		protected IBlocksHost BlocksHost => _localResolver.Item1;
 		protected PlacedBlocksListHandler BlocksList => _localResolver.Item2;
 		protected BlockStructureModule BlocksStructure => _localResolver.Item3;
+		public System.Action<CuttingPlanePosition, CuttingPlaneLockZone> OnLockedZonesChangedEvent;
 
 		public CuttingPlanesManager(Container container) : base(container)
 		{
@@ -35,7 +40,7 @@ namespace ZE.Purastic {
             }
             BlocksStructure.OnConnectionCreatedEvent += OnConnectionCreated;
         }
-		private void AddCuttingPlane(CuttingPlaneCoordinate coordinate, ICuttingPlane plane)
+		private void AddCuttingPlane(CuttingPlanePosition coordinate, ICuttingPlane plane)
 		{
 			_cuttingPlanes.Add(coordinate, plane);
 			_cuttingPlanesById.Add(plane.ID, plane);
@@ -53,32 +58,20 @@ namespace ZE.Purastic {
 		private void OnConnectionCreated(BlocksConnection connection)
 		{
 			var lockedPins = connection.LockedPins;
-			AddLockPoints(lockedPins.CutPlaneA_id, lockedPins.GetLockedPinsA());
-			AddLockPoints(lockedPins.CutPlaneB_id, lockedPins.GetLockedPinsB());
-            
-
-			void AddLockPoints(int id, IReadOnlyCollection<FitElementPlaneAddress> points)
-			{
-                CuttingPlaneLockZone lockZone;
-                if (!_lockZones.TryGetValue(id, out lockZone))
-                {
-                    lockZone = new CuttingPlaneLockZone(id, points);
-                    _lockZones.Add(id, lockZone);
-                }
-                else lockZone.AddLockedPins(points);
-            }
+            AddLockZones(lockedPins.CutPlaneA_id, lockedPins.GetLockedPinsA());
+            AddLockZones(lockedPins.CutPlaneB_id, lockedPins.GetLockedPinsB());
         }
 		private void AddFitPlane(byte subPlaneId, FitPlaneConfig fitPlaneConfig, PlacedBlock block)
 		{
 			BlockFaceDirection face = fitPlaneConfig.Face;
 			Vector3 normal = face.Normal;
-			Vector3 zeroPosInModelSpace = block.FacePositionToModelPosition(fitPlaneConfig.FaceZeroPos, face);
+			Vector3 zeroPosInModelSpace = fitPlaneConfig.ZeroPos;
 
-			float coordinate = GetCoordinate(zeroPosInModelSpace, normal);
+			float coordinate = Utilities.DefineCutPlaneCoordinate(zeroPosInModelSpace, normal);
 			ICuttingPlane cuttingPlane;
 
-			var dataProvider = fitPlaneConfig.CreateDataProvider(subPlaneId,block, face);
-			var key = new CuttingPlaneCoordinate(face, coordinate);
+			var dataProvider = fitPlaneConfig.CreateDataProvider(block.ID,subPlaneId,block, face);
+			var key = new CuttingPlanePosition(face, coordinate);
 
 			if (!_cuttingPlanes.TryGetValue(key, out cuttingPlane))
 			{
@@ -88,40 +81,54 @@ namespace ZE.Purastic {
 			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);
 			//Debug.Log(key);
 		}
-		public void AddLockZones(int cutPlaneID, List<FitElementPlaneAddress> lockedPins)
+		public void AddLockZones(int cutPlaneID, IReadOnlyCollection<ConnectingPin> lockedPins)
 		{
-			CuttingPlaneLockZone zone;
+			var cuttingPlane = _cuttingPlanesById[cutPlaneID];
+            CuttingPlaneLockZone zone;
             if (!_lockZones.TryGetValue(cutPlaneID, out zone))
             {
-                zone = new CuttingPlaneLockZone(cutPlaneID);
+                zone = new CuttingPlaneLockZone(cuttingPlane);
                 _lockZones.Add(cutPlaneID, zone);
             }
 			zone.AddLockedPins(lockedPins);
+			OnLockedZonesChangedEvent?.Invoke(cuttingPlane.ToCoordinate(), zone);
         }
 
-		public bool TryGetCuttingPlane(FitElementStructureAddress address, out ICuttingPlane plane) => _cuttingPlanesById.TryGetValue(address.CutPlaneID, out plane);
+		public bool TryGetCuttingPlane(CuttingPlanePosition coord, out ICuttingPlane cuttingPlane) => _cuttingPlanes.TryGetValue(coord, out cuttingPlane);
+        public bool TryGetCuttingPlane(FitElementStructureAddress address, out ICuttingPlane plane) => _cuttingPlanesById.TryGetValue(address.CutPlaneID, out plane);
         public bool TryGetCuttingPlane(PlacedBlock block, BlockFaceDirection localDirection, out ICuttingPlane plane)
         {
-            var coords = GetCutPlaneCoordinate(block, localDirection);
-			//Debug.Log(coords);
+            var coords = Utilities.DefineCutPlaneCoordinate(block, localDirection);
             return _cuttingPlanes.TryGetValue(coords, out plane);
         }
         public bool TryGetFitElementPosition(Vector3 localPos,Vector3 normal, PlacedBlock block, out FoundedFitElementPosition fitPosition)
 		{
             var face = new BlockFaceDirection(normal);
-            float coordinate = GetCoordinate(localPos, face.Normal);
+            float coordinate = Utilities.DefineCutPlaneCoordinate(localPos, face.Normal);
 			if (_cuttingPlanes.TryGetValue(new(face, coordinate), out var cuttingPlane))
 			{
 				Vector2 cutPlanePos = face.LocalToFaceDirection(localPos);
-				//Debug.Log($"{localPos} -> {planePos}");
+				//Debug.Log($"{localPos} -> {cutPlanePos}");
 				if (cuttingPlane.TryDefineFitPlane(cutPlanePos, out IFitPlaneDataProvider fitPlane) && fitPlane.TryGetPinPosition(cutPlanePos, out var planeAddress))
 				{
 					var address = new FitElementStructureAddress(block.ID, cuttingPlane.ID, face, planeAddress);
 					
-					var facePoint = fitPlane.GetFitElementFaceVirtualPoint(address.PlaneAddress.PinIndex);
+					var facePoint = fitPlane.GetFitElementFaceVirtualPoint(address.PlaneAddress.PinIndex);					
 					var localPoint = new VirtualPoint(cuttingPlane.CutPlaneToLocalPos(facePoint.Position), cuttingPlane.Face.ToRotation() * facePoint.Rotation);
 					var worldPoint = new VirtualPoint(BlocksHost.TransformPosition(localPoint.Position), BlocksHost.ModelsHost.rotation * localPoint.Rotation);
-                    fitPosition = new FoundedFitElementPosition(BlocksHost.ID, address, worldPoint, normal);
+
+					bool isObstructed = false;
+					//Debug.Log(landingRectangle.Rect.position);
+					if (_lockZones.TryGetValue(cuttingPlane.ID, out var lockZone))
+					{
+                        if (lockZone.Contains(block.ID, address.PlaneAddress))
+                        {
+                            isObstructed = true;
+                        }
+                    }
+					
+
+                    fitPosition = new FoundedFitElementPosition(BlocksHost.ID, address, worldPoint, normal, isObstructed);
                     return true;
 				}
 			}
@@ -129,9 +136,9 @@ namespace ZE.Purastic {
 			fitPosition = default;
 			return false;
         }
-		public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, VirtualBlock planningBlock, out ConnectedAndLockedPinsContainer pinsContainer)
+        public bool TryConnectNewBlock(PlacedBlock blockBase, FitElementStructureAddress address, VirtualBlock planningBlock, out ConnectedAndLockedPinsContainer pinsContainer)
 		{
-			var key = GetCutPlaneCoordinate(blockBase,address.ContactFace);
+			var key = Utilities.DefineCutPlaneCoordinate(blockBase,address.ContactFace);
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
 				var landingRectangle = Utilities.ProjectBlock(cuttingPlane.Face, planningBlock);
@@ -139,7 +146,7 @@ namespace ZE.Purastic {
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
 				var connectFace = planningBlock.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
-				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(planningBlock, connectFace, landingRectangle, cuttingPlane);
+				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, landingRectangle, cuttingPlane);
 				/*
 				foreach (var pin in newBlockPins.Pins)
 				{
@@ -153,14 +160,19 @@ namespace ZE.Purastic {
             pinsContainer = null;
 			return false;
 		}
-
-        private float GetCoordinate(Vector3 localPos, Vector3 planeNormal)
+		public bool TryGetLockZone(int cuttingPlaneId, out CuttingPlaneLockZone lockZone) => _lockZones.TryGetValue(cuttingPlaneId, out lockZone);
+        public bool TryGetLockZone(CuttingPlanePosition coord, out CuttingPlaneLockZone lockZone)
 		{
-            Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
-            return Vector3.Dot(localPos - projectedPos, planeNormal);
-        }
-		public CuttingPlaneCoordinate GetCutPlaneCoordinate(PlacedBlock block, BlockFaceDirection face) => new CuttingPlaneCoordinate(face, GetCoordinate(block.GetFaceZeroPointInLocalSpace(face), face.Normal));
-		public ICuttingPlane GetOrCreateCutPlane(CuttingPlaneCoordinate coord)
+			if (_cuttingPlanes.TryGetValue(coord, out var cutPlane)) return _lockZones.TryGetValue(cutPlane.ID, out lockZone);
+			else
+			{
+				lockZone = null;
+				return false;
+			}
+		}
+
+       	public ICuttingPlane GetCuttingPlane(int id) => _cuttingPlanesById[id];
+		public ICuttingPlane GetOrCreateCutPlane(CuttingPlanePosition coord)
 		{
 			ICuttingPlane plane;
 			if (!_cuttingPlanes.TryGetValue(coord, out plane))
@@ -169,7 +181,7 @@ namespace ZE.Purastic {
 				AddCuttingPlane(coord, plane);
 			}
 			return plane;
-		}
+		}		
 		
     }
 }

@@ -9,8 +9,17 @@ namespace ZE.Purastic {
 
         private static System.Random _random = new();
         public static int GenerateInteger() => _random.Next();
+        public static float TrimHeight(float y) => (float)System.Math.Round(y, 5);
 
-        public static AngledRectangle ProjectBlock(BlockFaceDirection face, VirtualBlock block)
+
+        public static CuttingPlanePosition DefineCutPlaneCoordinate(VirtualBlock block, BlockFaceDirection face) => 
+            new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(face), face.Normal));
+        public static float DefineCutPlaneCoordinate(Vector3 localPos, Vector3 planeNormal)
+        {
+            Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
+            return Vector3.Dot(localPos - projectedPos, planeNormal);
+        }
+        public static AngledRectangle ProjectBlock(BlockFaceDirection face, VirtualBlock block, bool printCorner = false)
         {
             var rotation = block.Rotation;
             var localBlockDirection = rotation.TransformDirection(face);
@@ -24,8 +33,12 @@ namespace ZE.Purastic {
                 case FaceDirection.Up:
                     {
                         size = new Vector2(localSize.x, localSize.z);
-                        Vector3 corner = block.TransformNormalizedPoint(new Vector3(-1f, -1f, 1f));
+                        Vector3 corner = block.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up);
                         zeroPos = face.LocalToFaceDirection(corner);
+                        //zeroPos = new Vector2(corner.x, corner.z);
+                        //Debug.Log(zeroPos);
+                        if (printCorner) Debug.Log(corner);
+                        rectRotation = block.Rotation.HorizontalRotation;
                         break;
                     }
                 case FaceDirection.Down:

@@ -27,13 +27,11 @@ namespace ZE.Purastic {
 
 		public void AddBlock(PlacedBlock baseBlock, FitElementStructureAddress fitInfo, VirtualBlock virtualBlock, ConnectedAndLockedPinsContainer pinsContainer, out PlacedBlock placedBlock)
 		{
-			var cutPlane = pinsContainer.BasementCutPlane;
-			Vector2 cutPlanePoint = cutPlane.PlaneAddressToCutPlanePos(pinsContainer.BasementConnectedPins[0]);
-
 			BlockFaceDirection newBlockContactFace = baseBlock.Rotation.TransformDirection(fitInfo.ContactFace.Inverse());
 
             placedBlock = BlocksList.RegisterBlock(virtualBlock);
-			var cutPlaneCoord = CutPlanes.GetCutPlaneCoordinate(placedBlock, newBlockContactFace);
+			var cutPlaneCoord = Utilities.DefineCutPlaneCoordinate(placedBlock, newBlockContactFace);
+			pinsContainer.AssignNewBlockID(placedBlock.ID);
             RegisterConnection(baseBlock, placedBlock, CutPlanes.GetOrCreateCutPlane(cutPlaneCoord), pinsContainer);
         }
 

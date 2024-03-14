@@ -42,24 +42,6 @@ namespace ZE.Purastic {
             return LocalPosition + Rotation.Quaternion * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
         public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
-        public IReadOnlyCollection<ConnectingPin> GetAllConnectionPins(BlockFaceDirection face)
-        {
-            List<ConnectingPin> list = new();
-            var planes = Properties.GetPlanesList().Planes;
-            for (byte planeID = 0; planeID < planes.Count; planeID++)
-            {
-                var plane = planes[planeID];
-                if (plane.Face == face)
-                {
-                    var pins = plane.PinsConfiguration.GetAllPinsInPlaneSpace();
-                    foreach (var pin in pins)
-                    {
-                        Vector2 facePosition = plane.PlanePositionToFacePosition(pin.PlanePosition);
-                        list.Add(new ConnectingPin(new FitElement(plane.FitType,FitElementSpace.Face, facePosition), new FitElementPlaneAddress(planeID, pin.Index)));
-                    }
-                }
-            }
-            return list;
-        }
+        
     }
 }

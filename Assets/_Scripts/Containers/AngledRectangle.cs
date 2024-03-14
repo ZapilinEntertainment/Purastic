@@ -53,11 +53,13 @@ namespace ZE.Purastic {
 		{
 			if (Rotation.IsDefaultRotation) return Rect.Contains(point);
 			else
-			{
+			{				
 				Vector2 dir = point - Rect.position;
 				var orths = Rotation.CreateOrths();
 				Vector2 localPos = new(Vector2.Dot(dir, orths.right), Vector2.Dot(dir, orths.up));
-				return Rect.Contains(localPos + Rect.position);
+
+				bool result = Rect.Contains(localPos + Rect.position, true);
+                return result;
 			}
 		}
 		public bool IsIntersects(AngledRectangle other)

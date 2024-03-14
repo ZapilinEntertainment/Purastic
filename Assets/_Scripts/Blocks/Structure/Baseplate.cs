@@ -11,6 +11,7 @@ namespace ZE.Purastic {
 		[field:SerializeField] public byte Width = 16, Length = 16;
         public int ID { get; private set; }
         public int RootBlockId => _placedBlocksList.RootBlockId;
+        public ICutPlanesDataProvider CutPlanesDataProvider => _cuttingPlanesManager;
         public Transform ModelsHost => transform;
         public GameObject CollidersHost => gameObject;
 
@@ -19,12 +20,13 @@ namespace ZE.Purastic {
 
         [SerializeField] private BlockMaterial _material = new BlockMaterial();
         private Container _modulesContainer;
-		private ConstructionVisualizer _visualizer;
+		private ConstructionVisualizerModule _visualizer;
         private BlocksColliderModule _colliderModule;
         private BlockStructureModule _structureModule;
         private PlacedBlocksListHandler _placedBlocksList;
         private CuttingPlanesManager _cuttingPlanesManager; // contains all info about block pin surfaces
         private IBlocksHost BlocksHost => this;
+        public PlacedBlock RootBlock => _placedBlocksList.RootBlock;
         public Action<PlacedBlock> OnBlockPlacedEvent { get; set; }
 
         #region collider owner
@@ -49,7 +51,7 @@ namespace ZE.Purastic {
             _modulesContainer.RegisterInstance(this as IBlocksHost);
             
             _structureModule = new(_modulesContainer);
-            _visualizer = gameObject.AddComponent<ConstructionVisualizer>();
+            _visualizer = gameObject.AddComponent<ConstructionVisualizerModule>();
             _visualizer.Setup(_modulesContainer);
             _colliderModule = new (_modulesContainer);
             _cuttingPlanesManager = new CuttingPlanesManager(_modulesContainer);
@@ -66,6 +68,14 @@ namespace ZE.Purastic {
             //OnBlockPlacedEvent?.Invoke(new PlacedBlock(-1,virtualBlock));   
         }
 
+        public bool CheckZoneForObstruction(int cutPlaneID, AngledRectangle rect)
+        {
+            if (_cuttingPlanesManager.TryGetLockZone(cutPlaneID, out var lockZone))
+            {
+                return lockZone.CheckZoneForLockers(rect);
+            }
+            else return false;
+        }
         public bool TryAddDetail(FitElementStructureAddress pinStructureAddress, PlacingBlockInfo placingBlockInfo)
         {
             if (  _placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var baseBlock) && _cuttingPlanesManager.TryGetCuttingPlane(pinStructureAddress, out var plane)) 
@@ -100,6 +110,11 @@ namespace ZE.Purastic {
             var facePos = plane.GetFaceSpacePosition(index);
             Vector3 modelPos = rootBlock.FacePositionToModelPosition(facePos, BlockFaceDirection.Up);
             return BlocksHost.TransformPosition( modelPos);
+        }
+        public ICuttingPlane GetPlatePlane()
+        {
+            var rootBlock = _placedBlocksList.RootBlock;
+            return _cuttingPlanesManager.GetOrCreateCutPlane(new CuttingPlanePosition(BlockFaceDirection.Up, rootBlock.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up).y));
         }
         public IReadOnlyCollection<BlockProperties> GetBlocks() => _placedBlocksList.GetBlocksProperties();
         public bool TryFormPlateAddress(Vector2Byte index, out FitElementStructureAddress address)

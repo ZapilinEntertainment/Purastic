@@ -33,7 +33,7 @@ namespace ZE.Purastic {
 			ModelSize = new Vector3(config.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), config.Length * GameConstants.BLOCK_SIZE) ;
             FitPlanesHash = FitPlanesConfigsDepot.SaveConfig(
 				new FitPlanesConfigList(
-				new FitPlaneConfig(config, config.FitType, new BlockFaceDirection(FaceDirection.Up), Vector2.zero)
+				new FitPlaneConfig(config, config.FitType, new BlockFaceDirection(FaceDirection.Up), new Vector3(-0.5f * config.Width * GameConstants.BLOCK_SIZE, 0.5f * GameConstants.GetHeight(thick), 0.5f * config.Width * GameConstants.BLOCK_SIZE))
 				));
 			Thick= thick;
 		}
@@ -53,6 +53,12 @@ namespace ZE.Purastic {
         }
 		public BlockProperties ChangeMaterial(BlockMaterial material) => new (material, ModelSize, FitPlanesHash, Thick);
 	
+
+		public Vector2 GetProjectionSize(BlockFaceDirection face)
+		{
+			var orths = face.ToBlockRotation().CreateFaceOrths();
+			return new Vector2(Vector3.Dot(ModelSize, orths.right), Vector3.Dot(ModelSize, orths.up)) * GameConstants.BLOCK_SIZE;
+		}
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

@@ -24,6 +24,7 @@ namespace ZE.Purastic {
             AddDetail(new Vector2Byte(1, 1), BlockPreset.StandartBrick_1x1);
             AddDetail(new Vector2Byte(4, 8), BlockPreset.StandartBrick_2x4);
             AddDetail(new Vector2Byte(8, 4), BlockPreset.StandartBrick_2x4);
+            AddDetail(new Vector2Byte(7, 7), BlockPreset.StandartBrick_2x2);
 
             void AddDetail(Vector2Byte index, BlockPreset preset)
             {
@@ -34,6 +35,16 @@ namespace ZE.Purastic {
                     ));
                 }
             }
+
+            /*
+            if (_baseplate.CutPlanesDataProvider.TryGetLockZone(Utilities.DefineCutPlaneCoordinate(_baseplate.RootBlock, BlockFaceDirection.Up), out var zone)) {
+                var points = zone.LockedElements;
+                foreach (var point in points)
+                {
+                    Debug.Log(point);
+                }
+            }
+            */
         }
 	}
 }

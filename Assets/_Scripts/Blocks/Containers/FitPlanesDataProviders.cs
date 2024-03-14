@@ -20,6 +20,7 @@ namespace ZE.Purastic {
     public readonly struct GridDataProvider : IFitPlaneDataProvider
     {
         // contains only one grid
+        private readonly int _blockID;
         private readonly byte _subPlaneId;
         private readonly Vector2 _cutPlaneZeroPos;
         private readonly FitsGridConfig _grid;
@@ -28,8 +29,9 @@ namespace ZE.Purastic {
         private float Length => _grid.Length * GameConstants.BLOCK_SIZE;
         private float ElementWidth => GameConstants.KNOB_SCALE * GameConstants.BLOCK_SIZE;
         private float ElementLength => ElementWidth;
-        public GridDataProvider(byte subplaneId, FitsGridConfig grid, Vector2 cutPlaneZeroPos, Rotation2D rotation)
+        public GridDataProvider(int blockID, byte subplaneId, FitsGridConfig grid, Vector2 cutPlaneZeroPos, Rotation2D rotation)
         {
+            _blockID = blockID;
             _subPlaneId = subplaneId;
             _cutPlaneZeroPos = cutPlaneZeroPos; _grid = grid;
             _rotation= rotation;
@@ -78,7 +80,8 @@ namespace ZE.Purastic {
             {
                 var position = positions[i];
                 pins[i] = new ConnectingPin(
-                    new FitElement(_grid.FitType, FitElementSpace.CutPlane, PlanePositionToCutPlanePosition(position.PlanePosition)),
+                    _blockID,
+                    new FitElement(_grid.FitType, PlanePositionToCutPlanePosition(position.PlanePosition)),
                     new FitElementPlaneAddress(_subPlaneId, position.Index)
                     );
             }
