@@ -147,5 +147,14 @@ namespace ZE.Purastic {
         public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);
 
         public Vector3 TransformPosition(Vector3 position) => ModelsHost.TransformPoint(position);
+        public void LockPlateZone(AngledRectangle rect, out IReadOnlyCollection<ConnectingPin> lockedPins) {
+            var platePlane = GetPlatePlane();
+            lockedPins= platePlane.GetLandingPinsList(rect).Pins;
+            _cuttingPlanesManager.AddLockZones(platePlane.ID, lockedPins );
+        }
+        public void UnlockPlateZone(IReadOnlyCollection<ConnectingPin> lockedPins) {
+            var platePlane = GetPlatePlane();
+            _cuttingPlanesManager.RemoveLocks(platePlane.ID, lockedPins);
+        }
     }
 }

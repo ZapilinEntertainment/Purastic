@@ -16,6 +16,7 @@ namespace ZE.Purastic {
         public Vector2 LocalToCutPlanePos(Vector3 localPos);
         public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos);
         public Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address);
+        public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress planeAddress);
         public Vector3 PlaneAddressToLocalPos(FitElementStructureAddress structureAddress);
         public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
 
@@ -43,6 +44,7 @@ namespace ZE.Purastic {
         abstract public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider fitPlane);
         public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos) => Face.ToRotation() * inPlanePos + _coordinate * _direction.Normal;
         public Vector3 PlaneAddressToLocalPos(FitElementStructureAddress structureAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(structureAddress.PlaneAddress));
+        public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress planeAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(planeAddress));
         public Vector2 LocalToCutPlanePos(Vector3 localPos)
         {
             Vector3 projected = Vector3.ProjectOnPlane(localPos, Face.Normal);

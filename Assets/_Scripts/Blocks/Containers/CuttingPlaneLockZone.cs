@@ -24,13 +24,21 @@ namespace ZE.Purastic {
             _lockedElements = new(pinsList);
         }
 
-        public void AddLockedPin(ConnectingPin address)
+        public void AddLockedPin(ConnectingPin pin)
         {
-            _lockedElements.Add(address);
+            _lockedElements.Add(pin);
         }
-        public void AddLockedPins(IReadOnlyCollection<ConnectingPin> addresses)
+        public void AddLockedPins(IReadOnlyCollection<ConnectingPin> pins)
         {
-            _lockedElements.AddRange(addresses);
+            _lockedElements.AddRange(pins);
+        }
+        public bool RemoveLockedPins(IReadOnlyCollection<ConnectingPin> pins)
+        {
+            foreach (var pin in pins)
+            {
+                _lockedElements.Remove(pin);
+            }
+            return _lockedElements.Count == 0;
         }
         public bool Contains(ConnectingPin address)
         {

@@ -56,7 +56,8 @@ namespace ZE.Purastic {
             if (StepsCount == faceRotation.StepsCount) return faceRotation;
             else
             {
-                return new Rotation2D(RotationStep.Degree90, (sbyte)-StepsCount);
+                int x = StepsCount + faceRotation.StepsCount;
+                return new Rotation2D(RotationStep.Degree90, (sbyte)x);
             }
         }
 

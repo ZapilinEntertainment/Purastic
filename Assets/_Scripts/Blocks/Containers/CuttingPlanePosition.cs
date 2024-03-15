@@ -12,7 +12,7 @@ namespace ZE.Purastic {
         public CuttingPlanePosition(BlockFaceDirection direction, float coordinate)
         {
             Face = direction;
-            Coordinate = Utilities.TrimHeight(coordinate);
+            Coordinate = Utilities.TrimFloat(coordinate);
         }
         public override string ToString() => $"{Face} :{Coordinate}";
         #region equality

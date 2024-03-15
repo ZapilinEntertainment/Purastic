@@ -74,7 +74,7 @@ namespace ZE.Purastic {
         }
         void CheckPinLockStatus(GameObject pin, FitElementPlaneAddress address, CuttingPlaneLockZone lockZone)
         {
-            pin.SetActive(!lockZone.Contains(_blockId, address));
+            pin.SetActive(lockZone == null || !lockZone.Contains(_blockId, address));
         }
 
         public void SetDrawMaterial(Material material)

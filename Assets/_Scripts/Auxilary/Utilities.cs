@@ -9,7 +9,8 @@ namespace ZE.Purastic {
 
         private static System.Random _random = new();
         public static int GenerateInteger() => _random.Next();
-        public static float TrimHeight(float y) => (float)System.Math.Round(y, 5);
+        public static float TrimFloat(float y) => (float)System.Math.Round(y, 5);
+        public static Vector2 TrimVector(Vector2 pos) => new Vector2(TrimFloat(pos.x), TrimFloat(pos.y));
 
 
         public static CuttingPlanePosition DefineCutPlaneCoordinate(VirtualBlock block, BlockFaceDirection face) => 
@@ -24,7 +25,7 @@ namespace ZE.Purastic {
             var rotation = block.Rotation;
             var localBlockDirection = rotation.TransformDirection(face);
 
-            Vector3 localSize = rotation.Quaternion * block.Properties.ModelSize;
+            Vector3 localSize = rotation.Quaternion * (block.Properties.ModelSize);
             Vector2 size, zeroPos = Vector2.zero;
             Rotation2D rectRotation = Rotation2D.NoRotation;
             //for non-custom
@@ -36,8 +37,7 @@ namespace ZE.Purastic {
                         Vector3 corner = block.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up);
                         zeroPos = face.LocalToFaceDirection(corner);
                         //zeroPos = new Vector2(corner.x, corner.z);
-                        //Debug.Log(zeroPos);
-                        if (printCorner) Debug.Log(corner);
+                        if (printCorner) Debug.Log($"{block.LocalPosition} ->{zeroPos}");
                         rectRotation = block.Rotation.HorizontalRotation;
                         break;
                     }

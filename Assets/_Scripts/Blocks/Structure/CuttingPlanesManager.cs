@@ -93,8 +93,23 @@ namespace ZE.Purastic {
 			zone.AddLockedPins(lockedPins);
 			OnLockedZonesChangedEvent?.Invoke(cuttingPlane.ToCoordinate(), zone);
         }
+		public void RemoveLocks(int cutPlaneID, IReadOnlyCollection<ConnectingPin> pins)
+		{
+            if (_lockZones.TryGetValue(cutPlaneID, out var zone))
+            {
+				if (zone.RemoveLockedPins(pins))
+				{
+					_lockZones.Remove(cutPlaneID);
+					OnLockedZonesChangedEvent?.Invoke(_cuttingPlanesById[cutPlaneID].ToCoordinate(), null);
+                }
+				else
+				{
+                    OnLockedZonesChangedEvent?.Invoke(_cuttingPlanesById[cutPlaneID].ToCoordinate(), zone);
+                }
+            }
+        }
 
-		public bool TryGetCuttingPlane(CuttingPlanePosition coord, out ICuttingPlane cuttingPlane) => _cuttingPlanes.TryGetValue(coord, out cuttingPlane);
+        public bool TryGetCuttingPlane(CuttingPlanePosition coord, out ICuttingPlane cuttingPlane) => _cuttingPlanes.TryGetValue(coord, out cuttingPlane);
         public bool TryGetCuttingPlane(FitElementStructureAddress address, out ICuttingPlane plane) => _cuttingPlanesById.TryGetValue(address.CutPlaneID, out plane);
         public bool TryGetCuttingPlane(PlacedBlock block, BlockFaceDirection localDirection, out ICuttingPlane plane)
         {

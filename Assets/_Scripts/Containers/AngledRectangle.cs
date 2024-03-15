@@ -18,11 +18,22 @@ namespace ZE.Purastic {
 			Rect = rect;
 			Rotation = rotation;
 		}
+		public AngledRectangle(float posX, float posY, float width, float height, Rotation2D rotation)
+		{
+			Rect = new Rect(posX, posY, width, height);
+			Rotation = rotation;
+		}
 
-		public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, Rotation2D hostRotation) => new AngledRectangle(
-            new Rect(Rect.position - planeZeroPos, Rect.size),
-            hostRotation.FaceToPlane(Rotation)
-            );
+		public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, Rotation2D hostRotation)
+		{
+			var rotation = hostRotation.FaceToPlane(Rotation);
+			//Debug.Log($"{hostRotation}x{Rotation} -> {rotation}");
+
+            return new AngledRectangle(
+			new Rect(Rect.position - planeZeroPos, Rect.size),
+			rotation
+			);
+		}
 		public Vector2 BottomLeft => Rect.min;
 		public Vector2 BottomRight => Rect.min + Rotation.Right * Rect.width;
 		public Vector2 TopLeft => Rect.min + Rotation.Up * Rect.height;
