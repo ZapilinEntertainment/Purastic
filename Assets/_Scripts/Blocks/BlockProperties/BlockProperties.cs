@@ -52,13 +52,9 @@ namespace ZE.Purastic {
 			return HashCode.Combine(Material.GetHashCode(), ModelSize.GetHashCode(), FitPlanesHash, Thick);
         }
 		public BlockProperties ChangeMaterial(BlockMaterial material) => new (material, ModelSize, FitPlanesHash, Thick);
-	
 
-		public Vector2 GetProjectionSize(BlockFaceDirection face)
-		{
-			var orths = face.ToBlockRotation().CreateFaceOrths();
-			return new Vector2(Vector3.Dot(ModelSize, orths.right), Vector3.Dot(ModelSize, orths.up)) * GameConstants.BLOCK_SIZE;
-		}
+
+		public Vector2 GetProjectionSize(BlockFaceDirection face) => Vector3.ProjectOnPlane(ModelSize, face.Rotation * Vector3.forward);
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

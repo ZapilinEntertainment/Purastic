@@ -7,9 +7,9 @@ namespace ZE.Purastic {
 	public class PinsLockTestModule : MonoBehaviour
 	{
 		[SerializeField] private bool _redraw = false;
-		[SerializeField] private Vector2Int _lockAddress, _size = Vector2Int.one;
-		[SerializeField] private RotationStep _rotationStep;
-		[SerializeField] private int _rotationValue = 0;
+        [SerializeField] private float _rotation = 0f;
+        [SerializeField] private Vector2Int _lockAddress;
+		[SerializeField] private Vector2 _sizeInUnits = Vector2.one;		
 		[SerializeField] private Baseplate _basePlate;
 		private IReadOnlyCollection<ConnectingPin> _lockedPins = null;
 
@@ -30,18 +30,23 @@ namespace ZE.Purastic {
 		{
 			if (_lockedPins != null) _basePlate.UnlockPlateZone(_lockedPins);
 
-			var plane = _basePlate.GetPlatePlane();
-			Vector2 cutPlanePos = plane.PlaneAddressToCutPlanePos(new FitElementPlaneAddress(_lockAddress.x, _lockAddress.y));
-			var rotation = new Rotation2D(_rotationStep, _rotationValue);
-			cutPlanePos = cutPlanePos + rotation * (-0.5f * Vector2.one);
+            var plane = _basePlate.GetPlatePlane();
+
+            Vector2 cutPlanePos = plane.PlaneAddressToCutPlanePos(new FitElementPlaneAddress(_lockAddress.x, _lockAddress.y));
+			const float sz = GameConstants.BLOCK_SIZE;
+
+			Vector2 dir = -0.5f * sz * Vector2.one;
+			var rect = new AngledRectangle(
+					cutPlanePos + dir,
+					_sizeInUnits * GameConstants.BLOCK_SIZE,
+					PlaneOrths.Default.RotateOrths(_rotation)
+					);
 
             _basePlate.LockPlateZone(
-				new AngledRectangle(
-					cutPlanePos.x, cutPlanePos.y, GameConstants.BLOCK_SIZE * _size.x, GameConstants.BLOCK_SIZE * _size.y,
-					rotation
-					),
-				out _lockedPins
-				);
-		}
+				rect, 
+				out _lockedPins);;
+            Debug.Log(rect);
+        }
+		
     }
 }

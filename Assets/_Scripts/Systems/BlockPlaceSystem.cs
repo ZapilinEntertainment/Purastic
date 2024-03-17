@@ -16,7 +16,7 @@ namespace ZE.Purastic {
 		private BlockCreateService BlockCreateService => _resolver.Item2;
 		public InputController InputController => _resolver.Item1;
 		public BlockFaceDirection ConnectFace => GameConstants.DefaultPlacingFace;
-		public PlacedBlockRotation Rotation => PlacedBlockRotation.NoRotation;
+		public Quaternion Rotation => Quaternion.identity;
 		private IBlockPlacer _blockPlacer;
 		private ComplexResolver<InputController,  BlockCreateService> _resolver;
 

@@ -5,6 +5,10 @@ using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
 	public enum BlockPreset : byte { Undefined, StandartBrick_1x1,StandartBrick_2x2, StandartBrick_2x4}
+    public static class BlockPresetExtensions
+    {
+        public static FitElementPlaneAddress DefaultConnectPin(this BlockPreset preset) => new FitElementPlaneAddress(1, Vector2Byte.zero);
+    }
 	public static class BlockPresetsDepot
 	{
 		public static BlockProperties GetProperty(BlockPreset preset, BlockMaterial material)

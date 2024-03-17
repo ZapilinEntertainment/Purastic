@@ -44,15 +44,47 @@ namespace ZE.Purastic {
         }
 		public static Quaternion ToPlaneRotation(this FaceDirection direction)
 		{
+            Vector3 look, up;
             switch (direction)
             {
-                case FaceDirection.Right: return Quaternion.AngleAxis(90f, Vector3.up);
-                case FaceDirection.Back: return Quaternion.AngleAxis(180f, Vector3.up);
-                case FaceDirection.Left: return Quaternion.AngleAxis(-90f, Vector3.up);
-                case FaceDirection.Up: return Quaternion.AngleAxis(90f, Vector3.left);
-                case FaceDirection.Down: return Quaternion.AngleAxis(-90f, Vector3.left);
-                default: return Quaternion.identity;
+                case FaceDirection.Right:
+                    {
+                        look = Vector3.right;
+                        up = Vector3.up;
+                        break;
+                    }
+                case FaceDirection.Back:
+                    {
+                        look = Vector3.back;
+                        up = Vector3.up;
+                        break;
+                    }
+                case FaceDirection.Left:
+                    {
+                        look = Vector3.left;
+                        up = Vector3.up;
+                        break;
+                    }
+                case FaceDirection.Up:
+                    {
+                        look = Vector3.up;
+                        up = Vector3.back;
+                        break;
+                    }
+                case FaceDirection.Down:
+                    {
+                        look = Vector3.down;
+                        up = Vector3.forward;
+                        break;
+                    }
+                default:
+                    {
+                        look = Vector3.forward;
+                        up = Vector3.up;
+                        break;
+                    }
             }
+            return Quaternion.LookRotation(look, up);
         }
         
     }

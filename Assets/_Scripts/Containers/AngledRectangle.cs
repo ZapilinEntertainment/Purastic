@@ -6,46 +6,38 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public readonly struct AngledRectangle
 	{
-		public readonly Rect Rect;
-		public readonly Rotation2D Rotation;
+		public readonly Vector2 Position;
+		public readonly Vector2 Size;
+		public readonly PlaneOrths Orths;
+		public float Width => Size.x;
+		public float Height => Size.y;
+		public Vector2 Right => Orths.Right;
+		public Vector2 Up => Orths.Up;
         public override string ToString()
         {
-            return $"[{Rect}, {Rotation}]";
+            return $"[{Position}, {Size.x}x{Size.y}, {Right}x{Up} ]";
         }
 
-        public AngledRectangle(Rect rect, Rotation2D rotation)
+		public AngledRectangle(Vector2 zeroPos, Vector2 size, PlaneOrths orths)
 		{
-			Rect = rect;
-			Rotation = rotation;
+			Position = zeroPos; Size = size ; Orths = orths;
+			//Debug.Log(Orths);
 		}
-		public AngledRectangle(float posX, float posY, float width, float height, Rotation2D rotation)
+        public AngledRectangle(float posX, float posY, float width, float height, PlaneOrths orths)
 		{
-			Rect = new Rect(posX, posY, width, height);
-			Rotation = rotation;
-		}
-
-		public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, Rotation2D hostRotation)
+			Position = new Vector2(posX, posY);
+			Size = new Vector2(width, height);
+            Orths = orths ;
+        }
+        public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, PlaneOrths planeOrths )
 		{
-			var rotation = hostRotation.FaceToPlane(Rotation);
-			//Debug.Log($"{hostRotation}x{Rotation} -> {rotation}");
-
-            return new AngledRectangle(
-			new Rect(Rect.position - planeZeroPos, Rect.size),
-			rotation
-			);
+			return new AngledRectangle(Position - planeZeroPos, Size, Orths.RebaseOrths(planeOrths));
 		}
-		public Vector2 BottomLeft => Rect.min;
-		public Vector2 BottomRight => Rect.min + Rotation.Right * Rect.width;
-		public Vector2 TopLeft => Rect.min + Rotation.Up * Rect.height;
-		public Vector2 TopRight => BottomRight + Rotation.Up * Rect.width;
-		public Vector2 Center
-		{
-			get
-			{
-				var orths = Rotation.CreateOrths();
-				return Rect.min + 0.5f * Rect.width * orths.right + 0.5f * Rect.height * orths.up;
-			}
-		}
+		public Vector2 BottomLeft => Position;
+		public Vector2 BottomRight => Position + Right * Width;
+		public Vector2 TopLeft => Position + Up * Height;
+		public Vector2 TopRight => BottomRight + Up * Height;
+		public Vector2 Center => Position + 0.5f * Width * Right  + 0.5f *Height * Up;
 
 		public LineSegment[] GetBorders() => new LineSegment[4] {
 			new LineSegment(TopLeft, TopRight),
@@ -56,24 +48,26 @@ namespace ZE.Purastic {
 
 		public LineSegment GetVerticalCenterSegment()
 		{
-			Vector2 halfWidth = 0.5f * Rect.width * Rotation.Right;
+			Vector2 halfWidth = 0.5f * Width * Right;
 			return new LineSegment(BottomLeft + halfWidth, TopLeft + halfWidth);
 		}
 
-		public bool Contains(Vector2 point)
-		{
-			if (Rotation.IsDefaultRotation) return Rect.Contains(point);
-			else
-			{				
-				Vector2 dir = point - Rect.position;
-				var orths = Rotation.CreateOrths();
-				Vector2 localPos = new(Vector2.Dot(dir, orths.right), Vector2.Dot(dir, orths.up));
-
-				bool result = Rect.Contains(localPos + Rect.position, true);
-                return result;
+		public bool Contains(Vector2 point) {
+			Vector2 dir = point - Position;
+			float x = Vector2.Dot(dir, Right), y = Vector2.Dot(dir, Up);
+			bool result =  x >= 0 && x <= Width && y >= 0 && y <= Height;
+			if (result)
+			{
+				//Debug.Log($"{dir}x{Up}={System.Math.Round(Vector2.Dot(dir,Up),2)}");
+				//Debug.Log($"{x}:{System.Math.Round(y,2)}");
+				return true;
 			}
-		}
-		public bool IsIntersects(AngledRectangle other)
+			else return false;
+
+           return new Rect(Position, Size).Contains(point);
+        }
+			
+        public bool IsIntersects(AngledRectangle other)
 		{
             LineSegment[] myBorders = GetBorders(), otherBorders = other.GetBorders();
 			for (int i =0; i < 4; i++)

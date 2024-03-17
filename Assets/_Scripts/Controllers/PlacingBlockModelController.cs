@@ -13,7 +13,7 @@ namespace ZE.Purastic {
        
         private readonly BlockPlaceSystem _placeSystem;
 
-        public PlacingBlockInfo PlacingBlockInfo => new (Vector2Byte.one, _model.Model.GetBlockProperty(), _placeSystem.ConnectFace, _placeSystem.Rotation);
+        public PlacingBlockInfo PlacingBlockInfo => new (new FitElementPlaneAddress(1, Vector2Byte.zero), _model.Model.GetBlockProperty(), _placeSystem.ConnectFace, _placeSystem.Rotation);
 
         public PlacingBlockModelController(BlockPlaceSystem blockPlaceSystem, BlockPlaceHandler placeHandler)
         {

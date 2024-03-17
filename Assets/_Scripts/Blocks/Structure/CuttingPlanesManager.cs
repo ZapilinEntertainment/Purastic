@@ -160,7 +160,7 @@ namespace ZE.Purastic {
 				//Debug.Log(landingRectangle);
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
-				var connectFace = planningBlock.Rotation.InverseDirection(cuttingPlane.Face.Inverse());
+				var connectFace = cuttingPlane.Face.Inverse().Rotate(Quaternion.Inverse(planningBlock.Rotation));
 				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, landingRectangle, cuttingPlane);
 				/*
 				foreach (var pin in newBlockPins.Pins)

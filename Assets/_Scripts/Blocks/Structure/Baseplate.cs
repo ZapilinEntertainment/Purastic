@@ -103,7 +103,7 @@ namespace ZE.Purastic {
             return false;
         }
 
-        public Vector3 GetPlatePinPosition(Vector2Byte index)
+        public Vector3 GetPlatePinWorldPosition(Vector2Byte index)
         {
             var rootBlock = _placedBlocksList.RootBlock;
             var plane = rootBlock.Properties.GetPlanesList().GetFitPlane(0);
@@ -147,6 +147,13 @@ namespace ZE.Purastic {
         public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);
 
         public Vector3 TransformPosition(Vector3 position) => ModelsHost.TransformPoint(position);
+
+
+        public void LockPins(IReadOnlyCollection<ConnectingPin> pins)
+        {
+            var platePlane = GetPlatePlane();
+            _cuttingPlanesManager.AddLockZones(platePlane.ID, pins);
+        }
         public void LockPlateZone(AngledRectangle rect, out IReadOnlyCollection<ConnectingPin> lockedPins) {
             var platePlane = GetPlatePlane();
             lockedPins= platePlane.GetLandingPinsList(rect).Pins;

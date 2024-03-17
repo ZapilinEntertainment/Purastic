@@ -59,7 +59,7 @@ namespace ZE.Purastic {
             var model = await BlockCreateService.CreateBlockModel(block.Properties);
 			var modelTransform = model.transform;
             modelTransform.SetParent(BlocksHost.ModelsHost, false);
-			modelTransform.SetLocalPositionAndRotation(block.LocalPosition, block.Rotation.Quaternion);
+			modelTransform.SetLocalPositionAndRotation(block.LocalPosition, block.Rotation);
 			model.AssignHost(BlocksHost, block);
             _models.Add(model);
         }

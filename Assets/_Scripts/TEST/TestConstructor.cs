@@ -4,9 +4,22 @@ using UnityEngine;
 using ZE.ServiceLocator;
 
 namespace ZE.Purastic {
+
+    
 	public sealed class TestConstructor : MonoBehaviour
 	{
-		[SerializeField] private Baseplate _baseplate;
+        [System.Serializable]
+        public struct ConstructionBlockInfo
+        {
+            public Vector2Int Position;
+            public BlockPreset Preset;
+            public Quaternion Rotation;
+
+            public Vector2Byte PlatePosition => new Vector2Byte(Position);
+        }
+
+        [SerializeField] private Baseplate _baseplate;
+        [SerializeField] private List<ConstructionBlockInfo> _blocks;
 
 		private async void Start()
 		{
@@ -21,17 +34,15 @@ namespace ZE.Purastic {
 
             var material = new BlockMaterial(VisualMaterialType.Plastic, BlockColor.Lavender);
 
-            AddDetail(new Vector2Byte(1, 1), BlockPreset.StandartBrick_1x1);
-            AddDetail(new Vector2Byte(4, 8), BlockPreset.StandartBrick_2x4);
-            AddDetail(new Vector2Byte(8, 4), BlockPreset.StandartBrick_2x4);
-            AddDetail(new Vector2Byte(7, 7), BlockPreset.StandartBrick_2x2);
-
-            void AddDetail(Vector2Byte index, BlockPreset preset)
+            foreach (var item in _blocks)
             {
-                if (_baseplate.TryFormPlateAddress(index, out var structureAddress))
+                if (_baseplate.TryFormPlateAddress(item.PlatePosition, out var structureAddress))
                 {
                     _baseplate.TryAddDetail(structureAddress, new PlacingBlockInfo(
-                        BlockPresetsDepot.GetProperty(preset, material)
+                        item.Preset.DefaultConnectPin(),
+                        BlockPresetsDepot.GetProperty(item.Preset, material),
+                        GameConstants.DefaultPlacingFace,
+                        item.Rotation
                     ));
                 }
             }

@@ -56,6 +56,7 @@ namespace ZE.Purastic {
             PinIndex = index;
         }
         public FitElementPlaneAddress(int x, int y) : this(new Vector2Byte(x,y)) { }
+        public FitElementPlaneAddress(Vector2Int v2i) : this(v2i.x, v2i.y) { }
         #region equality
         public override bool Equals(object obj) => obj is FitElementPlaneAddress other && this.Equals(other);
         public bool Equals(FitElementPlaneAddress p) => SubPlaneId == p.SubPlaneId && PinIndex == p.PinIndex;
@@ -122,6 +123,10 @@ namespace ZE.Purastic {
         public static bool operator ==(ConnectingPin lhs, ConnectingPin rhs) => lhs.Equals(rhs);
         public static bool operator !=(ConnectingPin lhs, ConnectingPin rhs) => !(lhs == rhs);
         #endregion
+        public override string ToString()
+        {
+            return $"block{BlockID};{PlaneAddress}";
+        }
     }
     public readonly struct FitElementCutPlanePosition
     {

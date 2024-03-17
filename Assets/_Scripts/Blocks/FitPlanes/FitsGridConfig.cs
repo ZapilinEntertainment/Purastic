@@ -45,7 +45,7 @@ namespace ZE.Purastic {
 			GetFitPosition(index)
 			);
 
-		virtual public IFitPlaneDataProvider ToDataProvider(int blockId,byte subPlaneId, Vector2 zeroPoint, Rotation2D rotation) => new GridDataProvider(blockId, subPlaneId, this, zeroPoint, rotation);
+		virtual public IFitPlaneDataProvider ToDataProvider(int blockId,byte subPlaneId, Vector2 zeroPoint, PlaneOrths orths) => new GridDataProvider(blockId, subPlaneId, this, zeroPoint, orths);
         public IReadOnlyList<FitElementPlanePosition> GetPinsInZone(AngledRectangle rect)
         {
             //Debug.Log(rect);
@@ -60,19 +60,7 @@ namespace ZE.Purastic {
             }
             return list;
         }
-        public IReadOnlyCollection<FitElement> GetAllPins()
-        {
-            int width = Width, length = Length;
-            var list = new FitElement[width * length];
-            for (byte i = 0; i < width; i++)
-            {
-                for (byte j = 0; j < length; j++)
-                {
-                    list[i * length + j] = new FitElement(FitType,  IndexToPosition(i, j));                    
-                }
-            }
-            return list;
-        }
+        
 
         public Vector2 GetPlanePoint(Vector2Byte index) => IndexToPosition(index);
 

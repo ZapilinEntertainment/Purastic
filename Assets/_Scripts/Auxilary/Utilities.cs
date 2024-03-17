@@ -20,30 +20,27 @@ namespace ZE.Purastic {
             Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
             return Vector3.Dot(localPos - projectedPos, planeNormal);
         }
-        public static AngledRectangle ProjectBlock(BlockFaceDirection face, VirtualBlock block, bool printCorner = false)
+        public static AngledRectangle ProjectBlock(BlockFaceDirection face, VirtualBlock block)
         {
             var rotation = block.Rotation;
-            var localBlockDirection = rotation.TransformDirection(face);
+            var localBlockDirection = face.Rotate(rotation);
 
-            Vector3 localSize = rotation.Quaternion * (block.Properties.ModelSize);
+            Vector2 localSize = block.Properties.GetProjectionSize(face);
             Vector2 size, zeroPos = Vector2.zero;
-            Rotation2D rectRotation = Rotation2D.NoRotation;
             //for non-custom
             switch (localBlockDirection.Direction)
             {
                 case FaceDirection.Up:
                     {
-                        size = new Vector2(localSize.x, localSize.z);
-                        Vector3 corner = block.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up);
-                        zeroPos = face.LocalToFaceDirection(corner);
-                        //zeroPos = new Vector2(corner.x, corner.z);
-                        if (printCorner) Debug.Log($"{block.LocalPosition} ->{zeroPos}");
-                        rectRotation = block.Rotation.HorizontalRotation;
-                        break;
+                        var orths = new FaceOrths(rotation * face.Rotation);
+                        //Debug.Log($"{orths} -> {orths.ToPlaneOrths(face.Normal)}");
+                        zeroPos = face.LocalToFaceDirection(block.LocalPosition) - 0.5f * localSize;
+                        Debug.Log($"{block.LocalPosition} -> {face.LocalToFaceDirection(block.LocalPosition)}");
+                        return new (zeroPos, localSize, orths.ToPlaneOrths(face.Normal));
                     }
                 case FaceDirection.Down:
                     {
-                        size = new Vector2(localSize.x, localSize.z);
+                       //size = new Vector2(localSize.x, localSize.z);
                        // zeroPos = face.InverseVector(block.TransformNormalizedPoint(-1, 1f, -1f));
                         break;
                     }
@@ -52,7 +49,7 @@ namespace ZE.Purastic {
                 case FaceDirection.Right:
                     {
                         //vertical rotation = 0
-                        size = new Vector2(localSize.z, localSize.y);
+                       // size = new Vector2(localSize.z, localSize.y);
                         var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(1, -1f, 1f), Vector3.up);
                         zeroPos = new Vector2(projectedPos.x, projectedPos.z);
 
@@ -68,7 +65,7 @@ namespace ZE.Purastic {
                     }
                 case FaceDirection.Left:
                     {
-                        size = new Vector2(localSize.z, localSize.y);
+                       // size = new Vector2(localSize.z, localSize.y);
                         var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(-1, -1f, -1f), Vector3.up);
                         zeroPos = new Vector2(projectedPos.x, projectedPos.z);
                         break;
@@ -79,7 +76,7 @@ namespace ZE.Purastic {
                         break;
                     }
             }
-            return new AngledRectangle(new Rect(zeroPos, size), rectRotation);
+            return new AngledRectangle();
         }
     }
 }

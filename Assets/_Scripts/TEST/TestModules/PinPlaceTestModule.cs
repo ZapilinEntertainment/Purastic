@@ -8,13 +8,13 @@ namespace ZE.Purastic {
 	{
         [SerializeField] private BlockPreset _preset = BlockPreset.StandartBrick_1x1;
         [SerializeField] private BlockFaceDirection _contactFace = GameConstants.DefaultPlacingFace;
-        [SerializeField] private Vector2Byte _zeroPin;
-        [SerializeField] private PlacedBlockRotation _rotation = PlacedBlockRotation.NoRotation;
+        [SerializeField] private Vector2Int _zeroPin;
+        [SerializeField] private Quaternion _rotation = Quaternion.identity;
         [SerializeField] private BlockColor _blockColor = BlockColor.Amber;
         private BlockHostsManager _hostsManager;
         private RectDrawInfo _rectDrawInfo = null;
         protected override BlockPreset BlockPreset => _preset;
-        protected PlacingBlockInfo BlockInfo => new (_zeroPin, _properties, _contactFace, _rotation);
+        protected PlacingBlockInfo BlockInfo => new (new FitElementPlaneAddress(1,new Vector2Byte(_zeroPin)), _properties, _contactFace, _rotation);
 
 
         protected override void AfterStart()
@@ -25,7 +25,7 @@ namespace ZE.Purastic {
         {
             if (Input.GetMouseButtonDown(1))
             {
-               _rotation = _rotation.RotateRight();
+               _rotation = _rotation * Quaternion.AngleAxis(90f, Vector3.up);
             }
             if (PinFound)
             {
@@ -52,7 +52,7 @@ namespace ZE.Purastic {
         override protected void PositionMarker(Vector3 contactPos)
         {
             Vector3 pos = BlockInfo.GetBlockCenterPosition(contactPos);
-            Marker.Model.SetPoint(pos, _rotation.Quaternion);
+            Marker.Model.SetPoint(pos, _rotation);
         }
 
 #if UNITY_EDITOR
@@ -65,7 +65,7 @@ namespace ZE.Purastic {
                 var virtualBlock = new VirtualBlock(blockPos, BlockInfo);
                 var coordinate = Utilities.DefineCutPlaneCoordinate(virtualBlock, BlockFaceDirection.Up);
                 var projection = Utilities.ProjectBlock(BlockFaceDirection.Up, virtualBlock);
-                Gizmos.DrawWireCube(new Vector3(projection.Rect.position.x, coordinate.Coordinate, projection.Rect.position.y), new Vector3(projection.Rect.width, 0.1f, projection.Rect.height) );
+                Gizmos.DrawWireCube(new Vector3(projection.Position.x, coordinate.Coordinate, projection.Position.y), new Vector3(projection.Width, 0.1f, projection.Height) );
             }
 
 
@@ -87,10 +87,10 @@ namespace ZE.Purastic {
             public RectDrawInfo(IBlocksHost host, int cutPlaneId, AngledRectangle rect)
             {
                 var plane = host.CutPlanesDataProvider.GetCuttingPlane(cutPlaneId);
-                Vector3 localPos = plane.CutPlaneToLocalPos(rect.Rect.position);                
-                Size = new Vector3(rect.Rect.width, 1f, rect.Rect.height);
+                Vector3 localPos = plane.CutPlaneToLocalPos(rect.Position);                
+                Size = new Vector3(rect.Width, 1f, rect.Height);
 
-                var rotation = host.ModelsHost.rotation * rect.Rotation.ToQuaternion();
+                var rotation = host.ModelsHost.rotation * rect.Orths.Quaternion;
                 WorldPos = host.TransformPosition(localPos) + (0.5f * Size);
                 Matrix = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
             }

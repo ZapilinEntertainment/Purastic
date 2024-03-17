@@ -36,6 +36,7 @@ namespace ZE.Purastic {
                 }
             }
         }
+        public Quaternion Rotation => Direction.ToPlaneRotation();
 
         public BlockFaceDirection(FaceDirection direction)
         {
@@ -44,7 +45,7 @@ namespace ZE.Purastic {
         }
         public BlockFaceDirection (Vector3 normal)
         {
-            float verticalDot = Vector3.Dot(normal, Vector3.up);
+            float verticalDot = Utilities.TrimFloat(Vector3.Dot(normal, Vector3.up));
             if (verticalDot == 1f) Direction = FaceDirection.Up;
             else
             {
@@ -53,7 +54,7 @@ namespace ZE.Purastic {
                 {
                     if (verticalDot == 0f)
                     {
-                        float horizontalDot = Vector3.Dot(normal, Vector3.forward);
+                        float horizontalDot = Utilities.TrimFloat( Vector3.Dot(normal, Vector3.forward));
                         if (horizontalDot == 0f)
                         {
                             float sideDot = Vector3.Dot(normal, Vector3.right);
@@ -96,18 +97,12 @@ namespace ZE.Purastic {
                 default: return this;
             }
         }
-        public Vector2 LocalToFaceDirection(Vector3 direction)
-        {
-            var rotation = Direction.ToPlaneRotation();
-            Vector3 right = rotation * Vector3.right, up = rotation * Vector3.up;
-            float x = Vector3.Dot(direction, right),
-                y = Vector3.Dot(direction, up);
-            return new Vector2(x, y);
-        }
+        public BlockFaceDirection Rotate(Quaternion rotation) => new BlockFaceDirection((Rotation * rotation) * Vector3.forward);
+        public Vector2 LocalToFaceDirection(Vector3 direction) => new FaceOrths(Direction.ToPlaneRotation()).TransformVector(direction);
         public Vector3 TransformPoint(Vector2 facePoint)
         {
-            var rotation = ToRotation();
-            return rotation * new Vector3(facePoint.x, facePoint.y, 0f);
+            var rotation = Rotation;
+            return facePoint.x * (rotation * Vector3.right) + facePoint.y * (rotation * Vector3.up);
         }
 
         public Vector3 GetNormalizedZeroPoint()
@@ -125,25 +120,6 @@ namespace ZE.Purastic {
             }
         }
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
-        public Rotation2D GetHorizontalRotation()
-        {
-            switch (Direction) {
-                case FaceDirection.Right: return Rotation2D.SquareRotation(1);
-                case FaceDirection.Back: return Rotation2D.SquareRotation(2);
-                case FaceDirection.Left: return Rotation2D.SquareRotation(-1);
-                default: return Rotation2D.NoRotation;
-            }
-        }
-        public Rotation2D GetVerticalRotation()
-        {
-            switch (Direction)
-            {
-                case FaceDirection.Up: return Rotation2D.SquareRotation(1);
-                case FaceDirection.Down: return Rotation2D.SquareRotation(-1);
-                default: return Rotation2D.NoRotation;
-            }
-        }
-        public PlacedBlockRotation ToBlockRotation() => new PlacedBlockRotation(GetHorizontalRotation(), GetVerticalRotation());
 
         public static BlockFaceDirection Up => new(FaceDirection.Up);
         public static BlockFaceDirection Down => new(FaceDirection.Down);
