@@ -8,19 +8,14 @@ namespace ZE.Purastic {
 	public sealed class RectTestModule : BlockPositionTestModule
 	{
 		private IReadOnlyCollection<ConnectingPin> _lockedPins = null;
+        protected override VisualMaterialType MaterialType => VisualMaterialType.Hologramm;
 
         protected override void OnBlockPositioned(VirtualBlock block)
         {
             if (_lockedPins != null) Baseplate.UnlockPlateZone(_lockedPins);
 
             var projectionFace = BlockFaceDirection.Down.Inverse();
-            var rotation = block.Rotation * projectionFace.ToRotation();
-            var faceOrths = new FaceOrths(rotation);
-            var rect = new AngledRectangle(
-                block.GetFaceZeroPointInLocalSpace(projectionFace),
-                block.Properties.GetProjectionSize(projectionFace),
-                faceOrths.ToPlaneOrths(projectionFace.Normal)
-                );            
+            var rect = Utilities.ProjectBlock(projectionFace, block, true);
             Baseplate.LockPlateZone(rect, out _lockedPins);
             DebugOutputUtility.LogObjects(_lockedPins);
             

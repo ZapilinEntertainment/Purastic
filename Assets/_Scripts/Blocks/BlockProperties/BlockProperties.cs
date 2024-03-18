@@ -54,7 +54,10 @@ namespace ZE.Purastic {
 		public BlockProperties ChangeMaterial(BlockMaterial material) => new (material, ModelSize, FitPlanesHash, Thick);
 
 
-		public Vector2 GetProjectionSize(BlockFaceDirection face) => Vector3.ProjectOnPlane(ModelSize, face.Rotation * Vector3.forward);
+		public Vector2 GetProjectionSize(BlockFaceDirection face) { 
+			var orths = new FaceOrths(face);
+			return orths.TransformVector(ModelSize);
+		}
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }
 }

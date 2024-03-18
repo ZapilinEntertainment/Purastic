@@ -18,13 +18,14 @@ namespace ZE.Purastic {
         private byte _initialPinPlane => _preset.DefaultConnectPin().SubPlaneId;
         private FitElementPlaneAddress PlaneAddress => new FitElementPlaneAddress(_initialPinPlane, new Vector2Byte(_initalPin));
         private PlacingBlockInfo PlacingInfo => new (PlaneAddress, _blockProperties, GameConstants.DefaultPlacingFace, _rotation);
+        virtual protected VisualMaterialType MaterialType => VisualMaterialType.Plastic;
         protected Baseplate Baseplate => _baseplate;
 
         private async void Start()
         {
             var blockCreateServiceLink = ServiceLocatorObject.GetLinkWrapper<BlockCreateService>();
             while (!(_baseplate.InitStatusModule.IsInitialized && blockCreateServiceLink.CanBeResolved)) await Awaitable.FixedUpdateAsync();
-            _blockProperties = BlockPresetsDepot.GetProperty(_preset, new BlockMaterial(VisualMaterialType.Plastic, _color));
+            _blockProperties = BlockPresetsDepot.GetProperty(_preset, new BlockMaterial(MaterialType, _color));
             BlockModel model = await blockCreateServiceLink.Value.CreateBlockModel(_blockProperties);
             _modelTransform = model.transform;
             Redraw();

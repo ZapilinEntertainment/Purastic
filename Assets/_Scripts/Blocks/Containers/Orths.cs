@@ -33,6 +33,7 @@ namespace ZE.Purastic {
 			var rotation = Quaternion.AngleAxis(angleInDegrees, Vector3.forward);
 			return new PlaneOrths(rotation * Right, rotation * Up);
 		}
+		public static PlaneOrths operator* (Quaternion rotation , PlaneOrths orths) => new PlaneOrths(rotation * orths.Right, rotation * orths.Up);
     }
 	public readonly struct FaceOrths
 	{
@@ -42,11 +43,17 @@ namespace ZE.Purastic {
         {
             return $"{Right}x{Up}";
         }
+		public FaceOrths(Vector3 right, Vector3 up)
+		{
+			this.Right = right;
+			this.Up = up;
+		}
         public FaceOrths(Quaternion rot)
 		{
 			Right = rot * Vector3.right;
 			Up = rot * Vector3.up;
 		}
+		public FaceOrths(BlockFaceDirection face) : this(face.Rotation) { }
 		public Vector2 TransformVector(Vector3 dir) => new (Vector3.Dot(dir, Right), Vector3.Dot(dir,Up));
 		public PlaneOrths ToPlaneOrths(Vector3 normal)
 		{

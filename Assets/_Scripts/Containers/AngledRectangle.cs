@@ -20,15 +20,12 @@ namespace ZE.Purastic {
 
 		public AngledRectangle(Vector2 zeroPos, Vector2 size, PlaneOrths orths)
 		{
-			Position = zeroPos; Size = size ; Orths = orths;
+			Position = zeroPos; 
+			Size = new Vector2(Mathf.Abs(size.x), Mathf.Abs(size.y)) ; // must always be positive - all planes inversion and rotation displays in orths
+			Orths = orths;
 			//Debug.Log(Orths);
 		}
-        public AngledRectangle(float posX, float posY, float width, float height, PlaneOrths orths)
-		{
-			Position = new Vector2(posX, posY);
-			Size = new Vector2(width, height);
-            Orths = orths ;
-        }
+        public AngledRectangle(float posX, float posY, float width, float height, PlaneOrths orths) : this(new Vector2(posX, posY), new Vector2(width, height), orths) { }
         public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, PlaneOrths planeOrths )
 		{
 			return new AngledRectangle(Position - planeZeroPos, Size, Orths.RebaseOrths(planeOrths));

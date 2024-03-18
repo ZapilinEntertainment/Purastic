@@ -72,11 +72,11 @@ namespace ZE.Purastic {
 
         public AngledRectangle ToRectangle() => new (_cutPlaneZeroPos, _grid.ToSize(), _cutPlaneOrths);
         public VirtualPoint GetFitElementFaceVirtualPoint(Vector2Byte index) => new (PlanePositionToCutPlanePosition(FitsGridConfig.IndexToPosition(index)), _cutPlaneOrths.Quaternion);
-        public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle rect)
+        public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle cutPlaneRect)
         {
-            var newRect = rect.ToPlaneSpace(_cutPlaneZeroPos, _cutPlaneOrths);
+            var newRect = cutPlaneRect.ToPlaneSpace(_cutPlaneZeroPos, _cutPlaneOrths);
 
-            Debug.Log($"at {_cutPlaneZeroPos}x{_cutPlaneOrths}, {rect} -> {newRect}");
+            Debug.Log($"at {_cutPlaneZeroPos}x{_cutPlaneOrths}, {cutPlaneRect} -> {newRect}");
             var positions =  _grid.GetPinsInZone(newRect);
 
             var pins = new ConnectingPin[positions.Count];

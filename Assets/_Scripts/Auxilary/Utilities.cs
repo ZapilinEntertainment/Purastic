@@ -20,63 +20,33 @@ namespace ZE.Purastic {
             Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
             return Vector3.Dot(localPos - projectedPos, planeNormal);
         }
-        public static AngledRectangle ProjectBlock(BlockFaceDirection face, VirtualBlock block)
+        public static AngledRectangle ProjectBlock(BlockFaceDirection receivingFace, VirtualBlock block, bool debugLog = false)
         {
-            var rotation = block.Rotation;
-            var localBlockDirection = face.Rotate(rotation);
+            Vector2 localSize = block.Properties.GetProjectionSize(receivingFace);
+            var blockFace = block.LocalToBlockFace(receivingFace);
+            var blockFaceOrths = block.GetOrthsOnPlane(block.LocalToBlockFace(receivingFace)); 
+            // because two faces differences only in normal vector,
+            // we need to project orths on the landing plane to make correct rect rotation
+            Vector2 zeroPos = receivingFace.LocalToFaceDirection(block.LocalPosition) - 0.5f * localSize.x * blockFaceOrths.Right - 0.5f * localSize.y * blockFaceOrths.Up;
 
-            Vector2 localSize = block.Properties.GetProjectionSize(face);
-            Vector2 size, zeroPos = Vector2.zero;
-            //for non-custom
-            switch (localBlockDirection.Direction)
+            if (debugLog)
             {
-                case FaceDirection.Up:
-                    {
-                        var orths = new FaceOrths(rotation * face.Rotation);
-                        //Debug.Log($"{orths} -> {orths.ToPlaneOrths(face.Normal)}");
-                        zeroPos = face.LocalToFaceDirection(block.LocalPosition) - 0.5f * localSize;
-                        Debug.Log($"{block.LocalPosition} -> {face.LocalToFaceDirection(block.LocalPosition)}");
-                        return new (zeroPos, localSize, orths.ToPlaneOrths(face.Normal));
-                    }
-                case FaceDirection.Down:
-                    {
-                       //size = new Vector2(localSize.x, localSize.z);
-                       // zeroPos = face.InverseVector(block.TransformNormalizedPoint(-1, 1f, -1f));
-                        break;
-                    }
-
-                    // todo!
-                case FaceDirection.Right:
-                    {
-                        //vertical rotation = 0
-                       // size = new Vector2(localSize.z, localSize.y);
-                        var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(1, -1f, 1f), Vector3.up);
-                        zeroPos = new Vector2(projectedPos.x, projectedPos.z);
-
-                        // set rect rotation in dependence of vertical rotation
-                        break;
-                    }
-                case FaceDirection.Back:
-                    {
-                        size = new Vector2(localSize.x, localSize.y);
-                        var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(-1, -1f, -1f), Vector3.up);
-                        zeroPos = new Vector2(projectedPos.x, projectedPos.z);
-                        break;
-                    }
-                case FaceDirection.Left:
-                    {
-                       // size = new Vector2(localSize.z, localSize.y);
-                        var projectedPos = Vector3.ProjectOnPlane(block.TransformNormalizedPoint(-1, -1f, -1f), Vector3.up);
-                        zeroPos = new Vector2(projectedPos.x, projectedPos.z);
-                        break;
-                    }
-                default:
-                    {
-                        size = new Vector2(localSize.x, localSize.y);
-                        break;
-                    }
+                Debug.Log(blockFace);
+                Debug.Log(blockFaceOrths);
+                Debug.Log($"{block.LocalPosition} -> {receivingFace.LocalToFaceDirection(block.LocalPosition)}");
             }
-            return new AngledRectangle();
+            return new(zeroPos, localSize, blockFaceOrths);
+        }
+        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle)
+        {
+            Vector2 initialPinPos = plane.PlaneAddressToCutPlanePos(initialPinAddress);
+            const float sz = GameConstants.BLOCK_SIZE;
+            Vector2 dir = -0.5f * sz * Vector2.one;
+            return new AngledRectangle(
+                    initialPinPos + dir,
+                    size,
+                    PlaneOrths.Default.RotateOrths(rotationAngle)
+                    );
         }
     }
 }

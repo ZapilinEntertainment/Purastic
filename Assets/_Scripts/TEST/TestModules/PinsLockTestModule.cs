@@ -11,7 +11,8 @@ namespace ZE.Purastic {
         [SerializeField] private Vector2Int _lockAddress;
 		[SerializeField] private Vector2 _sizeInUnits = Vector2.one;		
 		[SerializeField] private Baseplate _basePlate;
-		private IReadOnlyCollection<ConnectingPin> _lockedPins = null;
+		private FitElementPlaneAddress PlaneAddress => new (_lockAddress.x, _lockAddress.y);
+        private IReadOnlyCollection<ConnectingPin> _lockedPins = null;
 
         private async void Start()
         {
@@ -31,17 +32,17 @@ namespace ZE.Purastic {
 			if (_lockedPins != null) _basePlate.UnlockPlateZone(_lockedPins);
 
             var plane = _basePlate.GetPlatePlane();
-
-            Vector2 cutPlanePos = plane.PlaneAddressToCutPlanePos(new FitElementPlaneAddress(_lockAddress.x, _lockAddress.y));
+			var rect = Utilities.CreatePlaneRect(PlaneAddress, _sizeInUnits * GameConstants.BLOCK_SIZE, plane, _rotation);
+            /*
+			 * Vector2 cutPlanePos = plane.PlaneAddressToCutPlanePos(PlaneAddress);
 			const float sz = GameConstants.BLOCK_SIZE;
-
 			Vector2 dir = -0.5f * sz * Vector2.one;
 			var rect = new AngledRectangle(
 					cutPlanePos + dir,
 					_sizeInUnits * GameConstants.BLOCK_SIZE,
 					PlaneOrths.Default.RotateOrths(_rotation)
 					);
-
+			*/
             _basePlate.LockPlateZone(
 				rect, 
 				out _lockedPins);;

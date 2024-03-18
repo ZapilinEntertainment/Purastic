@@ -83,6 +83,7 @@ namespace ZE.Purastic {
             }
             CustomValue = 0;
         }
+        public BlockFaceDirection (Quaternion rotation) : this(rotation * DefaultRotationNormal) { }
 
         public BlockFaceDirection Inverse()
         {
@@ -121,6 +122,7 @@ namespace ZE.Purastic {
         }
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
 
+        public static Vector3 DefaultRotationNormal => Vector3.down; // default normal for face with rotation equals to Quaternion.identity
         public static BlockFaceDirection Up => new(FaceDirection.Up);
         public static BlockFaceDirection Down => new(FaceDirection.Down);
         public static BlockFaceDirection Left => new(FaceDirection.Left);

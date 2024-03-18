@@ -41,6 +41,13 @@ namespace ZE.Purastic {
             return LocalPosition + Rotation * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
         public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
-        
+        public BlockFaceDirection LocalToBlockFace(BlockFaceDirection face) => new (Quaternion.Inverse(Rotation));
+
+        public PlaneOrths GetOrthsOnPlane(BlockFaceDirection face) {
+            var blockFaceRightDir = Rotation * (face.Rotation * Vector3.right);
+            if (Vector3.Dot(blockFaceRightDir, face.Normal) != 0f) blockFaceRightDir = Vector3.ProjectOnPlane(blockFaceRightDir, face.Normal).normalized;
+            var faceOrths = new FaceOrths(blockFaceRightDir, Vector3.Cross(blockFaceRightDir, face.Normal));
+            return faceOrths.ToPlaneOrths(face.Normal);
+        }        
     }
 }
