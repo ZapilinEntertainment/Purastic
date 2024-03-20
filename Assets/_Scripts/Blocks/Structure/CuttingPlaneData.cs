@@ -42,7 +42,7 @@ namespace ZE.Purastic {
 
         abstract public ICuttingPlane AddFitPlaneProvider(IFitPlaneDataProvider provider);
         abstract public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider fitPlane);
-        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos) => Face.ToRotation() * inPlanePos + _coordinate * _direction.Normal;
+        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos) => new FaceOrths(Face.ToRotation()).TransformVector(inPlanePos) + _coordinate * _direction.Normal;
         public Vector3 PlaneAddressToLocalPos(FitElementStructureAddress structureAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(structureAddress.PlaneAddress));
         public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress planeAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(planeAddress));
         public Vector2 LocalToCutPlanePos(Vector3 localPos)

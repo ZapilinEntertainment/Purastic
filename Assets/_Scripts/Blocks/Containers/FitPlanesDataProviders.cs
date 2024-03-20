@@ -75,8 +75,7 @@ namespace ZE.Purastic {
         public IReadOnlyCollection<ConnectingPin> GetPinsInZone(AngledRectangle cutPlaneRect)
         {
             var newRect = cutPlaneRect.ToPlaneSpace(_cutPlaneZeroPos, _cutPlaneOrths);
-
-            Debug.Log($"at {_cutPlaneZeroPos}x{_cutPlaneOrths}, {cutPlaneRect} -> {newRect}");
+            //Debug.Log($"at {_cutPlaneZeroPos}x{_cutPlaneOrths}, {cutPlaneRect} -> {newRect}");
             var positions =  _grid.GetPinsInZone(newRect);
 
             var pins = new ConnectingPin[positions.Count];

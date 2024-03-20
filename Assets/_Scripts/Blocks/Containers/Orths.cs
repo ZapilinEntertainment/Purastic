@@ -22,10 +22,10 @@ namespace ZE.Purastic {
 		}
 
 		public Vector2 RebaseVector(Vector2 dir) => new Vector2(Vector2.Dot(dir, Right), Vector2.Dot(dir, Up));
-		public PlaneOrths RebaseOrths(PlaneOrths newBasisSystem)
+		public PlaneOrths RebaseOrths(PlaneOrths newBasisSystem, bool printResult = false)
 		{
 			var orths  = new PlaneOrths(newBasisSystem.RebaseVector(Right), newBasisSystem.RebaseVector(Up));
-			Debug.Log($" [{this}x{newBasisSystem}={orths}] ");
+			if (printResult) Debug.Log($" [{this}x{newBasisSystem}={orths}] ");
 			return orths;
 		}
 		public PlaneOrths RotateOrths(float angleInDegrees)
@@ -54,11 +54,13 @@ namespace ZE.Purastic {
 			Up = rot * Vector3.up;
 		}
 		public FaceOrths(BlockFaceDirection face) : this(face.Rotation) { }
-		public Vector2 TransformVector(Vector3 dir) => new (Vector3.Dot(dir, Right), Vector3.Dot(dir,Up));
+		public Vector2 InverseVector(Vector3 dir) => new (Vector3.Dot(dir, Right), Vector3.Dot(dir,Up));
+		public Vector3 TransformVector(Vector2 dir) => Right * dir.x + Up * dir.y;
 		public PlaneOrths ToPlaneOrths(Vector3 normal)
 		{
 			var rotation = Quaternion.FromToRotation(Vector3.forward, normal);
-			return new PlaneOrths(TransformVector(rotation *  Vector3.right), TransformVector(rotation * Vector3.up));
+			return new PlaneOrths(InverseVector(rotation *  Vector3.right), InverseVector(rotation * Vector3.up));
 		}
+		public static FaceOrths Default => new FaceOrths(Vector3.right, Vector3.up);
 	}
 }

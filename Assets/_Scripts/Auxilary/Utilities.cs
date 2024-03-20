@@ -14,28 +14,40 @@ namespace ZE.Purastic {
 
 
         public static CuttingPlanePosition DefineCutPlaneCoordinate(VirtualBlock block, BlockFaceDirection face) => 
-            new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(face), face.Normal));
+            new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInBlockSpace(face), face.Normal));
         public static float DefineCutPlaneCoordinate(Vector3 localPos, Vector3 planeNormal)
         {
             Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
             return Vector3.Dot(localPos - projectedPos, planeNormal);
         }
+
+
         public static AngledRectangle ProjectBlock(BlockFaceDirection receivingFace, VirtualBlock block, bool debugLog = false)
         {
             Vector2 localSize = block.Properties.GetProjectionSize(receivingFace);
-            var blockFace = block.LocalToBlockFace(receivingFace);
-            var blockFaceOrths = block.GetOrthsOnPlane(block.LocalToBlockFace(receivingFace)); 
-            // because two faces differences only in normal vector,
-            // we need to project orths on the landing plane to make correct rect rotation
-            Vector2 zeroPos = receivingFace.LocalToFaceDirection(block.LocalPosition) - 0.5f * localSize.x * blockFaceOrths.Right - 0.5f * localSize.y * blockFaceOrths.Up;
 
+            var blockFace = block.LocalToBlockFace(receivingFace);
+            var receivingPlaneOrths = new FaceOrths(receivingFace).ToPlaneOrths(receivingFace.Normal);
+            var blockFaceOrths = block.GetOrthsOnPlane(blockFace);
+
+            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInBlockSpace(blockFace.Inverse()); 
+            // inverted, because it projects from a mirrored plane
+            // example: if we project a block on a UP plane (receivingFace),
+            // 1) we take orths from face, that block is faced to plane now:  LocalToBlockFace -> DOWN(blockFace)
+            // 2) but for zeroPos we must take corner from the opposite face (even if it doesnt exist in block) - UP(blockFace.Inverse)
+            // it is because corner points of opposite planes(like UP and DOWN) are opposite and not match (because of different orths)
+            Vector2 zeroPos = receivingFace.LocalToFaceDirection(blockFaceZeroPoint);
+
+            
             if (debugLog)
             {
-                Debug.Log(blockFace);
-                Debug.Log(blockFaceOrths);
-                Debug.Log($"{block.LocalPosition} -> {receivingFace.LocalToFaceDirection(block.LocalPosition)}");
+                Debug.Log($"{receivingFace}:{blockFaceZeroPoint} -> {zeroPos}");
+                // Debug.Log(receivingPlaneOrths);
+                //Debug.Log(blockFaceOrths);
+                //Debug.Log(blockFace);
+                // Debug.Log(blockFaceOrths);
             }
-            return new(zeroPos, localSize, blockFaceOrths);
+            return new(zeroPos, localSize, blockFaceOrths.RebaseOrths(receivingPlaneOrths, debugLog));
         }
         public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle)
         {

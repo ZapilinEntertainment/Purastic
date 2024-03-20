@@ -55,7 +55,7 @@ namespace ZE.Purastic {
         }
 
 #if UNITY_EDITOR
-        private void OnDrawGizmos()
+        virtual protected void OnDrawGizmos()
         {
             if (Application.isPlaying && enabled) Gizmos.DrawLine(_rotationAxlePoint + Vector3.down * 5f, _rotationAxlePoint + Vector3.up * 5f);
         }

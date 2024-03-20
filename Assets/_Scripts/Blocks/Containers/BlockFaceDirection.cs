@@ -99,7 +99,7 @@ namespace ZE.Purastic {
             }
         }
         public BlockFaceDirection Rotate(Quaternion rotation) => new BlockFaceDirection((Rotation * rotation) * Vector3.forward);
-        public Vector2 LocalToFaceDirection(Vector3 direction) => new FaceOrths(Direction.ToPlaneRotation()).TransformVector(direction);
+        public Vector2 LocalToFaceDirection(Vector3 direction) => new FaceOrths(Direction.ToPlaneRotation()).InverseVector(direction);
         public Vector3 TransformPoint(Vector2 facePoint)
         {
             var rotation = Rotation;

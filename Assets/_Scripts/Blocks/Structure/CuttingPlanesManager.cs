@@ -157,7 +157,7 @@ namespace ZE.Purastic {
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
 				var landingRectangle = Utilities.ProjectBlock(cuttingPlane.Face, planningBlock);
-				//Debug.Log(landingRectangle);
+				Debug.Log(landingRectangle);
 
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
 				var connectFace = cuttingPlane.Face.Inverse().Rotate(Quaternion.Inverse(planningBlock.Rotation));

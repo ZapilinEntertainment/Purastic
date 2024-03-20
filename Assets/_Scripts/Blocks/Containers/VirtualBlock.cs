@@ -40,7 +40,7 @@ namespace ZE.Purastic {
             var size = Properties.ModelSize;
             return LocalPosition + Rotation * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
-        public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
+        public Vector3 GetFaceZeroPointInBlockSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
         public BlockFaceDirection LocalToBlockFace(BlockFaceDirection face) => new (Quaternion.Inverse(Rotation));
 
         public PlaneOrths GetOrthsOnPlane(BlockFaceDirection face) {

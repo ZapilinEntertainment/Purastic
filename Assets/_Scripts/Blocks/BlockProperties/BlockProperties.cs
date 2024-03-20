@@ -56,7 +56,7 @@ namespace ZE.Purastic {
 
 		public Vector2 GetProjectionSize(BlockFaceDirection face) { 
 			var orths = new FaceOrths(face);
-			return orths.TransformVector(ModelSize);
+			return orths.InverseVector(ModelSize);
 		}
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
     }

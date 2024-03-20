@@ -6,7 +6,7 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public readonly struct AngledRectangle
 	{
-		public readonly Vector2 Position;
+		public readonly Vector2 Position; // cut-plane position
 		public readonly Vector2 Size;
 		public readonly PlaneOrths Orths;
 		public float Width => Size.x;

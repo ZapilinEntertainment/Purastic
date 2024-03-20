@@ -114,7 +114,7 @@ namespace ZE.Purastic {
         public ICuttingPlane GetPlatePlane()
         {
             var rootBlock = _placedBlocksList.RootBlock;
-            return _cuttingPlanesManager.GetOrCreateCutPlane(new CuttingPlanePosition(BlockFaceDirection.Up, rootBlock.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up).y));
+            return _cuttingPlanesManager.GetOrCreateCutPlane(new CuttingPlanePosition(BlockFaceDirection.Up, rootBlock.GetFaceZeroPointInBlockSpace(BlockFaceDirection.Up).y));
         }
         public IReadOnlyCollection<BlockProperties> GetBlocks() => _placedBlocksList.GetBlocksProperties();
         public bool TryFormPlateAddress(Vector2Byte index, out FitElementStructureAddress address)

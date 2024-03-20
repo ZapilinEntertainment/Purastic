@@ -26,7 +26,9 @@ namespace ZE.Purastic {
 				if (material.BlockColor != BlockColor.DefaultWhite)
 				{
 					graphicMaterial = Object.Instantiate(graphicMaterial);
-					graphicMaterial.color =material.BlockColor.ToColor32();
+					var color = material.BlockColor.ToColor32();
+					if (material.VisualMaterialType == VisualMaterialType.Hologramm) color.a /= 2;
+					graphicMaterial.color = color;
 				}
 				_materials.Add(material, graphicMaterial);
 			}
