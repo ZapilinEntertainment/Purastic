@@ -31,7 +31,7 @@ namespace ZE.Purastic {
             foreach (var block in blocks)
             {
                 var collider = BlocksHost.CollidersHost.AddComponent<BoxCollider>();
-                var bounds = block.Properties.ModelSize;
+                var bounds = block.Rotation * block.Properties.ModelSize;
                 collider.size = bounds;
                 collider.center = 0.5f * bounds.y * Vector3.up;
                 AddColliderToList(collider, block.ID);
@@ -43,7 +43,7 @@ namespace ZE.Purastic {
         private void OnBlockAdded(PlacedBlock block)
         {
             var collider = BlocksHost.CollidersHost.AddComponent<BoxCollider>();
-            var bounds = block.Properties.ModelSize;
+            var bounds = block.Rotation * block.Properties.ModelSize;
             collider.size = bounds;
             collider.center = block.LocalPosition;
             AddColliderToList(collider, block.ID);

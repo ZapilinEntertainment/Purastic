@@ -35,7 +35,7 @@ namespace ZE.Purastic {
         }
         private void ChangeModelMaterial()
         {
-            Model.SetDrawMaterial(_materialsDepot.GetPlacingBlockMaterial(_modelStatus));
+            Model?.SetDrawMaterial(_materialsDepot.GetPlacingBlockMaterial(_modelStatus));
         }
         public void Dispose()
         {

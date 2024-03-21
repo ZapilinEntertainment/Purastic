@@ -12,6 +12,12 @@ namespace ZE.Purastic {
         // it will be connected to all details it cover.
         // so we can just set the initial point and the system connect new detail to all blocks automatically
 
+		// some cutting planes are mirror to each other
+		// due to no way of defining what normal is "primal" (up or down) on custom planes
+
+		// also every face have its own 2d orths - because it normal can look up (y > 0) or down (y < 0), or even 0
+		// ex: UP plane orths is (1,0)x(0,-1) when DOWN plane orths is (1,0)x(0,1)
+
         private int _nextCuttingPlaneId = 1;
         private Dictionary<CuttingPlanePosition, ICuttingPlane> _cuttingPlanes = new();
 		private Dictionary<int, CuttingPlaneLockZone> _lockZones = new();
@@ -122,7 +128,7 @@ namespace ZE.Purastic {
             float coordinate = Utilities.DefineCutPlaneCoordinate(localPos, face.Normal);
 			if (_cuttingPlanes.TryGetValue(new(face, coordinate), out var cuttingPlane))
 			{
-				Vector2 cutPlanePos = face.LocalToFaceDirection(localPos);
+				Vector2 cutPlanePos = face.InverseVector(localPos);
 				//Debug.Log($"{localPos} -> {cutPlanePos}");
 				if (cuttingPlane.TryDefineFitPlane(cutPlanePos, out IFitPlaneDataProvider fitPlane) && fitPlane.TryGetPinPosition(cutPlanePos, out var planeAddress))
 				{
@@ -157,17 +163,15 @@ namespace ZE.Purastic {
 			if (_cuttingPlanes.TryGetValue(key, out var cuttingPlane) )
 			{
 				var landingRectangle = Utilities.ProjectBlock(cuttingPlane.Face, planningBlock);
-				Debug.Log(landingRectangle);
-
+				//Debug.Log(landingRectangle);
                 var landingPins = cuttingPlane.GetLandingPinsList(landingRectangle);
-				var connectFace = cuttingPlane.Face.Inverse().Rotate(Quaternion.Inverse(planningBlock.Rotation));
-				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, landingRectangle, cuttingPlane);
-				/*
-				foreach (var pin in newBlockPins.Pins)
-				{
-					Debug.Log(pin.CutPlanePosition);
-				}
-				*/
+
+				var mirrorPlane = GetOrCreateCutPlane(cuttingPlane.GetMirrorPosition());
+				var mirrorFace = mirrorPlane.Face;
+				var mirrorRect = Utilities.ProjectBlock(mirrorFace, planningBlock);
+				var connectFace = planningBlock.GetContactFace(cuttingPlane.Face);
+				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, mirrorRect, mirrorPlane);
+				//Debug.Log(newBlockPins.Pins.Count);
 				//Debug.Log(cuttingPlane.PlanesCount);				
 				if (landingPins != null && newBlockPins != null) 
 				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		

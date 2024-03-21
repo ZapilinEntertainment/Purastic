@@ -21,6 +21,7 @@ namespace ZE.Purastic {
         public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
 
         public CuttingPlanePosition ToCoordinate() => new (Face, Coordinate);
+        public CuttingPlanePosition GetMirrorPosition() => new(Face.Inverse(),Coordinate);
     }
 
     public abstract class CuttingPlaneBase : ICuttingPlane
@@ -42,13 +43,17 @@ namespace ZE.Purastic {
 
         abstract public ICuttingPlane AddFitPlaneProvider(IFitPlaneDataProvider provider);
         abstract public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider fitPlane);
-        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos) => new FaceOrths(Face.ToRotation()).TransformVector(inPlanePos) + _coordinate * _direction.Normal;
+        public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos)
+        {
+            Vector3 localProjectedPos = new FaceOrths(Face.ToRotation()).TransformVector(inPlanePos);
+            return localProjectedPos + _coordinate * _direction.Normal;
+        }
         public Vector3 PlaneAddressToLocalPos(FitElementStructureAddress structureAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(structureAddress.PlaneAddress));
         public Vector3 PlaneAddressToLocalPos(FitElementPlaneAddress planeAddress) => CutPlaneToLocalPos(PlaneAddressToCutPlanePos(planeAddress));
         public Vector2 LocalToCutPlanePos(Vector3 localPos)
         {
             Vector3 projected = Vector3.ProjectOnPlane(localPos, Face.Normal);
-            return Face.LocalToFaceDirection(projected);
+            return Face.InverseVector(projected);
         }
         abstract public Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address);
 
@@ -108,7 +113,7 @@ namespace ZE.Purastic {
                 return false;
             }
         }
-        public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect) => new (ID, _provider.GetPinsInZone(rect));
+        public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect) => new (Face, _provider.GetPinsInZone(rect));
         public override Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address) =>_provider.PlaneAddressToCutPlanePosition(address);
     }
     public class ComplexCuttingPlane : CuttingPlaneBase
@@ -145,7 +150,7 @@ namespace ZE.Purastic {
             {
                 if (provider.ToRectangle().IsIntersects(rect)) list.AddRange(provider.GetPinsInZone(rect));
             }
-            return new FitsConnectionZone(ID, list);
+            return new FitsConnectionZone(Face, list);
         }
         public override Vector2 PlaneAddressToCutPlanePos(FitElementPlaneAddress address)
         {

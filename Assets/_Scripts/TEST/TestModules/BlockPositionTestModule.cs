@@ -15,6 +15,7 @@ namespace ZE.Purastic {
         private Transform _modelTransform;
         private BlockProperties _blockProperties;
         private Vector3 _rotationAxlePoint;
+        private BlockModel _blockModel;
         private byte _initialPinPlane => _preset.DefaultConnectPin().SubPlaneId;
         private FitElementPlaneAddress PlaneAddress => new FitElementPlaneAddress(_initialPinPlane, new Vector2Byte(_initalPin));
         private PlacingBlockInfo PlacingInfo => new (PlaneAddress, _blockProperties, GameConstants.DefaultPlacingFace, _rotation);
@@ -26,22 +27,22 @@ namespace ZE.Purastic {
             var blockCreateServiceLink = ServiceLocatorObject.GetLinkWrapper<BlockCreateService>();
             while (!(_baseplate.InitStatusModule.IsInitialized && blockCreateServiceLink.CanBeResolved)) await Awaitable.FixedUpdateAsync();
             _blockProperties = BlockPresetsDepot.GetProperty(_preset, new BlockMaterial(MaterialType, _color));
-            BlockModel model = await blockCreateServiceLink.Value.CreateBlockModel(_blockProperties);
-            _modelTransform = model.transform;
+            _blockModel = await blockCreateServiceLink.Value.CreateBlockModel(_blockProperties);
+            _modelTransform = _blockModel.transform;
+            
+            OnStart();
+        }
+        virtual protected void OnStart()
+        {
             Redraw();
         }
         private void Redraw()
         {
             var info = PlacingInfo;
-            var pinPosition = _baseplate.GetPlatePinWorldPosition(new Vector2Byte(_fitPosition));
-            _rotationAxlePoint = pinPosition;
-
-            var plane = _blockProperties.GetPlanesList().GetFitPlane(_initialPinPlane);
-            var virtualBlock = new VirtualBlock(Vector3.zero, PlacingInfo);
-            Vector3 localPos = _baseplate.TransformPosition(PlacingInfo.GetBlockCenterPosition(pinPosition));
-            _modelTransform.position = localPos;
+            var virtualBlock = _baseplate.CreateVirtualBlock(new Vector2Byte(_fitPosition), info, out _rotationAxlePoint);
+            
+            _modelTransform.position = virtualBlock.LocalPosition;
             _modelTransform.rotation = _baseplate.ModelsHost.rotation * info.Rotation;
-            virtualBlock.Reposition(localPos);
             OnBlockPositioned(virtualBlock);
         }
         protected virtual void OnBlockPositioned(VirtualBlock block) { }
@@ -55,10 +56,11 @@ namespace ZE.Purastic {
         }
 
 #if UNITY_EDITOR
-        virtual protected void OnDrawGizmos()
+        protected void OnDrawGizmos()
         {
-            if (Application.isPlaying && enabled) Gizmos.DrawLine(_rotationAxlePoint + Vector3.down * 5f, _rotationAxlePoint + Vector3.up * 5f);
+            if (Application.isPlaying && enabled) DrawGizmos();
         }
+        virtual protected void DrawGizmos() { Gizmos.DrawLine(_rotationAxlePoint + Vector3.down * 5f, _rotationAxlePoint + Vector3.up * 5f); }
 #endif
     }
 }

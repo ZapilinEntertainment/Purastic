@@ -31,7 +31,7 @@ namespace ZE.Purastic {
         public void Reposition(Vector3 newPos) => LocalPosition = newPos; 
         public Vector3 FacePositionToModelPosition(Vector2 facePoint, BlockFaceDirection face)
         {
-            return TransformNormalizedPoint(face.GetNormalizedZeroPoint()) + Rotation * face.TransformPoint(facePoint);
+            return TransformNormalizedPoint(face.GetNormalizedZeroPoint()) + Rotation * face.TransformVector(facePoint);
         }
         public Vector3 TransformPoint(Vector3 inBlockPosition) => LocalPosition + Rotation * inBlockPosition;
         public Vector3 TransformNormalizedPoint(Vector3 pos) => TransformNormalizedPoint(pos.x, pos.y, pos.z);
@@ -41,13 +41,17 @@ namespace ZE.Purastic {
             return LocalPosition + Rotation * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
         public Vector3 GetFaceZeroPointInBlockSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
-        public BlockFaceDirection LocalToBlockFace(BlockFaceDirection face) => new (Quaternion.Inverse(Rotation));
+        public BlockFaceDirection GetContactFace(BlockFaceDirection face)
+        {
+            BlockFaceDirection result = new BlockFaceDirection(Quaternion.Inverse(Rotation) * face.Normal).Inverse();
+            return result;
+        }
 
-        public PlaneOrths GetOrthsOnPlane(BlockFaceDirection face) {
-            var blockFaceRightDir = Rotation * (face.Rotation * Vector3.right);
-            if (Vector3.Dot(blockFaceRightDir, face.Normal) != 0f) blockFaceRightDir = Vector3.ProjectOnPlane(blockFaceRightDir, face.Normal).normalized;
-            var faceOrths = new FaceOrths(blockFaceRightDir, Vector3.Cross(blockFaceRightDir, face.Normal));
-            return faceOrths.ToPlaneOrths(face.Normal);
+        public PlaneOrths GetOrthsOnPlane(BlockFaceDirection face) 
+        {
+            var originalOrths = new FaceOrths(face);
+            var faceOrths = Rotation * originalOrths;
+            return new PlaneOrths(originalOrths.InverseVector(faceOrths.Right), originalOrths.InverseVector(faceOrths.Up)) ;
         }        
     }
 }

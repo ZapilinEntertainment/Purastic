@@ -8,6 +8,8 @@ namespace ZE.Purastic {
 	{
 		private bool _isReady = false, _pinFound = false;
 		private FoundedFitElementPosition _fitPosition;
+
+		protected bool IsReady => _isReady;
         protected bool PinFound => _pinFound;
 		virtual protected BlockPreset BlockPreset => BlockPreset.StandartBrick_1x1;
 

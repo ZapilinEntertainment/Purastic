@@ -45,7 +45,7 @@ namespace ZE.Purastic {
 			GetFitPosition(index)
 			);
 
-		virtual public IFitPlaneDataProvider ToDataProvider(int blockId,byte subPlaneId, Vector2 zeroPoint, PlaneOrths orths) => new GridDataProvider(blockId, subPlaneId, this, zeroPoint, orths);
+        virtual public IFitPlaneDataProvider ToDataProvider(PlaneProviderPosition position) => new GridDataProvider(this, position);
         public IReadOnlyList<FitElementPlanePosition> GetPinsInZone(AngledRectangle rect)
         {
             //Debug.Log(rect);

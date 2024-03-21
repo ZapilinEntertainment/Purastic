@@ -13,8 +13,9 @@ namespace ZE.Purastic {
         [SerializeField] private BlockColor _blockColor = BlockColor.Amber;
         private BlockHostsManager _hostsManager;
         private RectDrawInfo _rectDrawInfo = null;
+        private FitElementPlaneAddress ConnectionPin => new FitElementPlaneAddress(1, new Vector2Byte(_zeroPin));
         protected override BlockPreset BlockPreset => _preset;
-        protected PlacingBlockInfo BlockInfo => new (new FitElementPlaneAddress(1,new Vector2Byte(_zeroPin)), _properties, _contactFace, _rotation);
+        protected PlacingBlockInfo BlockInfo => new (ConnectionPin, _properties, _contactFace, _rotation);
 
 
         protected override void AfterStart()
@@ -23,9 +24,10 @@ namespace ZE.Purastic {
         }
         protected void Update()
         {
+            if (!IsReady) return;
             if (Input.GetMouseButtonDown(1))
             {
-               _rotation = _rotation * Quaternion.AngleAxis(90f, Vector3.up);
+               _rotation *= Quaternion.AngleAxis(90f, Vector3.up);
             }
             if (PinFound)
             {
@@ -59,13 +61,13 @@ namespace ZE.Purastic {
         protected override void OnDrawGizmos()
         {
             base.OnDrawGizmos();
-            if (PinFound)
+            if (PinFound && _hostsManager.TryGetHost(FitPosition.BlockHostID, out var host) )
             {
-                Vector3 blockPos = BlockInfo.GetBlockCenterPosition(FitPosition.WorldPoint.Position);
+                var cutplane = host.CutPlanesDataProvider.GetCuttingPlane(FitPosition.StructureAddress.CutPlaneID);
+                Vector3 blockPos = BlockInfo.GetBlockCenterPosition(cutplane.PlaneAddressToLocalPos(ConnectionPin));
                 var virtualBlock = new VirtualBlock(blockPos, BlockInfo);
-                var coordinate = Utilities.DefineCutPlaneCoordinate(virtualBlock, BlockFaceDirection.Up);
-                var projection = Utilities.ProjectBlock(BlockFaceDirection.Up, virtualBlock);
-                Gizmos.DrawWireCube(new Vector3(projection.Position.x, coordinate.Coordinate, projection.Position.y), new Vector3(projection.Width, 0.1f, projection.Height) );
+                var projection = Utilities.ProjectBlock(cutplane.Face, virtualBlock);
+                Gizmos.DrawWireCube( blockPos, new Vector3(projection.Width,1f, projection.Height));
             }
 
 

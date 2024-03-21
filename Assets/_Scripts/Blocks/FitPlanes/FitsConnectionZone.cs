@@ -7,26 +7,29 @@ namespace ZE.Purastic {
 	public enum PinConnectionResult : byte { NoResult, Connected, Blocked}
 	public class FitsConnectionZone
 	{
+		public readonly BlockFaceDirection Face;
 		public readonly List<ConnectingPin> Pins;
 
-		public FitsConnectionZone(int cutPlaneId, IReadOnlyCollection<ConnectingPin> fits)
+		public FitsConnectionZone(BlockFaceDirection face, IReadOnlyCollection<ConnectingPin> fits)
 		{
+			Face = face;
 			Pins = new( fits);
 		}
 
-		public PinConnectionResult TryConnect(FitElement element, out ConnectingPin usedPin)
+		public PinConnectionResult TryConnect(Vector3 pos, FitType fitType, out ConnectingPin usedPin)
 		{
+			Vector2 facePos = Face.InverseVector(pos);
 			foreach (var pin in Pins)
 			{
-				if (pin.CutPlanePosition == element.Position)
-				{
-					
+                //Debug.Log($"{pos}x{Face.TransformVector(pin.CutPlanePosition)}");
+                if (pin.CutPlanePosition == facePos)
+				{					
                     usedPin = pin;
-                    var result = pin.FitType.GetConnectResult(element.FitType);
+					//Debug.Log($"{fitType}x{pin.FitType}");
+                    var result = pin.FitType.GetConnectResult(fitType);
 					if (result == PinConnectionResult.NoResult) continue;
 					else return result;
 				}
-				//else Debug.Log($"{pin.CutPlanePosition} : {element.Position}");
 			}
 			usedPin = default;
 			return PinConnectionResult.NoResult;

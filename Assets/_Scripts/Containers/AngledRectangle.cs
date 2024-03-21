@@ -6,9 +6,9 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public readonly struct AngledRectangle
 	{
-		public readonly Vector2 Position; // cut-plane position
+		public readonly Vector2 Position; // position on face
 		public readonly Vector2 Size;
-		public readonly PlaneOrths Orths;
+		public readonly PlaneOrths Orths; // relative to face orths
 		public float Width => Size.x;
 		public float Height => Size.y;
 		public Vector2 Right => Orths.Right;
@@ -29,6 +29,12 @@ namespace ZE.Purastic {
         public AngledRectangle ToPlaneSpace(Vector2 planeZeroPos, PlaneOrths planeOrths )
 		{
 			return new AngledRectangle(Position - planeZeroPos, Size, Orths.RebaseOrths(planeOrths));
+		}
+		public AngledRectangle ProjectToPlane(BlockFaceDirection initialFace, BlockFaceDirection targetFace)
+		{
+			Vector3 pos = initialFace.TransformVector(Position);
+			var result = new AngledRectangle(targetFace.InverseVector(pos), Size, Orths.RebaseOrths(initialFace, targetFace));
+            return result;
 		}
 		public Vector2 BottomLeft => Position;
 		public Vector2 BottomRight => Position + Right * Width;
@@ -60,8 +66,6 @@ namespace ZE.Purastic {
 				return true;
 			}
 			else return false;
-
-           return new Rect(Position, Size).Contains(point);
         }
 			
         public bool IsIntersects(AngledRectangle other)

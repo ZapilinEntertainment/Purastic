@@ -7,6 +7,7 @@ using System;
 namespace ZE.Purastic {
     public readonly struct BlockFaceDirection : IEquatable<BlockFaceDirection> 
     {
+
         public readonly FaceDirection Direction;
         public readonly sbyte CustomValue;
         #region equality
@@ -83,7 +84,6 @@ namespace ZE.Purastic {
             }
             CustomValue = 0;
         }
-        public BlockFaceDirection (Quaternion rotation) : this(rotation * DefaultRotationNormal) { }
 
         public BlockFaceDirection Inverse()
         {
@@ -99,12 +99,8 @@ namespace ZE.Purastic {
             }
         }
         public BlockFaceDirection Rotate(Quaternion rotation) => new BlockFaceDirection((Rotation * rotation) * Vector3.forward);
-        public Vector2 LocalToFaceDirection(Vector3 direction) => new FaceOrths(Direction.ToPlaneRotation()).InverseVector(direction);
-        public Vector3 TransformPoint(Vector2 facePoint)
-        {
-            var rotation = Rotation;
-            return facePoint.x * (rotation * Vector3.right) + facePoint.y * (rotation * Vector3.up);
-        }
+        public Vector2 InverseVector(Vector3 direction) => new FaceOrths(Direction.ToPlaneRotation()).InverseVector(direction);
+        public Vector3 TransformVector(Vector2 facePoint) => new FaceOrths(this).TransformVector(facePoint);
 
         public Vector3 GetNormalizedZeroPoint()
         {
@@ -122,7 +118,9 @@ namespace ZE.Purastic {
         }
         public Quaternion ToRotation() => Direction.ToPlaneRotation();
 
-        public static Vector3 DefaultRotationNormal => Vector3.down; // default normal for face with rotation equals to Quaternion.identity
+        // default normal for face with rotation equals to Quaternion.identity
+        // right = (1,0,0), up = (0,1,0) , forward = (0,0,1)
+        public static Vector3 DefaultFaceRotationNormal => Vector3.forward; 
         public static BlockFaceDirection Up => new(FaceDirection.Up);
         public static BlockFaceDirection Down => new(FaceDirection.Down);
         public static BlockFaceDirection Left => new(FaceDirection.Left);

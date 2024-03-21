@@ -49,7 +49,7 @@ namespace ZE.Purastic {
             return elements;
         }
         public FitsConnectionZone CreateLandingPinsList(PlacedBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane) => CreateLandingPinsList(block.ID, block, face, zone, cuttingPlane);
-        public FitsConnectionZone CreateLandingPinsList(int blockID, VirtualBlock block, BlockFaceDirection face, AngledRectangle zone, ICuttingPlane cuttingPlane)
+        public FitsConnectionZone CreateLandingPinsList(int blockID, VirtualBlock block, BlockFaceDirection blockSpaceFace, AngledRectangle zone, ICuttingPlane cuttingPlane)
         {
             // planes always contain pins
             var elements = new List<ConnectingPin>();
@@ -57,8 +57,9 @@ namespace ZE.Purastic {
             {
                 var plane = _planes[i];
 
-                if (plane.Face == face)
+                if (plane.Face == blockSpaceFace)
                 {
+                    //Debug.Log($"plane:{blockSpaceFace}:{i}");
                     var pinPositions = plane.CreateDataProvider(blockID, i, block, cuttingPlane.Face).GetPinsInZone(zone);
                     foreach (var pinPos in pinPositions)
                     {
@@ -66,7 +67,7 @@ namespace ZE.Purastic {
                     }
                 }
             }
-            return new FitsConnectionZone(cuttingPlane.ID, elements);
+            return new FitsConnectionZone(cuttingPlane.Face, elements);
         }
 
         public override int GetHashCode()

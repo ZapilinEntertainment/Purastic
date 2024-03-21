@@ -52,11 +52,11 @@ namespace ZE.Purastic {
         
         public Vector2Byte GetPinIndex(Vector2 cutPlanePos) => PinsConfiguration.GetFitIndex(cutPlanePos);
         public Vector2 GetFaceSpacePosition(Vector2Byte index) =>  PinsConfiguration.GetPlanePoint(index);
-        public IFitPlaneDataProvider CreateDataProvider(int blockID, byte subplaneID,Vector2 cutPlaneZeroPoint, PlaneOrths orths) => PinsConfiguration.ToDataProvider(blockID, subplaneID, cutPlaneZeroPoint, orths);
+        public IFitPlaneDataProvider CreateDataProvider(PlaneProviderPosition position) => PinsConfiguration.ToDataProvider(position);
         public IFitPlaneDataProvider CreateDataProvider(int blockID, byte subplaneID, VirtualBlock block, BlockFaceDirection face)
         {  
             var rect = Utilities.ProjectBlock(face, block);
-            return CreateDataProvider(blockID, subplaneID, rect.Position, rect.Orths);
+            return CreateDataProvider(new (blockID, subplaneID, face, rect.Position, rect.Orths));
         }
         public override int GetHashCode()
         {
@@ -73,7 +73,7 @@ namespace ZE.Purastic {
         public Vector2 GetPlanePoint(Vector2Byte index);
         public Vector2Byte GetFitIndex(Vector2 planedPos);
         public Vector3 GetZeroPos(float height);
-        public IFitPlaneDataProvider ToDataProvider(int blockID,byte subplaneId, Vector2 cutPlaneZeroPoint, PlaneOrths orths);
+        public IFitPlaneDataProvider ToDataProvider(PlaneProviderPosition position);
         public FitElementPlanePosition[] GetAllPinsInPlaneSpace(); // not read-only for further transformations
     }
 }

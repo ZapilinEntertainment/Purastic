@@ -285,7 +285,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &196158554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,6 +857,7 @@ GameObject:
   - component: {fileID: 526537843}
   - component: {fileID: 526537844}
   - component: {fileID: 526537842}
+  - component: {fileID: 526537845}
   m_Layer: 0
   m_Name: TEST
   m_TagString: Untagged
@@ -871,7 +872,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526537834}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f718d603bf9b26419566bf309486e74, type: 3}
   m_Name: 
@@ -899,7 +900,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526537834}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cf8b8cd64ee87bb469a980920c7f0c41, type: 3}
   m_Name: 
@@ -907,8 +908,8 @@ MonoBehaviour:
   _baseplate: {fileID: 1865433961}
   _blocks:
   - Position: {x: 1, y: 1}
-    Preset: 2
-    Rotation: {x: 0, y: 0, z: 0, w: 0}
+    Preset: 1
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
   - Position: {x: 3, y: 5}
     Preset: 3
     Rotation: {x: 0, y: 0, z: 0, w: 0}
@@ -946,12 +947,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526537834}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0929947c066fcb4888465c5506f3b48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _preset: 2
+  _preset: 3
   _zeroPin: {x: 0, y: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 1}
   _blockColor: 3
@@ -969,12 +970,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _redraw: 0
   _baseplate: {fileID: 1865433961}
-  _fitPosition: {x: 3, y: 3}
+  _fitPosition: {x: 2, y: 2}
   _initalPin: {x: 0, y: 0}
   _preset: 3
   _color: 2
   _rotation: {x: 0, y: 0, z: 0, w: 0}
-  _materialtype: 1
+  _materialtype: 0
 --- !u!114 &526537843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1011,6 +1012,26 @@ MonoBehaviour:
   _preset: 3
   _color: 2
   _rotation: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &526537845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526537834}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee581606a7b0da242841c1e00de3a2f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _redraw: 0
+  _baseplate: {fileID: 1865433961}
+  _fitPosition: {x: 2, y: 2}
+  _initalPin: {x: 0, y: 3}
+  _preset: 3
+  _color: 2
+  _rotation: {x: 0, y: 0, z: 0, w: 1}
+  _materialtype: 0
 --- !u!1 &628095447
 GameObject:
   m_ObjectHideFlags: 0
@@ -1073,7 +1094,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &646987741
 Transform:
   m_ObjectHideFlags: 0
@@ -2030,7 +2051,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2066823993
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -80,8 +80,14 @@ namespace ZE.Purastic {
         {
             if (  _placedBlocksList.TryGetBlock(pinStructureAddress.BlockID, out var baseBlock) && _cuttingPlanesManager.TryGetCuttingPlane(pinStructureAddress, out var plane)) 
             {
+                /*
                 Vector3 predictedLocalContactPoint = plane.PlaneAddressToLocalPos(pinStructureAddress);
+                Debug.Log($"{pinStructureAddress.PlaneAddress} -> {predictedLocalContactPoint}");
                 var virtualBlock = new VirtualBlock(placingBlockInfo.GetBlockCenterPosition(predictedLocalContactPoint) , placingBlockInfo);
+                */
+
+                var virtualBlock = CreateVirtualBlock(pinStructureAddress.PlaneAddress.PinIndex, placingBlockInfo);
+
                 if (_cuttingPlanesManager.TryConnectNewBlock(baseBlock, pinStructureAddress, virtualBlock, out var connectedPins))
                 {
                     _structureModule.AddBlock(baseBlock, pinStructureAddress, virtualBlock, connectedPins, out var newPlacedBlock);
@@ -145,7 +151,6 @@ namespace ZE.Purastic {
         }
 
         public Vector3 InverseTransformPosition(Vector3 position) => ModelsHost.InverseTransformPoint(position);
-
         public Vector3 TransformPosition(Vector3 position) => ModelsHost.TransformPoint(position);
 
 
@@ -162,6 +167,19 @@ namespace ZE.Purastic {
         public void UnlockPlateZone(IReadOnlyCollection<ConnectingPin> lockedPins) {
             var platePlane = GetPlatePlane();
             _cuttingPlanesManager.RemoveLocks(platePlane.ID, lockedPins);
+        }
+
+        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo)
+        {
+            var pinPosition = GetPlatePinWorldPosition(fitPosition);
+            Vector3 localPos = TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
+            return new VirtualBlock(localPos, placingInfo);
+        }
+        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo, out Vector3 pinPosition)
+        {
+            pinPosition = GetPlatePinWorldPosition(fitPosition);
+            Vector3 localPos = TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
+            return new VirtualBlock(localPos, placingInfo);
         }
     }
 }

@@ -26,28 +26,30 @@ namespace ZE.Purastic {
         {
             Vector2 localSize = block.Properties.GetProjectionSize(receivingFace);
 
-            var blockFace = block.LocalToBlockFace(receivingFace);
-            var receivingPlaneOrths = new FaceOrths(receivingFace).ToPlaneOrths(receivingFace.Normal);
-            var blockFaceOrths = block.GetOrthsOnPlane(blockFace);
-
-            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInBlockSpace(blockFace.Inverse()); 
+            var blockFace = block.GetContactFace(receivingFace); // ex: non-rotated block connects with UP plane with DOWN plane
+            var calculatingFace = blockFace.Inverse();
             // inverted, because it projects from a mirrored plane
             // example: if we project a block on a UP plane (receivingFace),
             // 1) we take orths from face, that block is faced to plane now:  LocalToBlockFace -> DOWN(blockFace)
             // 2) but for zeroPos we must take corner from the opposite face (even if it doesnt exist in block) - UP(blockFace.Inverse)
             // it is because corner points of opposite planes(like UP and DOWN) are opposite and not match (because of different orths)
-            Vector2 zeroPos = receivingFace.LocalToFaceDirection(blockFaceZeroPoint);
-
+            PlaneOrths blockFaceOrths = block.GetOrthsOnPlane(calculatingFace);
             
+            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInBlockSpace(calculatingFace);
+
+            // var rect = new AngledRectangle(blockFaceZeroPoint, localSize, blockFaceOrths);
+            //return rect.ProjectToPlane(calculatingFace, receivingFace);
+            Vector2 zeroPos = receivingFace.InverseVector(blockFaceZeroPoint);
             if (debugLog)
             {
                 Debug.Log($"{receivingFace}:{blockFaceZeroPoint} -> {zeroPos}");
+                //Debug.Log(rectOrths);
                 // Debug.Log(receivingPlaneOrths);
-                //Debug.Log(blockFaceOrths);
+                //Debug.Log($"relativeOrths:{blockFaceOrths}");
                 //Debug.Log(blockFace);
                 // Debug.Log(blockFaceOrths);
             }
-            return new(zeroPos, localSize, blockFaceOrths.RebaseOrths(receivingPlaneOrths, debugLog));
+            return new(zeroPos, localSize, blockFaceOrths);
         }
         public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle)
         {
