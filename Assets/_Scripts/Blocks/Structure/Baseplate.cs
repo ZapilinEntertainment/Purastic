@@ -86,7 +86,7 @@ namespace ZE.Purastic {
                 var virtualBlock = new VirtualBlock(placingBlockInfo.GetBlockCenterPosition(predictedLocalContactPoint) , placingBlockInfo);
                 */
 
-                var virtualBlock = CreateVirtualBlock(pinStructureAddress.PlaneAddress.PinIndex, placingBlockInfo);
+                var virtualBlock = BlocksHost.CreateVirtualBlock(pinStructureAddress, placingBlockInfo);
 
                 if (_cuttingPlanesManager.TryConnectNewBlock(baseBlock, pinStructureAddress, virtualBlock, out var connectedPins))
                 {

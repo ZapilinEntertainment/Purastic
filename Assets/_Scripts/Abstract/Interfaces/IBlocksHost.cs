@@ -21,5 +21,10 @@ namespace ZE.Purastic {
 
         public Vector3 InverseTransformPosition(Vector3 position);
         public Vector3 TransformPosition(Vector3 position);
+        public Vector3 TransformPosition(Vector2 facePos, BlockFaceDirection face) => TransformPosition(face.TransformVector(facePos));
+        public Vector3 TransformPosition(Vector2 facePos, ICuttingPlane cutPlane) => TransformPosition(cutPlane.CutPlaneToLocalPos(facePos));
+
+        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo);
+        public VirtualBlock CreateVirtualBlock(FitElementStructureAddress address, PlacingBlockInfo placingInfo) => CreateVirtualBlock(address.PlaneAddress.PinIndex, placingInfo);
     }
 }

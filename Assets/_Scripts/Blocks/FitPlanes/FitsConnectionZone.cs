@@ -21,7 +21,7 @@ namespace ZE.Purastic {
 			Vector2 facePos = Face.InverseVector(pos);
 			foreach (var pin in Pins)
 			{
-                //Debug.Log($"{pos}x{Face.TransformVector(pin.CutPlanePosition)}");
+                //Debug.Log($"{facePos}x{pin.CutPlanePosition}");
                 if (pin.CutPlanePosition == facePos)
 				{					
                     usedPin = pin;

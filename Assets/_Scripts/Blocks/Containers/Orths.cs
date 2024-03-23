@@ -26,6 +26,13 @@ namespace ZE.Purastic {
 			Right = right;
 			Up = up;
 		}
+		public PlaneOrths(BlockFaceDirection face, Quaternion localRotation)
+		{
+            FaceOrths originalOrths = new FaceOrths(face);
+            FaceOrths blockOrths = localRotation * originalOrths;
+			Right = originalOrths.InverseVector(blockOrths.Right);
+			Up =originalOrths.InverseVector(blockOrths.Up);
+        }
 
 		public Vector2 InverseVector(Vector2 dir) => new Vector2(Vector2.Dot(dir, Right), Vector2.Dot(dir, Up));
 		public Vector2 TransformVector(Vector2 dir) => dir.x * Right + dir.y * Up;
@@ -68,7 +75,8 @@ namespace ZE.Purastic {
 		public FaceOrths(BlockFaceDirection face) : this(face.Rotation) { }
 		public Vector2 InverseVector(Vector3 dir) => new (Vector3.Dot(dir, Right), Vector3.Dot(dir,Up));
 		public Vector3 TransformVector(Vector2 dir) => Right * dir.x + Up * dir.y;
-		public static FaceOrths Default => new FaceOrths(Vector3.right, Vector3.up);
+
+        public static FaceOrths Default => new FaceOrths(Vector3.right, Vector3.up);
         public static FaceOrths operator *(Quaternion rotation, FaceOrths orths) => new FaceOrths(rotation * orths.Right, rotation * orths.Up);
     }
 }

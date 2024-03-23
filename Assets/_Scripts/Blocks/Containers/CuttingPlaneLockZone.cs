@@ -61,10 +61,14 @@ namespace ZE.Purastic {
             return false;
         }
         public bool CheckZoneForLockers(AngledRectangle rect)
-        {
+        {           
             foreach (var element in _lockedElements)
             {
-                if (rect.Contains(element.CutPlanePosition)) return true;
+                if (rect.Contains(element.CutPlanePosition))
+                {
+                    return true;
+
+                }
             }
             return false;
         }

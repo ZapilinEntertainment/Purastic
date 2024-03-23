@@ -33,7 +33,7 @@ namespace ZE.Purastic {
             // 1) we take orths from face, that block is faced to plane now:  LocalToBlockFace -> DOWN(blockFace)
             // 2) but for zeroPos we must take corner from the opposite face (even if it doesnt exist in block) - UP(blockFace.Inverse)
             // it is because corner points of opposite planes(like UP and DOWN) are opposite and not match (because of different orths)
-            PlaneOrths blockFaceOrths = block.GetOrthsOnPlane(calculatingFace);
+            PlaneOrths blockFaceOrths = new PlaneOrths(calculatingFace, block.Rotation);
             
             Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInBlockSpace(calculatingFace);
 
@@ -51,15 +51,26 @@ namespace ZE.Purastic {
             }
             return new(zeroPos, localSize, blockFaceOrths);
         }
-        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle)
+
+        /* wrong:
+        public static AngledRectangle CreatePlaneRect(FoundedFitElementPosition position, IBlocksHost host, BlockProperties properties, Quaternion rotation)
+        {
+            var cutPlane = host.CutPlanesDataProvider.GetCuttingPlane(position.StructureAddress.CutPlaneID);
+            var face = position.StructureAddress.ContactFace;
+            return CreatePlaneRect(position.StructureAddress.PlaneAddress, properties.GetProjectionSize(face), cutPlane, new PlaneOrths(face, rotation));
+        }
+        */
+        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle) => CreatePlaneRect(initialPinAddress, size, plane, PlaneOrths.Default.RotateOrths(rotationAngle));
+        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, PlaneOrths orths)
         {
             Vector2 initialPinPos = plane.PlaneAddressToCutPlanePos(initialPinAddress);
+
             const float sz = GameConstants.BLOCK_SIZE;
             Vector2 dir = -0.5f * sz * Vector2.one;
             return new AngledRectangle(
                     initialPinPos + dir,
                     size,
-                    PlaneOrths.Default.RotateOrths(rotationAngle)
+                    orths
                     );
         }
     }

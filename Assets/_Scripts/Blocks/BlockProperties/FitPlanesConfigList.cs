@@ -70,6 +70,18 @@ namespace ZE.Purastic {
             return new FitsConnectionZone(cuttingPlane.Face, elements);
         }
 
+        public IContactPlaneController CreateContactPlaneController(BlockFaceDirection face)
+        {
+            var controllersList = new List<IContactPlaneController>();
+            for (byte i =0; i < _planes.Length; i++)
+            {
+                var plane = _planes[i];
+                if (plane.Face == face) controllersList.Add(plane.CreateContactPlaneController(i));
+            }
+            return controllersList[0];
+            // it can be multiple - create MultiContactPlaneController
+        }
+
         public override int GetHashCode()
         {
             var hash = new HashCode(); 

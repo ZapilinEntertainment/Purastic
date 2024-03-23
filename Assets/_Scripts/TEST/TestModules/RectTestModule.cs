@@ -17,17 +17,16 @@ namespace ZE.Purastic {
             {
                 _faceNormal = plane.Face.Normal;
                 Rect = Utilities.ProjectBlock(plane.Face, block);
-                ZeroPos = host.TransformPosition(plane.CutPlaneToLocalPos(Rect.Position));
-                OnePos = host.TransformPosition(plane.CutPlaneToLocalPos(Rect.TopRight));
+                ZeroPos = host.TransformPosition(Rect.Position, plane);
+                OnePos = host.TransformPosition(Rect.TopRight, plane);
             }
             public RectDrawer(IBlocksHost host, BlockFaceDirection face, VirtualBlock block) : this(host, face, Utilities.ProjectBlock(face, block)) { }
             public RectDrawer(IBlocksHost host, BlockFaceDirection face, AngledRectangle rect)
             {
                 _faceNormal = face.Normal;
                 Rect = rect;
-                ZeroPos = host.TransformPosition(face.TransformVector(Rect.Position));
-                var orths = new FaceOrths(face);
-                OnePos = host.TransformPosition(face.TransformVector(Rect.TopRight));
+                ZeroPos = host.TransformPosition(Rect.Position, face);
+                OnePos = host.TransformPosition(Rect.TopRight, face);
             }
             public void DrawGizmos()
             {

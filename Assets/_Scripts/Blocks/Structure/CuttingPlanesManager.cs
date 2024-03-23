@@ -71,7 +71,7 @@ namespace ZE.Purastic {
 		{
 			BlockFaceDirection face = fitPlaneConfig.Face;
 			Vector3 normal = face.Normal;
-			Vector3 zeroPosInModelSpace = fitPlaneConfig.ZeroPos;
+			Vector3 zeroPosInModelSpace = fitPlaneConfig.ZeroPos; // error here, this is brick-space zero pos
 
 			float coordinate = Utilities.DefineCutPlaneCoordinate(zeroPosInModelSpace, normal);
 			ICuttingPlane cuttingPlane;
@@ -85,7 +85,7 @@ namespace ZE.Purastic {
 				AddCuttingPlane(key, cuttingPlane);
 			}
 			else _cuttingPlanes[key] = cuttingPlane.AddFitPlaneProvider(dataProvider);
-			//Debug.Log(key);
+			Debug.Log(key.Coordinate);
 		}
 		public void AddLockZones(int cutPlaneID, IReadOnlyCollection<ConnectingPin> lockedPins)
 		{
@@ -97,7 +97,7 @@ namespace ZE.Purastic {
                 _lockZones.Add(cutPlaneID, zone);
             }
 			zone.AddLockedPins(lockedPins);
-			OnLockedZonesChangedEvent?.Invoke(cuttingPlane.ToCoordinate(), zone);
+			OnLockedZonesChangedEvent?.Invoke(cuttingPlane.ToCoordinate(), zone);			
         }
 		public void RemoveLocks(int cutPlaneID, IReadOnlyCollection<ConnectingPin> pins)
 		{
@@ -126,6 +126,7 @@ namespace ZE.Purastic {
 		{
             var face = new BlockFaceDirection(normal);
             float coordinate = Utilities.DefineCutPlaneCoordinate(localPos, face.Normal);
+			Debug.Log(coordinate);
 			if (_cuttingPlanes.TryGetValue(new(face, coordinate), out var cuttingPlane))
 			{
 				Vector2 cutPlanePos = face.InverseVector(localPos);
@@ -134,7 +135,7 @@ namespace ZE.Purastic {
 				{
 					var address = new FitElementStructureAddress(block.ID, cuttingPlane.ID, face, planeAddress);
 					
-					var facePoint = fitPlane.GetFitElementFaceVirtualPoint(address.PlaneAddress.PinIndex);					
+					var facePoint = fitPlane.IndexToVirtualPoint(address.PlaneAddress.PinIndex);					
 					var localPoint = new VirtualPoint(cuttingPlane.CutPlaneToLocalPos(facePoint.Position), cuttingPlane.Face.ToRotation() * facePoint.Rotation);
 					var worldPoint = new VirtualPoint(BlocksHost.TransformPosition(localPoint.Position), BlocksHost.ModelsHost.rotation * localPoint.Rotation);
 
@@ -171,7 +172,8 @@ namespace ZE.Purastic {
 				var mirrorRect = Utilities.ProjectBlock(mirrorFace, planningBlock);
 				var connectFace = planningBlock.GetContactFace(cuttingPlane.Face);
 				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, mirrorRect, mirrorPlane);
-				//Debug.Log(newBlockPins.Pins.Count);
+                //Debug.Log(landingPins.Pins.Count);
+               // Debug.Log(newBlockPins.Pins.Count);
 				//Debug.Log(cuttingPlane.PlanesCount);				
 				if (landingPins != null && newBlockPins != null) 
 				return (FitsConnectSystem.TryConnect(cuttingPlane, landingPins, newBlockPins, out pinsContainer)) ;		

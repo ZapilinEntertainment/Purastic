@@ -285,7 +285,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &196158554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -872,7 +872,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526537834}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f718d603bf9b26419566bf309486e74, type: 3}
   m_Name: 
@@ -900,7 +900,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526537834}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cf8b8cd64ee87bb469a980920c7f0c41, type: 3}
   m_Name: 
@@ -911,10 +911,10 @@ MonoBehaviour:
     Preset: 1
     Rotation: {x: 0, y: 0, z: 0, w: 1}
   - Position: {x: 3, y: 5}
-    Preset: 3
+    Preset: 4
     Rotation: {x: 0, y: 0, z: 0, w: 0}
   - Position: {x: 6, y: 2}
-    Preset: 3
+    Preset: 4
     Rotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &526537839
 MonoBehaviour:
@@ -952,7 +952,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0929947c066fcb4888465c5506f3b48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _preset: 3
+  _preset: 1
   _zeroPin: {x: 0, y: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 1}
   _blockColor: 3
@@ -1094,7 +1094,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &646987741
 Transform:
   m_ObjectHideFlags: 0
@@ -2051,7 +2051,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2066823993
 MonoBehaviour:
   m_ObjectHideFlags: 0

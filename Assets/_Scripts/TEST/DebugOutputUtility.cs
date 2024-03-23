@@ -21,5 +21,14 @@ namespace ZE.Purastic {
 			}
 			Debug.Log(builder.ToString());
 		}
+
+		public static Transform SpawnCube(Vector3 pos)
+		{
+			var model = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			var transform = model.transform;
+			transform.localScale = GameConstants.BLOCK_SIZE * Vector3.one;
+			transform.position = pos;
+			return transform;
+		}
 	}
 }

@@ -16,7 +16,7 @@ namespace ZE.Purastic {
 		public Vector3 ZeroPos { get; }
 
         // local rotation of plane not needed - there is no such details with rotated pins
-        // for vertical rotation, place plane on a suitable face
+        // otherwise you can place plane on suitable face (custom ones can describe a correct rotation)
 
         public FitPlaneConfig(IFitPlaneConfiguration pinsConfiguration, FitType fitType, BlockFaceDirection face, Vector3 zeroPos)
         {
@@ -24,6 +24,16 @@ namespace ZE.Purastic {
             FitType = fitType;
             Face = face;
             ZeroPos = zeroPos;
+        }
+
+        //single-pin
+        public FitPlaneConfig(FitType fitType, int heightInPlates,  FaceDirection direction)
+        {
+            PinsConfiguration = new SinglePinConfig(fitType);
+            FitType = fitType;
+            Face = new BlockFaceDirection(direction);
+            var normalizedZeroPos = direction.ToPlaneRotation() * GameConstants.NormalizedDefaultPlaneZeroPos;
+            ZeroPos = PinsConfiguration.GetZeroPos(GameConstants.GetHeight(heightInPlates) * 0.5f * Mathf.Sign(normalizedZeroPos.y));
         }
 
         // plate with knobs
@@ -58,6 +68,7 @@ namespace ZE.Purastic {
             var rect = Utilities.ProjectBlock(face, block);
             return CreateDataProvider(new (blockID, subplaneID, face, rect.Position, rect.Orths));
         }
+        public IContactPlaneController CreateContactPlaneController(byte subplaneID) => PinsConfiguration.CreateContactPlaneController(subplaneID, Face);
         public override int GetHashCode()
         {
             return System.HashCode.Combine(PinsConfiguration.GetHashCode(), FitType.GetHashCode(), Face.GetHashCode(), ZeroPos.GetHashCode());
@@ -74,6 +85,7 @@ namespace ZE.Purastic {
         public Vector2Byte GetFitIndex(Vector2 planedPos);
         public Vector3 GetZeroPos(float height);
         public IFitPlaneDataProvider ToDataProvider(PlaneProviderPosition position);
+        public IContactPlaneController CreateContactPlaneController(byte planeID, BlockFaceDirection face);
         public FitElementPlanePosition[] GetAllPinsInPlaneSpace(); // not read-only for further transformations
     }
 }

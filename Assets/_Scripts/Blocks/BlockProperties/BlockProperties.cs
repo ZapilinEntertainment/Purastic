@@ -26,8 +26,9 @@ namespace ZE.Purastic {
 			FitPlanesHash = planesHash;
 			Thick= thick;
 		}
-		//platform :
-		public  BlockProperties(FitsGridConfig config, BlockMaterial material, int thick)
+
+        //platform :
+        public  BlockProperties(FitsGridConfig config, BlockMaterial material, int thick)
 		{
 			Material = material;
 			ModelSize = new Vector3(config.Width * GameConstants.BLOCK_SIZE, GameConstants.GetHeight(thick), config.Length * GameConstants.BLOCK_SIZE) ;
@@ -59,5 +60,6 @@ namespace ZE.Purastic {
 			return orths.InverseVector(ModelSize);
 		}
 		public FitPlanesConfigList GetPlanesList() => FitPlanesConfigsDepot.LoadConfig(FitPlanesHash);
+		public IContactPlaneController CreateContactPlaneController(BlockFaceDirection face) => GetPlanesList().CreateContactPlaneController(face);
     }
 }

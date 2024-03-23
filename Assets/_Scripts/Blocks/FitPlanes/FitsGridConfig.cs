@@ -90,5 +90,56 @@ namespace ZE.Purastic {
             }
             return pins;
         }
+
+        public IContactPlaneController CreateContactPlaneController(byte planeID, BlockFaceDirection face) => new GridContactPlaneController(planeID,face, this);
+    }
+    public class GridContactPlaneController : IContactPlaneController
+    {
+        private readonly byte _planeID;
+        private readonly BlockFaceDirection _face;
+        private Vector2Int _contactPin;
+        private readonly FitsGridConfig _config;
+        public GridContactPlaneController(byte planeID, BlockFaceDirection face, FitsGridConfig config)
+        {
+            _planeID = planeID;
+            _config = config;
+            _face = face;
+            _contactPin = Vector2Int.zero;
+        }
+
+        public FitElementPlaneAddress GetContactPinAddress() => new FitElementPlaneAddress(_planeID, new Vector2Byte(_contactPin));
+
+        public void SetContactPin(Vector2Int index)
+        {
+            _contactPin = index;
+        }
+
+        public void Move(Vector3 localSpaceDir)
+        {
+            var orths = new FaceOrths(_face);
+            Vector2 dir = orths.InverseVector(localSpaceDir).normalized;
+            if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y))
+            {
+                if (dir.x > 0f)
+                {
+                    if (_contactPin.x < _config.Width-1) _contactPin.x++;
+                }
+                else
+                {
+                    if (_contactPin.x > 0) _contactPin.x--;
+                }
+            }
+            else
+            {
+                if (dir.y > 0f)
+                {
+                    if (_contactPin.y < _config.Length-1) _contactPin.y++;
+                }
+                else
+                {
+                    if (_contactPin.y > 0) _contactPin.y--;
+                }
+            }
+        }
     }
 }

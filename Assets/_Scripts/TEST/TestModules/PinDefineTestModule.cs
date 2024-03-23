@@ -6,28 +6,39 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
 	public class PinDefineTestModule : MonoBehaviour
 	{
-		private bool _isReady = false, _pinFound = false;
+		private bool _isReady = false, _pinFound = false, _propertiesSet = false;
+		private BlockProperties f_properties;
 		private FoundedFitElementPosition _fitPosition;
 
 		protected bool IsReady => _isReady;
         protected bool PinFound => _pinFound;
 		virtual protected BlockPreset BlockPreset => BlockPreset.StandartBrick_1x1;
 
-		protected BlockProperties _properties;
-		protected FoundedFitElementPosition FitPosition => _fitPosition;
+		protected BlockProperties Properties
+		{
+			get
+			{
+				if (!_propertiesSet)
+				{
+					f_properties = BlockPresetsDepot.GetProperty(BlockPreset, new BlockMaterial(VisualMaterialType.Hologramm, BlockColor.DefaultWhite));
+					_propertiesSet = true;
+				}
+				return f_properties;
+            }
+		}
+		protected FoundedFitElementPosition PositionInfo => _fitPosition;
 
         protected PlacingBlockModelHandler Marker { get; private set; }
 		private BlockCastModule _castModule;			
 
 		private async void Start()
 		{			
-			_properties = BlockPresetsDepot.GetProperty(BlockPreset, new BlockMaterial(VisualMaterialType.Hologramm, BlockColor.DefaultWhite)); 
 
             _castModule = new BlockCastModule();
 			Marker = new();
 			while (!(_castModule.IsReady && Marker.IsReady )) await Awaitable.FixedUpdateAsync();
             var modelCreateService = await ServiceLocatorObject.GetWhenLinkReady<BlockCreateService>();
-            Marker.ReplaceModel( await modelCreateService.CreateBlockModel(_properties));
+            Marker.ReplaceModel( await modelCreateService.CreateBlockModel(Properties));
             PositionMarker(Vector3.zero);
 			_isReady = true;
 
@@ -62,13 +73,13 @@ namespace ZE.Purastic {
 		}
 		virtual protected void PositionMarker(Vector3 groundPos)
         {
-            Vector3 pos = groundPos + 0.5f * _properties.ModelSize.y * Vector3.up;
+            Vector3 pos = groundPos + 0.5f * Properties.ModelSize.y * Vector3.up;
             Marker.Model.SetPoint(pos, _fitPosition.WorldPoint.Rotation);
         }
 
         virtual protected void OnDrawGizmos()
         {
-            if (PinFound) Gizmos.DrawSphere(FitPosition.WorldPoint.Position, 0.5f);
+            if (PinFound) Gizmos.DrawSphere(PositionInfo.WorldPoint.Position, 0.5f);
         }
     }
 }

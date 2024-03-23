@@ -45,13 +45,6 @@ namespace ZE.Purastic {
         {
             BlockFaceDirection result = new BlockFaceDirection(Quaternion.Inverse(Rotation) * face.Normal).Inverse();
             return result;
-        }
-
-        public PlaneOrths GetOrthsOnPlane(BlockFaceDirection face) 
-        {
-            var originalOrths = new FaceOrths(face);
-            var faceOrths = Rotation * originalOrths;
-            return new PlaneOrths(originalOrths.InverseVector(faceOrths.Right), originalOrths.InverseVector(faceOrths.Up)) ;
-        }        
+        }      
     }
 }

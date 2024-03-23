@@ -12,10 +12,18 @@ namespace ZE.Purastic {
         [SerializeField] private Quaternion _rotation = Quaternion.identity;
         [SerializeField] private BlockColor _blockColor = BlockColor.Amber;
         private BlockHostsManager _hostsManager;
-        private RectDrawInfo _rectDrawInfo = null;
-        private FitElementPlaneAddress ConnectionPin => new FitElementPlaneAddress(1, new Vector2Byte(_zeroPin));
+        private RectDrawInfo _rectDrawInfo = null, _blockingRectDraw = null;
+        private IContactPlaneController ContactPlaneController
+        {
+            get
+            {
+                if (f_contactPlaneController == null) f_contactPlaneController = Properties.CreateContactPlaneController(_contactFace);
+                return f_contactPlaneController;
+            }
+        }
+        private IContactPlaneController f_contactPlaneController;
         protected override BlockPreset BlockPreset => _preset;
-        protected PlacingBlockInfo BlockInfo => new (ConnectionPin, _properties, _contactFace, _rotation);
+        protected PlacingBlockInfo BlockInfo => new (ContactPlaneController.GetContactPinAddress(), Properties, _contactFace, _rotation);
 
 
         protected override void AfterStart()
@@ -29,27 +37,38 @@ namespace ZE.Purastic {
             {
                _rotation *= Quaternion.AngleAxis(90f, Vector3.up);
             }
-            if (PinFound)
+
+            if (PinFound && _hostsManager.TryGetHost(PositionInfo.BlockHostID, out var blockHost))
             {
-                
-                if (Input.GetMouseButtonDown(0) && _hostsManager.TryGetHost(FitPosition.BlockHostID, out var blockHost))
-                {
-                    var virtualBlock = new VirtualBlock(FitPosition.WorldPoint.Position, BlockInfo);
-                    var rect = Utilities.ProjectBlock(_contactFace.Inverse(), virtualBlock);
-                    _rectDrawInfo = new RectDrawInfo(blockHost, FitPosition.StructureAddress.CutPlaneID, rect);
+                if (Input.GetKeyDown(KeyCode.F)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.left));
+                if (Input.GetKeyDown(KeyCode.H)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.right));
+                if (Input.GetKeyDown(KeyCode.T)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.forward));
+                if (Input.GetKeyDown(KeyCode.G)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.back));
 
-                    bool obstruction =blockHost.CheckZoneForObstruction(FitPosition.BlockHostID, rect);
-                    Marker.SetModelStatus(obstruction ? BlockPositionStatus.Obstructed : BlockPositionStatus.CanBePlaced);
+                var virtualBlock = blockHost.CreateVirtualBlock(PositionInfo.StructureAddress, BlockInfo);
+                var rect = Utilities.ProjectBlock(_contactFace.Inverse(), virtualBlock);
+                var obstruction = blockHost.CheckZoneForObstruction(
+                        PositionInfo.StructureAddress.CutPlaneID,
+                        rect
+                        );
 
-                    var properties = _properties.ChangeMaterial(new BlockMaterial(VisualMaterialType.Plastic, _blockColor));
-                    blockHost.TryAddDetail(FitPosition.StructureAddress, BlockInfo.ChangeProperties(properties));
-                }
-                else
+
+                _blockingRectDraw = new RectDrawInfo(blockHost, PositionInfo.StructureAddress.CutPlaneID, rect);
+                Marker.SetModelStatus(obstruction ? BlockPositionStatus.Obstructed : BlockPositionStatus.CanBePlaced);
+                if (!obstruction && Input.GetMouseButtonDown(0))
                 {
-                    Marker.SetModelStatus(FitPosition.PositionIsObstructed ? BlockPositionStatus.Obstructed : BlockPositionStatus.CanBePlaced);
+                    _rectDrawInfo = new RectDrawInfo(blockHost, PositionInfo.StructureAddress.CutPlaneID, rect);
+
+                    var properties = Properties.ChangeMaterial(new BlockMaterial(VisualMaterialType.Plastic, _blockColor));
+                    blockHost.TryAddDetail(PositionInfo.StructureAddress, BlockInfo.ChangeProperties(properties));
                 }
             }
-            else Marker.SetModelStatus(BlockPositionStatus.CannotBePlaced);
+            else
+            {
+                Marker.SetModelStatus(BlockPositionStatus.CannotBePlaced);
+            }
+
+            Vector3 CameraProjectedLocalVector(Vector3 normalizedDirection) => blockHost.ModelsHost.TransformDirection(Camera.main.transform.TransformDirection(normalizedDirection));
         }
         override protected void PositionMarker(Vector3 contactPos)
         {
@@ -61,14 +80,22 @@ namespace ZE.Purastic {
         protected override void OnDrawGizmos()
         {
             base.OnDrawGizmos();
-            if (PinFound && _hostsManager.TryGetHost(FitPosition.BlockHostID, out var host) )
+            /*
+            if (PinFound && _hostsManager.TryGetHost(PositionInfo.BlockHostID, out var host) )
             {
-                var cutplane = host.CutPlanesDataProvider.GetCuttingPlane(FitPosition.StructureAddress.CutPlaneID);
-                Vector3 blockPos = BlockInfo.GetBlockCenterPosition(cutplane.PlaneAddressToLocalPos(ConnectionPin));
-                var virtualBlock = new VirtualBlock(blockPos, BlockInfo);
+                var cutplane = host.CutPlanesDataProvider.GetCuttingPlane(PositionInfo.StructureAddress.CutPlaneID);
+                Vector3 blockPos = host.TransformPosition(BlockInfo.GetBlockCenterPosition(cutplane.PlaneAddressToLocalPos(PositionInfo.StructureAddress)));
+
+                var virtualBlock = host.CreateVirtualBlock(PositionInfo.StructureAddress, BlockInfo);
                 var projection = Utilities.ProjectBlock(cutplane.Face, virtualBlock);
-                Gizmos.DrawWireCube( blockPos, new Vector3(projection.Width,1f, projection.Height));
+                Vector3 zeroPos = host.TransformPosition(projection.Position, cutplane),
+                    onePos = host.TransformPosition(projection.TopRight, cutplane);
+
+                var matrix = Matrix4x4.TRS(Vector3.zero, virtualBlock.Rotation, Vector3.one);
+                Gizmos.matrix = matrix;
+                Gizmos.DrawWireCube(matrix.inverse.MultiplyVector(blockPos), new Vector3(projection.Width, 1f, projection.Height)); 
             }
+            */
 
 
             if (_rectDrawInfo != null)
@@ -76,6 +103,12 @@ namespace ZE.Purastic {
                 Gizmos.color = Color.green;
                 Gizmos.matrix = _rectDrawInfo.Matrix;
                 Gizmos.DrawWireCube(_rectDrawInfo.WorldPos, _rectDrawInfo.Size);
+            }
+            if (_blockingRectDraw != null)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.matrix = _blockingRectDraw.Matrix;
+                Gizmos.DrawWireCube(_blockingRectDraw.WorldPos, _blockingRectDraw.Size);
             }
         }
 #endif
@@ -89,12 +122,15 @@ namespace ZE.Purastic {
             public RectDrawInfo(IBlocksHost host, int cutPlaneId, AngledRectangle rect)
             {
                 var plane = host.CutPlanesDataProvider.GetCuttingPlane(cutPlaneId);
-                Vector3 localPos = plane.CutPlaneToLocalPos(rect.Position);                
-                Size = new Vector3(rect.Width, 1f, rect.Height);
 
-                var rotation = host.ModelsHost.rotation * rect.Orths.Quaternion;
-                WorldPos = host.TransformPosition(localPos) + (0.5f * Size);
+                var face = plane.Face;
+                float angle = rect.Orths.Quaternion.eulerAngles.z;
+       
+                var rotation = host.ModelsHost.rotation * Quaternion.AngleAxis(angle, face.Normal);
+                WorldPos = host.TransformPosition(rect.Center, plane);
+                Size = new Vector3(rect.Width, 1f, rect.Height);
                 Matrix = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
+                WorldPos = Matrix.inverse.MultiplyVector(WorldPos);
             }
         }
     }
