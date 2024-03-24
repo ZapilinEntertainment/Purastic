@@ -45,7 +45,9 @@ namespace ZE.Purastic {
                 if (Input.GetKeyDown(KeyCode.T)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.forward));
                 if (Input.GetKeyDown(KeyCode.G)) ContactPlaneController.Move(CameraProjectedLocalVector(Vector3.back));
 
-                var virtualBlock = blockHost.CreateVirtualBlock(PositionInfo.StructureAddress, BlockInfo);
+
+                var defaultAddress = PositionInfo.StructureAddress;
+                var virtualBlock = blockHost.CreateVirtualBlock(defaultAddress, BlockInfo);
                 var rect = Utilities.ProjectBlock(_contactFace.Inverse(), virtualBlock);
                 var obstruction = blockHost.CheckZoneForObstruction(
                         PositionInfo.StructureAddress.CutPlaneID,

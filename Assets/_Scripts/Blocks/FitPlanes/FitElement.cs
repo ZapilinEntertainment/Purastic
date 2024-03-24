@@ -97,6 +97,17 @@ namespace ZE.Purastic {
         public static bool operator !=(FitElementPlanePosition lhs, FitElementPlanePosition rhs) => !(lhs == rhs);
         #endregion
     }
+    public readonly struct FitElementFaceAddress
+    {
+        public readonly int BlockID;
+        public readonly FitElementPlaneAddress PlaneAddress;
+
+        public FitElementFaceAddress(int blockID, FitElementPlaneAddress address)
+        {
+            BlockID = blockID;
+            PlaneAddress = address;
+        }
+    }
 
     public readonly struct ConnectingPin : IEquatable<ConnectingPin>
         // for placing and locking block
@@ -168,6 +179,8 @@ namespace ZE.Purastic {
             ContactFace = new BlockFaceDirection(direction);
             PlaneAddress = planePinPosition;
         }
+
+        public FitElementFaceAddress ToFaceAddress() => new(BlockID, PlaneAddress);
     }
     public readonly struct FoundedFitElementPosition
     {

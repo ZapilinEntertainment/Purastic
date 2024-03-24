@@ -40,11 +40,15 @@ namespace ZE.Purastic {
             var size = Properties.ModelSize;
             return LocalPosition + Rotation * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
-        public Vector3 GetFaceZeroPointInBlockSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
+        public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
         public BlockFaceDirection GetContactFace(BlockFaceDirection face)
         {
             BlockFaceDirection result = new BlockFaceDirection(Quaternion.Inverse(Rotation) * face.Normal).Inverse();
             return result;
         }      
+        public BlockFaceDirection BlockFaceToLocalFace(BlockFaceDirection face)
+        {
+            return new BlockFaceDirection(Rotation * face.Normal);
+        }
     }
 }

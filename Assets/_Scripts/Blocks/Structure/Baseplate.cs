@@ -120,7 +120,7 @@ namespace ZE.Purastic {
         public ICuttingPlane GetPlatePlane()
         {
             var rootBlock = _placedBlocksList.RootBlock;
-            return _cuttingPlanesManager.GetOrCreateCutPlane(new CuttingPlanePosition(BlockFaceDirection.Up, rootBlock.GetFaceZeroPointInBlockSpace(BlockFaceDirection.Up).y));
+            return _cuttingPlanesManager.GetOrCreateCutPlane(new CuttingPlanePosition(BlockFaceDirection.Up, rootBlock.GetFaceZeroPointInLocalSpace(BlockFaceDirection.Up).y));
         }
         public IReadOnlyCollection<BlockProperties> GetBlocks() => _placedBlocksList.GetBlocksProperties();
         public bool TryFormPlateAddress(Vector2Byte index, out FitElementStructureAddress address)
@@ -169,13 +169,14 @@ namespace ZE.Purastic {
             _cuttingPlanesManager.RemoveLocks(platePlane.ID, lockedPins);
         }
 
-        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo)
+        public VirtualBlock CreateVirtualBlock(ICuttingPlane plane, FitElementFaceAddress faceAddress, PlacingBlockInfo placingInfo)
         {
-            var pinPosition = GetPlatePinWorldPosition(fitPosition);
+            //Debug.Log($"{plane.Coordinate} : {plane.PlanesCount}");
+            var pinPosition = plane.FaceAddressToLocalPos(faceAddress);
             Vector3 localPos = TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));
             return new VirtualBlock(localPos, placingInfo);
         }
-        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo, out Vector3 pinPosition)
+        public VirtualBlock CreateVirtualBlockOnPlate(Vector2Byte fitPosition, PlacingBlockInfo placingInfo, out Vector3 pinPosition)
         {
             pinPosition = GetPlatePinWorldPosition(fitPosition);
             Vector3 localPos = TransformPosition(placingInfo.GetBlockCenterPosition(pinPosition));

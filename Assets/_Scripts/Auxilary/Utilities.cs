@@ -14,11 +14,11 @@ namespace ZE.Purastic {
 
 
         public static CuttingPlanePosition DefineCutPlaneCoordinate(VirtualBlock block, BlockFaceDirection face) => 
-            new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInBlockSpace(face), face.Normal));
+            new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(face), face.Normal));
         public static float DefineCutPlaneCoordinate(Vector3 localPos, Vector3 planeNormal)
         {
             Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
-            return Vector3.Dot(localPos - projectedPos, planeNormal);
+            return TrimFloat(Vector3.Dot(localPos - projectedPos, planeNormal));
         }
 
 
@@ -34,8 +34,7 @@ namespace ZE.Purastic {
             // 2) but for zeroPos we must take corner from the opposite face (even if it doesnt exist in block) - UP(blockFace.Inverse)
             // it is because corner points of opposite planes(like UP and DOWN) are opposite and not match (because of different orths)
             PlaneOrths blockFaceOrths = new PlaneOrths(calculatingFace, block.Rotation);
-            
-            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInBlockSpace(calculatingFace);
+            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInLocalSpace(calculatingFace);
 
             // var rect = new AngledRectangle(blockFaceZeroPoint, localSize, blockFaceOrths);
             //return rect.ProjectToPlane(calculatingFace, receivingFace);
@@ -60,10 +59,10 @@ namespace ZE.Purastic {
             return CreatePlaneRect(position.StructureAddress.PlaneAddress, properties.GetProjectionSize(face), cutPlane, new PlaneOrths(face, rotation));
         }
         */
-        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle) => CreatePlaneRect(initialPinAddress, size, plane, PlaneOrths.Default.RotateOrths(rotationAngle));
-        public static AngledRectangle CreatePlaneRect(FitElementPlaneAddress initialPinAddress, Vector2 size, ICuttingPlane plane, PlaneOrths orths)
+        public static AngledRectangle CreatePlaneRect(FitElementFaceAddress initialPinAddress, Vector2 size, ICuttingPlane plane, float rotationAngle) => CreatePlaneRect(initialPinAddress, size, plane, PlaneOrths.Default.RotateOrths(rotationAngle));
+        public static AngledRectangle CreatePlaneRect(FitElementFaceAddress initialPinAddress, Vector2 size, ICuttingPlane plane, PlaneOrths orths)
         {
-            Vector2 initialPinPos = plane.PlaneAddressToCutPlanePos(initialPinAddress);
+            Vector2 initialPinPos = plane.FaceAddressToCutPlanePos(initialPinAddress);
 
             const float sz = GameConstants.BLOCK_SIZE;
             Vector2 dir = -0.5f * sz * Vector2.one;

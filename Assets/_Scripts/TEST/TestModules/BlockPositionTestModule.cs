@@ -39,7 +39,7 @@ namespace ZE.Purastic {
         private void Redraw()
         {
             var info = PlacingInfo;
-            var virtualBlock = _baseplate.CreateVirtualBlock(new Vector2Byte(_fitPosition), info, out _rotationAxlePoint);
+            var virtualBlock = _baseplate.CreateVirtualBlockOnPlate(new Vector2Byte(_fitPosition), info, out _rotationAxlePoint);
             
             _modelTransform.position = virtualBlock.LocalPosition;
             _modelTransform.rotation = _baseplate.ModelsHost.rotation * info.Rotation;

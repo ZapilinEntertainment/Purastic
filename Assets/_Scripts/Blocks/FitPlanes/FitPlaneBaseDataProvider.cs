@@ -9,6 +9,8 @@ namespace ZE.Purastic {
         abstract protected FitType FitType { get; }
         abstract protected Vector2 Size { get; }
         protected readonly PlaneProviderPosition _position;
+
+        public int BlockID => _position.BlockID;
         public PlaneOrths Orths => _position.CutPlaneSpaceOrths;
 
         public FitPlaneBaseDataProvider(PlaneProviderPosition position)

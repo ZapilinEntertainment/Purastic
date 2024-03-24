@@ -24,7 +24,7 @@ namespace ZE.Purastic {
         public Vector3 TransformPosition(Vector2 facePos, BlockFaceDirection face) => TransformPosition(face.TransformVector(facePos));
         public Vector3 TransformPosition(Vector2 facePos, ICuttingPlane cutPlane) => TransformPosition(cutPlane.CutPlaneToLocalPos(facePos));
 
-        public VirtualBlock CreateVirtualBlock(Vector2Byte fitPosition, PlacingBlockInfo placingInfo);
-        public VirtualBlock CreateVirtualBlock(FitElementStructureAddress address, PlacingBlockInfo placingInfo) => CreateVirtualBlock(address.PlaneAddress.PinIndex, placingInfo);
+        public VirtualBlock CreateVirtualBlock(ICuttingPlane plane, FitElementFaceAddress faceAddress, PlacingBlockInfo placingInfo);
+        public VirtualBlock CreateVirtualBlock(FitElementStructureAddress address, PlacingBlockInfo placingInfo) => CreateVirtualBlock(CutPlanesDataProvider.GetCuttingPlane(address.CutPlaneID), address.ToFaceAddress(), placingInfo);
     }
 }

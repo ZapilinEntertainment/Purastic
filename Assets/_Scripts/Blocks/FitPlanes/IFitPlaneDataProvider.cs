@@ -6,6 +6,7 @@ using ZE.ServiceLocator;
 namespace ZE.Purastic {
     public interface IFitPlaneDataProvider
     {
+        public int BlockID { get; }
         public PlaneOrths Orths { get; }
         public bool Contains(Vector2 cutPlanePosition);
         public bool TryGetPinPosition(Vector2 cutPlanePosition, out FitElementPlaneAddress pinPosition);
