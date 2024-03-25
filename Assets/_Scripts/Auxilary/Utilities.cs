@@ -16,9 +16,12 @@ namespace ZE.Purastic {
         public static CuttingPlanePosition DefineCutPlaneCoordinate(VirtualBlock block, BlockFaceDirection face) => 
             new CuttingPlanePosition(face, DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(face), face.Normal));
         public static float DefineCutPlaneCoordinate(Vector3 localPos, Vector3 planeNormal)
-        {
+        {            
             Vector3 projectedPos = Vector3.ProjectOnPlane(localPos, planeNormal);
-            return TrimFloat(Vector3.Dot(localPos - projectedPos, planeNormal));
+            float result =  TrimFloat(Vector3.Dot(localPos - projectedPos, planeNormal));
+            //if (Vector3.Dot(planeNormal, Vector3.back) == 1f) Debug.Log($"{localPos}");
+            //if (Vector3.Dot(planeNormal, Vector3.back) == 1f)  Debug.Log($"{localPos} -> {result}");
+            return result;
         }
 
 
@@ -26,15 +29,17 @@ namespace ZE.Purastic {
         {
             Vector2 localSize = block.Properties.GetProjectionSize(receivingFace);
 
-            var blockFace = block.GetContactFace(receivingFace); // ex: non-rotated block connects with UP plane with DOWN plane
-            var calculatingFace = blockFace.Inverse();
-            // inverted, because it projects from a mirrored plane
+            var blockFace = block.LocalFaceToBlockFace(receivingFace);            
+            var calculatingFace = blockFace;
+            //Debug.Log($"{receivingFace}->{blockFace}->{calculatingFace}");
+            // mirrored, because it projects from a mirrored plane
             // example: if we project a block on a UP plane (receivingFace),
             // 1) we take orths from face, that block is faced to plane now:  LocalToBlockFace -> DOWN(blockFace)
             // 2) but for zeroPos we must take corner from the opposite face (even if it doesnt exist in block) - UP(blockFace.Inverse)
             // it is because corner points of opposite planes(like UP and DOWN) are opposite and not match (because of different orths)
             PlaneOrths blockFaceOrths = new PlaneOrths(calculatingFace, block.Rotation);
-            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInLocalSpace(calculatingFace);
+            Vector3 blockFaceZeroPoint = block.GetFaceZeroPointInLocalSpace(receivingFace); 
+            //if (receivingFace.Direction == FaceDirection.Back) Debug.Log($"{blockFaceZeroPoint - block.LocalPosition}");
 
             // var rect = new AngledRectangle(blockFaceZeroPoint, localSize, blockFaceOrths);
             //return rect.ProjectToPlane(calculatingFace, receivingFace);
@@ -72,5 +77,7 @@ namespace ZE.Purastic {
                     orths
                     );
         }
+
+        public static Vector3 DefineHorizontalPlaneZeroPos(int width, int length, float height) => new(-width * 0.5f * GameConstants.BLOCK_SIZE, height, -length * 0.5f * GameConstants.BLOCK_SIZE);
     }
 }

@@ -48,6 +48,7 @@ namespace ZE.Purastic {
         }
 		private void AddCuttingPlane(CuttingPlanePosition coordinate, ICuttingPlane plane)
 		{
+			//Debug.Log(coordinate);
 			_cuttingPlanes.Add(coordinate, plane);
 			_cuttingPlanesById.Add(plane.ID, plane);
 		}
@@ -79,10 +80,12 @@ namespace ZE.Purastic {
 			
 			ICuttingPlane cuttingPlane;
 			var dataProvider = fitPlaneConfig.CreateDataProvider(block.ID,subPlaneId,block, face);
-            float coordinate = Utilities.DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(face), normal);
+            float coordinate = Utilities.DefineCutPlaneCoordinate(block.GetFaceZeroPointInLocalSpace(fitPlaneConfig.Face), normal);
             var key = new CuttingPlanePosition(face, coordinate);
+			//Debug.Log($"{face}:{block.GetFaceZeroPointInLocalSpace(fitPlaneConfig.Face)}:{key}");
+			//if (face.Direction == FaceDirection.Forward || face.Direction == FaceDirection.Back) Debug.Log(key);
 
-			if (!_cuttingPlanes.TryGetValue(key, out cuttingPlane))
+            if (!_cuttingPlanes.TryGetValue(key, out cuttingPlane))
 			{
 				cuttingPlane = new OneItemCuttingPlane(_nextCuttingPlaneId++, dataProvider, face, coordinate);
 				AddCuttingPlane(key, cuttingPlane);
@@ -133,14 +136,16 @@ namespace ZE.Purastic {
 		{
             var face = new BlockFaceDirection(normal);
             float coordinate = Utilities.DefineCutPlaneCoordinate(localPos, face.Normal);
+            //if (face.Direction == FaceDirection.Forward || face.Direction == FaceDirection.Back) Debug.Log(coordinate);
 			if (_cuttingPlanes.TryGetValue(new(face, coordinate), out var cuttingPlane))
-			{
+			{				
 				Vector2 cutPlanePos = face.InverseVector(localPos);
-				//Debug.Log($"{localPos} -> {cutPlanePos}");
-				if (cuttingPlane.TryDefineFitPlane(cutPlanePos, out IFitPlaneDataProvider fitPlane) && fitPlane.TryGetPinPosition(cutPlanePos, out var planeAddress))
+				//if (face.Direction != FaceDirection.Up) Debug.Log($"{face}:{cutPlanePos}");
+				//if (face.Direction != FaceDirection.Up) Debug.Log(cuttingPlane.TryDefineFitPlane(cutPlanePos, out IFitPlaneDataProvider ftp));
+                if (cuttingPlane.TryDefineFitPlane(cutPlanePos, out IFitPlaneDataProvider fitPlane) && fitPlane.TryGetPinPosition(cutPlanePos, out var planeAddress))
 				{
 					var address = new FitElementStructureAddress(block.ID, cuttingPlane.ID, face, planeAddress);
-
+					//Debug.Log(address.PlaneAddress);
 					var facePoint = fitPlane.IndexToVirtualPoint(address.PlaneAddress.PinIndex);
 					var localPoint = new VirtualPoint(cuttingPlane.CutPlaneToLocalPos(facePoint.Position), cuttingPlane.Face.ToRotation() * facePoint.Rotation);
 					var worldPoint = new VirtualPoint(BlocksHost.TransformPosition(localPoint.Position), BlocksHost.ModelsHost.rotation * localPoint.Rotation);
@@ -159,6 +164,17 @@ namespace ZE.Purastic {
                     fitPosition = new FoundedFitElementPosition(BlocksHost.ID, address, worldPoint, normal, isObstructed);
                     return true;
 				}
+				else
+				{
+					fitPosition = new FoundedFitElementPosition(
+						BlocksHost.ID,
+						new FitElementStructureAddress(block.ID, cuttingPlane.ID, face, default),
+						default,
+						normal,
+						false
+						);
+					return false;
+				}
 			}
 			//else Debug.Log(coordinate);
 			fitPosition = default;
@@ -176,7 +192,7 @@ namespace ZE.Purastic {
 				var mirrorPlane = GetOrCreateCutPlane(cuttingPlane.GetMirrorPosition());
 				var mirrorFace = mirrorPlane.Face;
 				var mirrorRect = Utilities.ProjectBlock(mirrorFace, planningBlock);
-				var connectFace = planningBlock.GetContactFace(cuttingPlane.Face);
+				var connectFace = planningBlock.LocalFaceToBlockFace(cuttingPlane.Face.Mirror());
 				var newBlockPins = planningBlock.Properties.GetPlanesList().CreateLandingPinsList(-1,planningBlock, connectFace, mirrorRect, mirrorPlane);
 
 				int landingPinsCount = landingPins?.Pins.Count ?? 0,

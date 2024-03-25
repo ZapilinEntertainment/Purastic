@@ -15,9 +15,11 @@ namespace ZE.Purastic {
         public Action<PlacedBlock> OnBlockPlacedEvent { get; set; }
         public IReadOnlyCollection<BlockProperties> GetBlocks();
 
+        public bool TryGetBlock(int blockID, out PlacedBlock block);
         public bool CheckZoneForObstruction(int cutPlaneID, AngledRectangle rect);
         public bool TryAddDetail(FitElementStructureAddress position, PlacingBlockInfo placingBlockInfo);
         public bool TryGetFitElementPosition(RaycastHit hit, out FoundedFitElementPosition position);
+       
 
         public Vector3 InverseTransformPosition(Vector3 position);
         public Vector3 TransformPosition(Vector3 position);

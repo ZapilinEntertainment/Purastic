@@ -27,13 +27,13 @@ namespace ZE.Purastic {
         }
 
         //single-pin
-        public FitPlaneConfig(FitType fitType, int heightInPlates,  FaceDirection direction)
+        public FitPlaneConfig(FitType fitType, float heightOffset,  FaceDirection direction)
         {
             PinsConfiguration = new SinglePinConfig(fitType);
             FitType = fitType;
             Face = new BlockFaceDirection(direction);
             var normalizedZeroPos = direction.ToPlaneRotation() * GameConstants.NormalizedDefaultPlaneZeroPos;
-            ZeroPos = PinsConfiguration.GetZeroPos(GameConstants.GetHeight(heightInPlates) * 0.5f * Mathf.Sign(normalizedZeroPos.y));
+            ZeroPos = PinsConfiguration.GetZeroPos(heightOffset * Mathf.Sign(normalizedZeroPos.y));
         }
 
         // plate with knobs

@@ -10,18 +10,15 @@ namespace ZE.Purastic {
         protected override void OnBlockPositioned(VirtualBlock block)
         {
             base.OnBlockPositioned(block); // lock pins on plate
-            var face = ProjectionFace.Inverse();
-            _projectionDrawer = new RectDrawer(Baseplate, face, block);
-            _mirrorDrawer = new RectDrawer(Baseplate, face, ProjectionRect.ProjectToPlane(ProjectionFace, face));
+            var face = ProjectionFace.Mirror();
+            _projectionDrawer = RectDrawer.CreateRectDrawer(Baseplate, face, block, Color.Lerp(Color.red, Color.white, 0.5f), 0.2f);
+            _mirrorDrawer = RectDrawer.CreateRectDrawer(Baseplate, face, ProjectionRect.ProjectToPlane(ProjectionFace, face), Color.red, 0.15f);
         }
 #if UNITY_EDITOR
         override protected void DrawGizmos()
         {
-            base.DrawGizmos();
-            Gizmos.color = Color.Lerp( Color.red, Color.white, 0.5f);
-            _projectionDrawer.DrawGizmos();
-            Gizmos.color = Color.red;
-            _mirrorDrawer.DrawGizmos();
+            _projectionDrawer?.DrawCorners();
+            _mirrorDrawer?.DrawCorners();
         }
 #endif
     }

@@ -28,7 +28,7 @@ namespace ZE.Purastic {
             this.Properties = block.Properties;
             this.Rotation = block.Rotation;
         }
-        public void Reposition(Vector3 newPos) => LocalPosition = newPos; 
+        public void Reposition(Vector3 newPos) => LocalPosition = newPos;
         public Vector3 FacePositionToModelPosition(Vector2 facePoint, BlockFaceDirection face)
         {
             return TransformNormalizedPoint(face.GetNormalizedZeroPoint()) + Rotation * face.TransformVector(facePoint);
@@ -40,15 +40,15 @@ namespace ZE.Purastic {
             var size = Properties.ModelSize;
             return LocalPosition + Rotation * new Vector3(0.5f * size.x * x, 0.5f * size.y * y, 0.5f * size.z * z);
         }
-        public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face) => TransformNormalizedPoint(face.GetNormalizedZeroPoint());
-        public BlockFaceDirection GetContactFace(BlockFaceDirection face)
+        public Vector3 GetFaceZeroPointInLocalSpace(BlockFaceDirection face)
         {
-            BlockFaceDirection result = new BlockFaceDirection(Quaternion.Inverse(Rotation) * face.Normal).Inverse();
+            var result = TransformNormalizedPoint(face.GetNormalizedZeroPoint());
             return result;
-        }      
+        }    
         public BlockFaceDirection BlockFaceToLocalFace(BlockFaceDirection face)
         {
             return new BlockFaceDirection(Rotation * face.Normal);
         }
+        public BlockFaceDirection LocalFaceToBlockFace(BlockFaceDirection face) => new (Quaternion.Inverse(Rotation) * face.Normal);
     }
 }

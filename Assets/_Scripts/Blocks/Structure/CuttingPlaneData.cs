@@ -13,6 +13,7 @@ namespace ZE.Purastic {
 
         public ICuttingPlane AddFitPlaneProvider(IFitPlaneDataProvider provider);
         public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider dataProvider);
+        public bool TryGetFitPlane(int blockID, int subplaneID, out IFitPlaneDataProvider dataProvider);
         public Vector2 LocalToCutPlanePos(Vector3 localPos);
         public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos);
         public Vector2 FaceAddressToCutPlanePos(FitElementFaceAddress address);
@@ -21,7 +22,7 @@ namespace ZE.Purastic {
         public FitsConnectionZone GetLandingPinsList(AngledRectangle rect);
 
         public CuttingPlanePosition ToCoordinate() => new (Face, Coordinate);
-        public CuttingPlanePosition GetMirrorPosition() => new(Face.Inverse(),Coordinate);
+        public CuttingPlanePosition GetMirrorPosition() => new(Face.Mirror(),Coordinate);
     }
 
     public abstract class CuttingPlaneBase : ICuttingPlane
@@ -43,6 +44,7 @@ namespace ZE.Purastic {
 
         abstract public ICuttingPlane AddFitPlaneProvider(IFitPlaneDataProvider provider);
         abstract public bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider fitPlane);
+        abstract public bool TryGetFitPlane(int blockID, int subplaneID, out IFitPlaneDataProvider dataProvider);
         public Vector3 CutPlaneToLocalPos(Vector2 inPlanePos)
         {
             Vector3 localProjectedPos = new FaceOrths(Face).TransformVector(inPlanePos);
@@ -82,6 +84,11 @@ namespace ZE.Purastic {
             fitPlane = null;
             return false;
         }
+        public override bool TryGetFitPlane(int blockID, int subplaneID, out IFitPlaneDataProvider dataProvider)
+        {
+            dataProvider = null;
+            return false;
+        }
         public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect) => null;
     }
     public class OneItemCuttingPlane : CuttingPlaneBase
@@ -104,10 +111,23 @@ namespace ZE.Purastic {
 
         public override bool TryDefineFitPlane(Vector2 pos, out IFitPlaneDataProvider dataProvider)
         {
-            //Debug.Log($"pos {pos} in {_provider.ToRectangle().Rect}");
+            //if (Face.Direction == FaceDirection.Back) Debug.Log($"{_provider.ToRectangle()} vs {pos}");
             if (_provider.Contains(pos))
             {
                
+                dataProvider = _provider;
+                return true;
+            }
+            else
+            {
+                dataProvider = null;
+                return false;
+            }
+        }
+        public override bool TryGetFitPlane(int blockID, int subplaneID, out IFitPlaneDataProvider dataProvider)
+        {
+            if (_provider.BlockID == blockID && _provider.SubplaneID == subplaneID)
+            {
                 dataProvider = _provider;
                 return true;
             }
@@ -146,13 +166,25 @@ namespace ZE.Purastic {
             }
             fitPlane= default; return false;
         }
+        public override bool TryGetFitPlane(int blockID, int subplaneID, out IFitPlaneDataProvider dataProvider)
+        {
+            foreach (var provider in _providers)
+            {
+                if (provider.BlockID == blockID && provider.SubplaneID == subplaneID)
+                {
+                    dataProvider = provider;
+                    return true;
+                }
+            }
+            dataProvider = default; return false;
+        }
 
         public override FitsConnectionZone GetLandingPinsList(AngledRectangle rect)
         {
             var list = new List<ConnectingPin>();
             foreach (var provider in _providers)
             {
-                Debug.Log($"{provider.ToRectangle()} vs {rect}");
+                //Debug.Log($"{provider.ToRectangle()} vs {rect}");
                 if (provider.ToRectangle().IsIntersects(rect)) list.AddRange(provider.GetPinsInZone(rect));
             }
             return new FitsConnectionZone(Face, list);

@@ -11,6 +11,7 @@ namespace ZE.Purastic {
         protected readonly PlaneProviderPosition _position;
 
         public int BlockID => _position.BlockID;
+        public int SubplaneID => _position.BlockSubplaneID;
         public PlaneOrths Orths => _position.CutPlaneSpaceOrths;
 
         public FitPlaneBaseDataProvider(PlaneProviderPosition position)

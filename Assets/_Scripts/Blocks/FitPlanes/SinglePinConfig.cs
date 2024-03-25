@@ -18,7 +18,7 @@ namespace ZE.Purastic {
         public FitElementPlanePosition[] GetAllPinsInPlaneSpace() => new FitElementPlanePosition[1] {new FitElementPlanePosition(Vector2Byte.zero, SolePointPos)};
         public Vector2Byte GetFitIndex(Vector2 planedPos) => Vector2Byte.zero;
         public Vector2 GetPlanePoint(Vector2Byte index) => SolePointPos;
-        public Vector3 GetZeroPos(float height) => new(-0.5f * GameConstants.BLOCK_SIZE, height, -0.5f * GameConstants.BLOCK_SIZE);
+        public Vector3 GetZeroPos(float height) => Utilities.DefineHorizontalPlaneZeroPos(1,1,height);
         public IFitPlaneDataProvider ToDataProvider(PlaneProviderPosition position) => new SinglePinDataProvider(this, position);
         public Rect ToRect(Vector2 zeroPos) => new (zeroPos.x, zeroPos.y, GameConstants.BLOCK_SIZE, GameConstants.BLOCK_SIZE);
         public bool TryGetPlanePoint(Vector2Byte index, out Vector2 pos)

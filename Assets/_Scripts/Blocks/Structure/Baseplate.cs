@@ -68,6 +68,8 @@ namespace ZE.Purastic {
             //OnBlockPlacedEvent?.Invoke(new PlacedBlock(-1,virtualBlock));   
         }
 
+
+        public bool TryGetBlock(int blockID, out PlacedBlock block) => _placedBlocksList.TryGetBlock(blockID, out block);
         public bool CheckZoneForObstruction(int cutPlaneID, AngledRectangle rect)
         {
             if (_cuttingPlanesManager.TryGetLockZone(cutPlaneID, out var lockZone))

@@ -7,33 +7,6 @@ namespace ZE.Purastic {
 
 	public class RectTestModule : BlockPositionTestModule
 	{
-        protected struct RectDrawer
-        {
-            public readonly Vector3 ZeroPos, OnePos;
-            public readonly AngledRectangle Rect;
-            private readonly Vector3 _faceNormal;
-
-            public RectDrawer(IBlocksHost host, ICuttingPlane plane, VirtualBlock block)
-            {
-                _faceNormal = plane.Face.Normal;
-                Rect = Utilities.ProjectBlock(plane.Face, block);
-                ZeroPos = host.TransformPosition(Rect.Position, plane);
-                OnePos = host.TransformPosition(Rect.TopRight, plane);
-            }
-            public RectDrawer(IBlocksHost host, BlockFaceDirection face, VirtualBlock block) : this(host, face, Utilities.ProjectBlock(face, block)) { }
-            public RectDrawer(IBlocksHost host, BlockFaceDirection face, AngledRectangle rect)
-            {
-                _faceNormal = face.Normal;
-                Rect = rect;
-                ZeroPos = host.TransformPosition(Rect.Position, face);
-                OnePos = host.TransformPosition(Rect.TopRight, face);
-            }
-            public void DrawGizmos()
-            {
-                Gizmos.DrawLine(ZeroPos, ZeroPos + 2f * _faceNormal);
-                Gizmos.DrawLine(OnePos, OnePos + 1f * _faceNormal);
-            }
-        }
 
         [SerializeField] private VisualMaterialType _materialtype = VisualMaterialType.Plastic;
         private RectDrawer _rectDrawerByPlane, _rectDrawerByFace;
@@ -49,10 +22,10 @@ namespace ZE.Purastic {
 
             var plane = Baseplate.GetPlatePlane();
             ProjectionFace = plane.Face;
-            _rectDrawerByPlane = new RectDrawer(Baseplate, plane, block);
-            _rectDrawerByFace = new RectDrawer(Baseplate, ProjectionFace, block);
+            _rectDrawerByPlane = RectDrawer.CreateRectDrawer(Baseplate, plane, block, Color.black, 0.15f);
+            _rectDrawerByFace = RectDrawer.CreateRectDrawer(Baseplate, ProjectionFace, block, Color.yellow, 0.1f);
             Debug.Log($"{ProjectionFace}:{_rectDrawerByPlane.Rect}");
-            Debug.Log($"{_rectDrawerByPlane.Rect.TopRight}");
+            //Debug.Log($"{_rectDrawerByPlane.Rect.TopRight}");
             Baseplate.LockPlateZone(_rectDrawerByPlane.Rect, out _lockedPins);
             //DebugOutputUtility.LogObjects(_lockedPins);
            // Baseplate.LockPlateZone(Utilities.ProjectBlock(BlockFaceDirection.Up, block), out _lockedPins);
@@ -61,10 +34,8 @@ namespace ZE.Purastic {
         override protected void DrawGizmos()
         {
             base.DrawGizmos();
-            Gizmos.color = Color.black;
-            _rectDrawerByPlane.DrawGizmos();
-            Gizmos.color = Color.yellow;
-            _rectDrawerByFace.DrawGizmos();
+            _rectDrawerByPlane?.DrawCorners();
+            _rectDrawerByFace?.DrawCorners();
         }
 #endif
     }

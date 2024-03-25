@@ -38,7 +38,7 @@ namespace ZE.Purastic {
         }
 		public Vector2 GetFitPosition(Vector2Byte index) => IndexToPosition(index);
 		public Vector2 ToSize() => new (Width * GameConstants.BLOCK_SIZE, Length * GameConstants.BLOCK_SIZE);
-        public Vector3 GetZeroPos(float height) => new (-Width * 0.5f * GameConstants.BLOCK_SIZE, height, -Length * 0.5f * GameConstants.BLOCK_SIZE);
+        public Vector3 GetZeroPos(float height) => Utilities.DefineHorizontalPlaneZeroPos(Width, Length, height);
 
         public FitElement GetFitElement(Vector2Byte index) => new FitElement(
 			FitType,

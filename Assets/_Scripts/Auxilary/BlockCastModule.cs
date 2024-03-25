@@ -33,13 +33,9 @@ namespace ZE.Purastic {
 		{
             if (Cast(out IBlocksHost host, out hit))
             {
-                if (host.TryGetFitElementPosition(hit, out var point))
-                {
-                    position = point;
-                    return true;
-                }
+                return host.TryGetFitElementPosition(hit, out position);
             }
-            position = default;
+            else position = default;
             return false;
         }
         public bool Cast(out IBlocksHost host, out RaycastHit hit)

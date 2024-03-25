@@ -85,7 +85,7 @@ namespace ZE.Purastic {
             CustomValue = 0;
         }
 
-        public BlockFaceDirection Inverse()
+        public BlockFaceDirection Mirror()
         {
             switch (Direction)
             {
